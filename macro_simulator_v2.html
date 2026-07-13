@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macroeconomic Simulator - Pakistan Economy</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+            padding: 30px;
+            min-height: 600px;
+        }
+
+        @media (max-width: 1200px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-panel {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 25px;
+            border: 2px solid #e0e0e0;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .input-panel h2 {
+            font-size: 18px;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1e88e5;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #1e88e5;
+            box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+        }
+
+        .year-display {
+            background: #1e88e5;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit {
+            background: #1e88e5;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background: #1565c0;
+            box-shadow: 0 4px 12px rgba(30, 136, 229, 0.4);
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-reset:hover {
+            background: #d0d0d0;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-box {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .chart-box h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1e88e5;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #1e88e5;
+            transition: width 0.3s ease;
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            border-left: 4px solid #1e88e5;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #0d47a1;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 40px 20px;
+            grid-column: 1 / -1;
+        }
+
+        .welcome-screen h2 {
+            font-size: 24px;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+
+        .welcome-screen p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .welcome-screen .btn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 16px;
+        }
+
+        .current-stats {
+            background: #f0f4f8;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #1e88e5;
+            font-weight: 700;
+        }
+
+        .game-over {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .game-over h2 {
+            font-size: 28px;
+            color: #1e88e5;
+            margin-bottom: 20px;
+        }
+
+        .game-over p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .score-card {
+            background: #f0f4f8;
+            border: 2px solid #1e88e5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .score-card-item {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .score-card-item strong {
+            color: #1e88e5;
+        }
+
+        .final-charts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .final-charts {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-hint {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Macroeconomic Simulator</h1>
+            <p>Manage Pakistan's Economy for 5 Years</p>
+        </div>
+
+        <div id="welcomeScreen" class="content" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div class="welcome-screen">
+                <h2>Welcome to the Economic Simulator!</h2>
+                <p>You have been appointed as the Finance Minister. Your task is to manage the economy for 5 years by making fiscal and monetary policy decisions.</p>
+                <p><strong>Initial Conditions:</strong> GDP = $300 Billion, Unemployment = 6%, Inflation = 2%</p>
+                <p><strong>Goal:</strong> Balance growth, employment, and inflation through strategic policy decisions.</p>
+                <div class="instructions">
+                    <strong>💡 Key Model:</strong><br>
+                    Y = C + I + G (Aggregate Demand)<br>
+                    C = 100 + 0.67(Y - T)<br>
+                    I = 75 - 50R - 50t_c<br>
+                    <br>
+                    <strong>Effects:</strong><br>
+                    ↑ Government Spending → ↑ GDP<br>
+                    ↑ Interest Rate → ↓ Investment → ↓ GDP<br>
+                    ↓ Tax Rates → ↑ Consumption → ↑ GDP
+                </div>
+                <button class="btn btn-submit" onclick="startGame()" style="margin-top: 30px; padding: 15px 40px; font-size: 16px;">Begin Game</button>
+            </div>
+        </div>
+
+        <div id="gameScreen" class="content" style="display: none;">
+            <!-- Input Panel -->
+            <div class="input-panel">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 20%;"></div>
+                </div>
+                <div class="year-display" id="yearDisplay">Year 0</div>
+                
+                <h2>Policy Decisions</h2>
+
+                <div class="instructions">
+                    Set monetary and fiscal policy for the upcoming year. Your choices directly affect GDP growth, unemployment, and inflation.
+                </div>
+
+                <form id="policyForm">
+                    <div class="form-group">
+                        <label for="interestRate">Interest Rate (R)</label>
+                        <input type="number" id="interestRate" min="0.01" max="1" step="0.01" placeholder="0.12" required>
+                        <div class="input-hint">Range: 0.01 to 1.00 (1% to 100%)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="govSpending">Government Spending (G)</label>
+                        <input type="number" id="govSpending" min="10" max="300" step="5" placeholder="60" required>
+                        <div class="input-hint">Range: 10 to 300 ($ Billion)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="corpTax">Corporate Tax Rate (t_c)</label>
+                        <input type="number" id="corpTax" min="0" max="1" step="0.01" placeholder="0.30" required>
+                        <div class="input-hint">Range: 0 to 1.0 (0% to 100%)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="directTax">Direct Tax Rate (t)</label>
+                        <input type="number" id="directTax" min="0" max="1" step="0.01" placeholder="0.25" required>
+                        <div class="input-hint">Range: 0 to 1.0 (0% to 100%)</div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-submit" id="submitBtn">Submit Decision</button>
+                        <button type="reset" class="btn btn-reset">Clear</button>
+                    </div>
+                </form>
+
+                <div class="current-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Current GDP</span>
+                        <span class="stat-value">$<span id="statGDP">300</span>B</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Growth Rate</span>
+                        <span class="stat-value"><span id="statGrowth">2</span>%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Unemployment</span>
+                        <span class="stat-value"><span id="statUnemp">6.00</span>%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Inflation</span>
+                        <span class="stat-value"><span id="statInflation">2.00</span>%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Budget</span>
+                        <span class="stat-value"><span id="statBudget">0</span>%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Container -->
+            <div class="charts-container">
+                <div class="chart-box">
+                    <h3>📈 GDP & Growth Rate</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="gdpChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-box">
+                    <h3>💼 Unemployment Rate (Okun's Law)</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="unemploymentChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-box">
+                    <h3>📊 Inflation Rate (Phillips Curve)</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="inflationChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-box">
+                    <h3>💰 Budget Deficit/Surplus</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="budgetChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="gameOverScreen" class="content" style="display: none; flex-direction: column; align-items: center; justify-content: center;">
+            <div class="game-over">
+                <h2>🎉 Game Over!</h2>
+                <p>Your 5-year term as Finance Minister is complete.</p>
+                
+                <div id="finalScorecard"></div>
+
+                <div class="final-charts">
+                    <div class="chart-box">
+                        <h3>GDP Progress</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="finalGdpChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <h3>Economic Indicators</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="finalIndicatorsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-submit" onclick="location.reload()" style="padding: 12px 30px; margin-top: 20px;">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            currentYear: 0,
+            history: []
+        };
+
+        let charts = {};
+
+        const model = {
+            initialGDP: 300,
+            initialK: 100,
+            initialL: 100,
+            mpc: 0.67,
+            depr: 0.05,
+            lg: 0.02,
+            lambda: 0.25,
+            initialUn: 6,
+            initialInf: 2
+        };
+
+        function startGame() {
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'grid';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            gameState.currentYear = 0;
+            gameState.history = [];
+            addBaselineYear();
+            initCharts();
+        }
+
+        function addBaselineYear() {
+            gameState.history.push({
+                year: 0,
+                GDP: model.initialGDP,
+                growth: 2,
+                unemployment: model.initialUn,
+                inflation: model.initialInf,
+                budget: 0,
+                K: model.initialK,
+                L: model.initialL,
+                G: 60,
+                T: 75
+            });
+            gameState.currentYear = 1;
+            updateYearDisplay();
+            updateStats(gameState.history[0]);
+        }
+
+        function updateYearDisplay() {
+            document.getElementById('yearDisplay').textContent = `Year ${gameState.currentYear}`;
+            const progress = (gameState.currentYear / 5) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            const labels = ['1st', '2nd', '3rd', '4th', '5th'];
+            document.getElementById('submitBtn').textContent = `Make ${labels[gameState.currentYear - 1]} Year Decision`;
+        }
+
+        function initCharts() {
+            const years = gameState.history.map(h => `Year ${h.year}`);
+
+            // GDP & Growth Chart
+            const gdpCtx = document.getElementById('gdpChart').getContext('2d');
+            charts.gdp = new Chart(gdpCtx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: 'GDP ($B)',
+                            data: gameState.history.map(h => h.GDP),
+                            borderColor: '#1e88e5',
+                            backgroundColor: 'rgba(30, 136, 229, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Growth Rate (%)',
+                            data: gameState.history.map(h => h.growth),
+                            borderColor: '#4caf50',
+                            borderDash: [5, 5],
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'GDP ($B)' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Growth (%)' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+
+            // Unemployment Chart
+            const unempCtx = document.getElementById('unemploymentChart').getContext('2d');
+            charts.unemployment = new Chart(unempCtx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: 'Unemployment Rate (%)',
+                        data: gameState.history.map(h => h.unemployment),
+                        borderColor: '#f57c00',
+                        backgroundColor: 'rgba(245, 124, 0, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#f57c00'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Unemployment (%)' }
+                        }
+                    }
+                }
+            });
+
+            // Inflation Chart
+            const inflCtx = document.getElementById('inflationChart').getContext('2d');
+            charts.inflation = new Chart(inflCtx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: 'Inflation Rate (%)',
+                        data: gameState.history.map(h => h.inflation),
+                        borderColor: '#d32f2f',
+                        backgroundColor: 'rgba(211, 47, 47, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#d32f2f'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Inflation (%)' }
+                        }
+                    }
+                }
+            });
+
+            // Budget Chart
+            const budgetCtx = document.getElementById('budgetChart').getContext('2d');
+            charts.budget = new Chart(budgetCtx, {
+                type: 'bar',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: 'Budget (% GDP)',
+                        data: gameState.history.map(h => h.budget),
+                        backgroundColor: gameState.history.map(h => h.budget > 0 ? '#4caf50' : '#d32f2f'),
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Budget (% GDP)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            const years = gameState.history.map(h => `Year ${h.year}`);
+
+            charts.gdp.data.labels = years;
+            charts.gdp.data.datasets[0].data = gameState.history.map(h => h.GDP);
+            charts.gdp.data.datasets[1].data = gameState.history.map(h => h.growth);
+            charts.gdp.update();
+
+            charts.unemployment.data.labels = years;
+            charts.unemployment.data.datasets[0].data = gameState.history.map(h => h.unemployment);
+            charts.unemployment.update();
+
+            charts.inflation.data.labels = years;
+            charts.inflation.data.datasets[0].data = gameState.history.map(h => h.inflation);
+            charts.inflation.update();
+
+            charts.budget.data.labels = years;
+            charts.budget.data.datasets[0].data = gameState.history.map(h => h.budget);
+            charts.budget.data.datasets[0].backgroundColor = gameState.history.map(h => h.budget > 0 ? '#4caf50' : '#d32f2f');
+            charts.budget.update();
+        }
+
+        function updateStats(year) {
+            document.getElementById('statGDP').textContent = year.GDP.toFixed(0);
+            document.getElementById('statGrowth').textContent = year.growth.toFixed(1);
+            document.getElementById('statUnemp').textContent = year.unemployment.toFixed(2);
+            document.getElementById('statInflation').textContent = year.inflation.toFixed(2);
+            document.getElementById('statBudget').textContent = year.budget.toFixed(1);
+        }
+
+        document.getElementById('policyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const R = parseFloat(document.getElementById('interestRate').value);
+            const G = parseFloat(document.getElementById('govSpending').value);
+            const tc = parseFloat(document.getElementById('corpTax').value);
+            const t = parseFloat(document.getElementById('directTax').value);
+
+            if (!R || !G || tc === null || t === null) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const prevYear = gameState.history[gameState.currentYear - 1];
+            const result = calculateYear(prevYear, R, G, tc, t);
+            
+            gameState.history.push(result);
+            updateStats(result);
+            updateCharts();
+
+            document.getElementById('policyForm').reset();
+
+            if (gameState.currentYear < 5) {
+                gameState.currentYear++;
+                updateYearDisplay();
+            } else {
+                setTimeout(endGame, 1500);
+            }
+        });
+
+        function calculateYear(prevYear, R, G, tc, t) {
+            // Calculate taxes based on previous year GDP
+            const T = t * prevYear.GDP;
+
+            // Calculate consumption based on after-tax income
+            const C = 100 + model.mpc * (prevYear.GDP - T);
+
+            // Calculate investment based on interest rate and corporate tax
+            const I = 75 - 50 * R - 50 * tc;
+
+            // Calculate NEW GDP from Y = C + I + G
+            const GDP_new = C + I + G;
+
+            // Growth rate
+            const growth = ((GDP_new - prevYear.GDP) / prevYear.GDP) * 100;
+
+            // Okun's Law: ΔU = -0.5 * Growth
+            const unemployment = Math.max(2, model.initialUn - growth * 0.5);
+
+            // Production function: Y* = 2.5K + L
+            const Ystar = 2.5 * prevYear.K + prevYear.L;
+
+            // Phillips Curve: Inflation = λ(Y - Y*)/Y + base
+            const outputGap = ((GDP_new - Ystar) / GDP_new) * 100;
+            const inflation = Math.max(-2, model.lambda * outputGap + model.initialInf);
+            
+            // Capital and Labor evolution
+            const K_next = I + (1 - model.depr - model.lg) * prevYear.K;
+            const L_next = prevYear.L * (1 + model.lg);
+
+            // Budget as % of GDP
+            const budget = ((T - G) / GDP_new) * 100;
+
+            return {
+                year: gameState.currentYear,
+                GDP: Math.max(100, GDP_new),
+                growth: growth,
+                unemployment: unemployment,
+                inflation: inflation,
+                budget: budget,
+                K: K_next,
+                L: L_next,
+                R: R,
+                G: G,
+                tc: tc,
+                t: t,
+                C: C,
+                I: I,
+                T: T
+            };
+        }
+
+        function endGame() {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'flex';
+            
+            const finalYear = gameState.history[gameState.history.length - 1];
+            const avgGrowth = gameState.history.slice(1).reduce((a, b) => a + b.growth, 0) / 5;
+            const avgUn = gameState.history.slice(1).reduce((a, b) => a + b.unemployment, 0) / 5;
+            const avgInf = gameState.history.slice(1).reduce((a, b) => a + b.inflation, 0) / 5;
+
+            const scorecard = document.getElementById('finalScorecard');
+            scorecard.innerHTML = `
+                <div class="score-card">
+                    <div class="score-card-item"><strong>Final GDP:</strong> $${finalYear.GDP.toFixed(0)}B</div>
+                    <div class="score-card-item"><strong>Avg Growth:</strong> ${avgGrowth.toFixed(2)}%</div>
+                    <div class="score-card-item"><strong>Avg Unemployment:</strong> ${avgUn.toFixed(2)}%</div>
+                    <div class="score-card-item"><strong>Avg Inflation:</strong> ${avgInf.toFixed(2)}%</div>
+                </div>
+            `;
+
+            // Final charts
+            const finalYears = gameState.history.map((h, i) => `Y${i}`);
+
+            const finalGdpCtx = document.getElementById('finalGdpChart').getContext('2d');
+            new Chart(finalGdpCtx, {
+                type: 'line',
+                data: {
+                    labels: finalYears,
+                    datasets: [{
+                        label: 'GDP ($B)',
+                        data: gameState.history.map(h => h.GDP),
+                        borderColor: '#1e88e5',
+                        backgroundColor: 'rgba(30, 136, 229, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            const finalIndCtx = document.getElementById('finalIndicatorsChart').getContext('2d');
+            new Chart(finalIndCtx, {
+                type: 'line',
+                data: {
+                    labels: finalYears,
+                    datasets: [
+                        {
+                            label: 'Unemployment (%)',
+                            data: gameState.history.map(h => h.unemployment),
+                            borderColor: '#f57c00',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Inflation (%)',
+                            data: gameState.history.map(h => h.inflation),
+                            borderColor: '#d32f2f',
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { position: 'left' },
+                        y1: { position: 'right', grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
