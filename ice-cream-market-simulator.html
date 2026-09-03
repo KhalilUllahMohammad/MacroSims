@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Ice Cream Market — a demand and supply simulator</title>
+<style>
+  :root{
+    --frost:#EDF2F3;
+    --panel:#FFFFFF;
+    --ink:#132029;
+    --muted:#5D6E79;
+    --line:#D3DEE1;
+    --demand:#C0285C;
+    --supply:#1B6FA6;
+    --warn:#A85A16;
+    --mint:#7FC9B7;
+    --radius:5px;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--frost);
+    color:var(--ink);
+    font-family:"Helvetica Neue",Helvetica,Arial,"Segoe UI",sans-serif;
+    font-size:16px;
+    line-height:1.55;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 90px;}
+
+  /* ---------- masthead ---------- */
+  header.masthead{
+    display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px 30px;
+    padding-bottom:18px;border-bottom:2px solid var(--ink);margin-bottom:26px;
+  }
+  h1{
+    font-size:clamp(28px,4.4vw,44px);line-height:1.02;margin:0;
+    font-weight:700;letter-spacing:-0.022em;max-width:15ch;
+  }
+  .standfirst{color:var(--muted);max-width:46ch;margin:0;font-size:15px;}
+
+  /* ---------- good selector ---------- */
+  .goodbar{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px 16px;margin-bottom:22px;
+  }
+  .goodbar h2{margin:0 0 10px;font-size:15px;font-weight:700;}
+  .choices{display:flex;flex-wrap:wrap;gap:8px;}
+  .choice{
+    flex:1 1 190px;text-align:left;cursor:pointer;
+    background:var(--frost);border:1px solid var(--line);border-radius:var(--radius);
+    padding:10px 12px;font:inherit;color:var(--ink);
+  }
+  .choice b{display:block;font-size:15px;}
+  .choice span{display:block;font-size:12.5px;color:var(--muted);line-height:1.4;margin-top:2px;}
+  .choice[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff;}
+  .choice[aria-pressed="true"] span{color:#B9C8CF;}
+  .choice:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--mint);outline-offset:2px;}
+  .caveat{margin:10px 0 0;font-size:12.5px;color:var(--muted);max-width:80ch;}
+
+  /* ---------- main grid ---------- */
+  .lab{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:20px;align-items:start;}
+  @media (max-width:900px){.lab{grid-template-columns:1fr;}}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);}
+  .panel-pad{padding:16px 18px;}
+
+  /* chart + readout */
+  .stage{display:flex;flex-direction:column;}
+  svg.chart{display:block;width:100%;height:auto;}
+  .readout{
+    display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--line);
+  }
+  .metric{flex:1 1 130px;padding:12px 16px;border-right:1px solid var(--line);}
+  .metric:last-child{border-right:0;}
+  .metric .k{font-size:12.5px;color:var(--muted);}
+  .metric .v{font-size:26px;font-weight:700;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
+  .metric .d{font-size:12.5px;font-variant-numeric:tabular-nums;}
+  .up{color:var(--demand);}
+  .down{color:var(--supply);}
+  .flat{color:var(--muted);}
+  .eqline{
+    padding:11px 16px;border-top:1px solid var(--line);font-size:13.5px;
+    font-variant-numeric:tabular-nums;color:var(--muted);
+  }
+  .eqline b{color:var(--ink);font-weight:600;}
+  .alert{
+    margin:0;padding:10px 16px;border-top:1px solid var(--line);
+    background:#FDF3E7;color:var(--warn);font-size:13px;
+  }
+
+  /* controls */
+  .controls h3{
+    margin:0;padding:12px 16px;font-size:14px;font-weight:700;
+    border-bottom:1px solid var(--line);
+  }
+  .controls h3.dem{color:var(--demand);}
+  .controls h3.sup{color:var(--supply);}
+  .ctrl{padding:11px 16px;border-bottom:1px solid var(--line);}
+  .ctrl:last-child{border-bottom:0;}
+  .ctrl .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .ctrl label{font-size:13.5px;font-weight:600;}
+  .ctrl output{font-size:13px;font-variant-numeric:tabular-nums;color:var(--muted);}
+  .ctrl .why{font-size:12px;color:var(--muted);line-height:1.4;margin-top:3px;display:block;}
+  input[type=range]{width:100%;margin:6px 0 0;accent-color:var(--ink);}
+  .controls .dem-scope input[type=range]{accent-color:var(--demand);}
+  .controls .sup-scope input[type=range]{accent-color:var(--supply);}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:14px 0 0;}
+  button.act{
+    font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;
+    background:var(--ink);color:#fff;border:1px solid var(--ink);
+    border-radius:var(--radius);padding:8px 14px;
+  }
+  button.act.ghost{background:transparent;color:var(--ink);}
+  button.act:disabled{opacity:.4;cursor:default;}
+
+  .pricebox{padding:12px 16px;border-top:1px solid var(--line);}
+  .pricebox .chk{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;font-weight:600;}
+  .pricebox p{margin:5px 0 0 25px;font-size:12px;color:var(--muted);}
+  .pricebox .slot{margin-top:10px;display:none;}
+  .pricebox.on .slot{display:block;}
+
+  /* prose sections */
+  section.essay{margin-top:38px;}
+  section.essay h2{
+    font-size:22px;margin:0 0 4px;letter-spacing:-0.015em;
+  }
+  section.essay > p.lede{color:var(--muted);margin:0 0 18px;max-width:72ch;font-size:15px;}
+  .split{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;}
+  .factor-list{margin:0;padding:0;list-style:none;}
+  .factor-list li{padding:10px 0;border-top:1px solid var(--line);font-size:14px;}
+  .factor-list li:first-child{border-top:0;}
+  .factor-list b{display:block;font-size:14px;}
+  .factor-list span{color:var(--muted);font-size:13px;}
+  .rule{border:0;border-top:1px solid var(--line);margin:32px 0;}
+  table.cmp{border-collapse:collapse;width:100%;font-size:13.5px;}
+  table.cmp th,table.cmp td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.cmp th{font-weight:700;}
+  table.cmp tr td:first-child{font-weight:600;width:26%;}
+
+  /* challenge */
+  .quiz{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:0;}
+  @media (max-width:820px){.quiz{grid-template-columns:1fr;}}
+  .quiz .left{padding:18px;border-right:1px solid var(--line);}
+  @media (max-width:820px){.quiz .left{border-right:0;border-bottom:1px solid var(--line);}}
+  .quiz .right{padding:18px;}
+  .scenario{font-size:17px;font-weight:600;margin:6px 0 14px;max-width:46ch;line-height:1.4;}
+  .qblock{margin-bottom:14px;}
+  .qblock p{margin:0 0 6px;font-size:13.5px;font-weight:600;}
+  .opts{display:flex;gap:6px;flex-wrap:wrap;}
+  .opt{
+    font:inherit;font-size:13px;cursor:pointer;padding:7px 11px;
+    background:var(--frost);border:1px solid var(--line);border-radius:var(--radius);color:var(--ink);
+  }
+  .opt[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .opt.correct{background:#E6F3EC;border-color:#2E8B57;color:#1E5E3B;}
+  .opt.wrong{background:#FBE9EE;border-color:var(--demand);color:var(--demand);}
+  .verdict{font-size:14px;margin:10px 0 0;}
+  .verdict h4{margin:0 0 4px;font-size:14px;}
+  .verdict p{margin:0 0 8px;color:var(--muted);font-size:13.5px;}
+  .score{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  footer{margin-top:46px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);}
+  @media (prefers-reduced-motion:no-preference){
+    .dot-eq{transition:cx .25s ease, cy .25s ease;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <h1>The ice cream market</h1>
+    <p class="standfirst">Move a shifter and watch the curve travel. Change the good and watch the same shifter do the opposite thing.</p>
+  </header>
+
+  <div class="goodbar">
+    <h2>Step 1 — What kind of good is ice cream today?</h2>
+    <div class="choices" id="goodChoices">
+      <button class="choice" data-good="normal" aria-pressed="true">
+        <b>Normal good</b><span>Demand slopes down. When income rises, buyers want more.</span>
+      </button>
+      <button class="choice" data-good="inferior" aria-pressed="false">
+        <b>Inferior good</b><span>Demand slopes down. When income rises, buyers trade up and want less.</span>
+      </button>
+      <button class="choice" data-good="giffen" aria-pressed="false">
+        <b>Giffen good</b><span>Income effect swamps the substitution effect, so demand slopes up.</span>
+      </button>
+    </div>
+    <p class="caveat" id="goodCaveat"></p>
+  </div>
+
+  <div class="lab">
+    <!-- CHART -->
+    <div class="panel stage">
+      <div id="chartHost"></div>
+      <div class="readout">
+        <div class="metric">
+          <div class="k">Equilibrium price</div>
+          <div class="v" id="mPrice">—</div>
+          <div class="d" id="dPrice">&nbsp;</div>
+        </div>
+        <div class="metric">
+          <div class="k">Equilibrium quantity</div>
+          <div class="v" id="mQty">—</div>
+          <div class="d" id="dQty">&nbsp;</div>
+        </div>
+        <div class="metric">
+          <div class="k">Revenue in the market</div>
+          <div class="v" id="mRev">—</div>
+          <div class="d" id="dRev">&nbsp;</div>
+        </div>
+      </div>
+      <div class="eqline" id="eqLine"></div>
+      <div class="eqline" id="shiftLine"></div>
+      <p class="alert" id="alertBox" hidden></p>
+    </div>
+
+    <!-- CONTROLS -->
+    <div>
+      <div class="panel controls">
+        <h3 class="dem">Step 2 — Non-price shifters of demand</h3>
+        <div id="demandCtrls" class="dem-scope"></div>
+      </div>
+      <div class="toolbar">
+        <button class="act ghost" id="resetBtn">Reset all shifters</button>
+      </div>
+      <div class="panel controls" style="margin-top:14px;">
+        <h3 class="sup">Step 3 — Non-price shifters of supply</h3>
+        <div id="supplyCtrls" class="sup-scope"></div>
+      </div>
+      <div class="panel pricebox" id="priceBox" style="margin-top:14px;border-top:1px solid var(--line);">
+        <label class="chk"><input type="checkbox" id="manualChk"> Step 4 — Set the price yourself</label>
+        <p>The price is the one factor that does not shift a curve. Override it to move <em>along</em> the curves and create a shortage or a surplus.</p>
+        <div class="slot">
+          <div class="ctrl" style="padding-left:0;padding-right:0;border-bottom:0;">
+            <div class="row"><label for="priceRange">Controlled price</label><output id="priceOut"></output></div>
+            <input type="range" id="priceRange" min="0.5" max="11" step="0.1" value="5">
+          </div>
+          <div id="gapLine" style="font-size:13px;color:var(--warn);font-variant-numeric:tabular-nums;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHALLENGE -->
+  <section class="essay">
+    <h2>Step 5 — Predict before you move the slider</h2>
+    <p class="lede">Read the shock, commit to a prediction for price and quantity, then let the model settle it. Some shocks move both curves, and then one of the two answers genuinely cannot be signed without knowing which shift is bigger.</p>
+    <div class="panel quiz">
+      <div class="left">
+        <div class="score" id="scoreLine">Score 0 of 0</div>
+        <p class="scenario" id="scenarioText"></p>
+        <div class="qblock">
+          <p>What happens to the equilibrium price?</p>
+          <div class="opts" data-q="p">
+            <button class="opt" data-a="up">It rises</button>
+            <button class="opt" data-a="down">It falls</button>
+            <button class="opt" data-a="amb">Cannot be signed</button>
+          </div>
+        </div>
+        <div class="qblock">
+          <p>What happens to the equilibrium quantity?</p>
+          <div class="opts" data-q="q">
+            <button class="opt" data-a="up">It rises</button>
+            <button class="opt" data-a="down">It falls</button>
+            <button class="opt" data-a="amb">Cannot be signed</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button class="act" id="checkBtn" disabled>Check my prediction</button>
+          <button class="act ghost" id="nextBtn">Skip to next shock</button>
+        </div>
+      </div>
+      <div class="right">
+        <div class="verdict" id="verdictBox"><p>Answer both questions to see the reasoning, then apply the shock to the market above.</p></div>
+        <div class="toolbar"><button class="act" id="applyBtn" disabled>Apply this shock to the market</button></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- THEORY -->
+  <section class="essay">
+    <h2>Price and non-price factors, in one page</h2>
+    <p class="lede">Everything in the demand and supply model does one of two jobs. Own price moves you <em>along</em> a fixed curve. Every other determinant moves the whole curve to a new position.</p>
+
+    <table class="cmp">
+      <tr>
+        <th>&nbsp;</th>
+        <th>Price factor — the good's own price</th>
+        <th>Non-price factors — everything else</th>
+      </tr>
+      <tr>
+        <td>What it does</td>
+        <td>Moves you along the existing curve.</td>
+        <td>Shifts the entire curve left or right.</td>
+      </tr>
+      <tr>
+        <td>The right words</td>
+        <td>A change in quantity demanded, or quantity supplied.</td>
+        <td>A change in demand, or supply.</td>
+      </tr>
+      <tr>
+        <td>On the diagram</td>
+        <td>The curve stays put; the point slides.</td>
+        <td>A new curve is drawn; a new equilibrium is found.</td>
+      </tr>
+      <tr>
+        <td>In the simulator</td>
+        <td>Step 4, the controlled price.</td>
+        <td>Steps 2 and 3, the shifter sliders.</td>
+      </tr>
+    </table>
+
+    <div class="split" style="margin-top:26px;">
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--demand);">Seven shifters of demand</h3>
+        <ul class="factor-list">
+          <li><b>Income</b><span>The direction depends entirely on the type of good, which is the point of Step 1.</span></li>
+          <li><b>Price of substitutes</b><span>Frozen yoghurt gets dearer, buyers switch across, ice cream demand moves right.</span></li>
+          <li><b>Price of complements</b><span>Cones and toppings get dearer, the package costs more, demand moves left.</span></li>
+          <li><b>Tastes and preferences</b><span>A viral flavour, a sugar scare, a festival. Advertising lives here too.</span></li>
+          <li><b>Number of buyers</b><span>Population, tourist season, a new university campus down the road.</span></li>
+          <li><b>Expectations</b><span>If buyers expect a price rise next month, they buy today and demand moves right now.</span></li>
+          <li><b>Season and weather</b><span>The classic ice cream shifter. Thirty-eight degrees does more than any advertisement.</span></li>
+        </ul>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--supply);">Six shifters of supply</h3>
+        <ul class="factor-list">
+          <li><b>Input prices</b><span>Milk, sugar, cream, cold-chain electricity, wages. Costs up, supply left.</span></li>
+          <li><b>Technology</b><span>Better freezers and faster batch churns lower unit cost and push supply right.</span></li>
+          <li><b>Taxes and subsidies</b><span>A per-unit tax acts like a cost and moves supply left; a subsidy moves it right.</span></li>
+          <li><b>Number of sellers</b><span>New entrants add capacity at every price.</span></li>
+          <li><b>Producer expectations</b><span>If sellers expect a higher price next month, they hold stock back and supply falls now.</span></li>
+          <li><b>Price of goods related in production</b><span>If gelato earns more on the same plant, ice cream supply gives up capacity.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section class="essay">
+    <h2>Why the three goods behave differently</h2>
+    <p class="lede">A price change always splits into two effects. The substitution effect says a dearer good gets swapped out. The income effect says a dearer good makes you poorer in real terms, and what you do with that depends on the good.</p>
+    <div class="split">
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 6px;font-size:15px;">Normal good</h3>
+        <p style="margin:0;font-size:13.5px;color:var(--muted);">Both effects push the same way. Demand slopes down, and a rise in income shifts the whole curve right. Premium ice cream in a growing economy.</p>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 6px;font-size:15px;">Inferior good</h3>
+        <p style="margin:0;font-size:13.5px;color:var(--muted);">The substitution effect still wins, so demand still slopes down. But a rise in income shifts the curve left as buyers trade up to something better. Cheap tub ice cream when salaries rise.</p>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 6px;font-size:15px;">Giffen good</h3>
+        <p style="margin:0;font-size:13.5px;color:var(--muted);">A rare inferior good where the income effect is so strong it overturns the substitution effect, and the demand curve slopes up. It needs a large share of a poor household's budget and no close substitute, which is why the credible evidence comes from staples such as rice and wheat, not from dessert.</p>
+      </div>
+    </div>
+    <p class="caveat" style="margin-top:16px;">Watch one result carefully in Giffen mode: an increase in supply lowers the price <em>and</em> lowers the quantity traded, because the upward-sloping demand curve is followed downwards. That is the diagnostic students are usually asked to explain.</p>
+  </section>
+
+  <footer>
+    Built for classroom use. Curves are linear and illustrative; quantities are thousands of litres per week and prices are dollars per litre. Open the file in any browser, no installation and no internet connection required.
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ----------------------------------------------------------
+   MODEL
+   Demand:  Qd = D0 + bd * P      (bd < 0 normally, bd > 0 for Giffen)
+   Supply:  Qs = S0 + bs * P
+   P* = (D0 - S0) / (bs - bd),  Q* = S0 + bs * P*
+------------------------------------------------------------*/
+var BS = 3;                 // supply slope
+var PMAX = 12, QMAX = 40;   // axis ranges
+
+var GOODS = {
+  normal:   { bd:-2.5, D0:30,   incomeW: 1.2,
+    caveat:"Ice cream is treated as a normal good: better incomes mean more scoops. This is the textbook baseline." },
+  inferior: { bd:-2.5, D0:30,   incomeW:-1.2,
+    caveat:"Ice cream is now the cheap tub in the corner freezer. The demand curve still slopes down, but the income slider has flipped direction." },
+  giffen:   { bd: 0.8, D0:14.3, incomeW:-1.0,
+    caveat:"A thought experiment, not a claim about dessert. A Giffen good must take a large share of a poor household's budget and have no close substitute; ice cream fails both tests. The mode is here so you can see what an upward-sloping demand curve does to every other result." }
+};
+
+var DEMAND_SHIFTERS = [
+  { id:"income",     label:"Consumer income",             w:"income" },
+  { id:"substitute", label:"Price of frozen yoghurt",     w: 0.9, why:"A substitute. Dearer yoghurt sends buyers here." },
+  { id:"complement", label:"Price of cones and toppings", w:-0.9, why:"A complement. Dearer add-ons make the whole dessert cost more." },
+  { id:"tastes",     label:"Tastes and preferences",      w: 1.0, why:"Advertising, a viral flavour, a sugar scare." },
+  { id:"buyers",     label:"Number of buyers",            w: 1.0, why:"Population, tourists, a new campus nearby." },
+  { id:"expectD",    label:"Price buyers expect next month", w:0.7, why:"Expecting a rise, buyers bring purchases forward." },
+  { id:"weather",    label:"Temperature",                 w: 1.1, why:"The seasonal shifter that dominates this market." }
+];
+
+var SUPPLY_SHIFTERS = [
+  { id:"inputs",  label:"Input prices: milk, sugar, cream", w:-1.0, why:"Higher costs shrink supply at every price." },
+  { id:"tech",    label:"Production technology",            w: 1.0, why:"Faster churning and cheaper cold storage." },
+  { id:"tax",     label:"Per-unit tax, or subsidy if negative", w:-0.9, why:"A tax behaves like a cost; a subsidy behaves like a cost cut." },
+  { id:"sellers", label:"Number of sellers",                w: 1.1, why:"Entry adds capacity, exit removes it." },
+  { id:"expectS", label:"Price sellers expect next month",  w:-0.7, why:"Expecting a rise, sellers hold stock back today." },
+  { id:"gelato",  label:"Price of gelato on the same plant", w:-0.8, why:"Goods related in production compete for capacity." }
+];
+
+var INCOME_WHY = {
+  normal:"A normal good, so more income means more demand.",
+  inferior:"An inferior good, so more income means buyers trade up and demand falls.",
+  giffen:"Strongly inferior, so more income shifts demand left."
+};
+
+var state = { good:"normal", d:{}, s:{}, manual:false, price:5 };
+DEMAND_SHIFTERS.forEach(function(f){ state.d[f.id] = 0; });
+SUPPLY_SHIFTERS.forEach(function(f){ state.s[f.id] = 0; });
+
+function weightOf(f, good){ return f.w === "income" ? GOODS[good].incomeW : f.w; }
+
+function deltaD0(good, vals){
+  var t = 0;
+  DEMAND_SHIFTERS.forEach(function(f){ t += weightOf(f, good) * (vals[f.id] || 0); });
+  return t;
+}
+function deltaS0(vals){
+  var t = 0;
+  SUPPLY_SHIFTERS.forEach(function(f){ t += f.w * (vals[f.id] || 0); });
+  return t;
+}
+
+function market(good, dVals, sVals){
+  var g = GOODS[good];
+  var D0 = g.D0 + deltaD0(good, dVals);
+  var S0 = 4 + deltaS0(sVals);
+  var k = BS - g.bd;
+  var P = (D0 - S0) / k;
+  var clamped = false;
+  if (P < 0) { P = 0; clamped = true; }
+  if (P > PMAX) { P = PMAX; clamped = true; }
+  var Q = S0 + BS * P;
+  if (Q < 0) Q = 0;
+  return { D0:D0, S0:S0, bd:g.bd, k:k, P:P, Q:Q, clamped:clamped };
+}
+
+function qd(m, p){ return m.D0 + m.bd * p; }
+function qs(m, p){ return m.S0 + BS * p; }
+
+/* ----------------------------------------------------------
+   CHART
+------------------------------------------------------------*/
+var W = 760, H = 500, ML = 58, MR = 26, MT = 22, MB = 52;
+function px(q){ return ML + (q / QMAX) * (W - ML - MR); }
+function py(p){ return H - MB - (p / PMAX) * (H - MT - MB); }
+
+function clipLine(a, b){
+  var t0 = 0, t1 = 1, dx = b.q - a.q, dy = b.p - a.p;
+  var P = [-dx, dx, -dy, dy];
+  var Q = [a.q - 0, QMAX - a.q, a.p - 0, PMAX - a.p];
+  for (var i = 0; i < 4; i++){
+    if (P[i] === 0){ if (Q[i] < 0) return null; }
+    else {
+      var r = Q[i] / P[i];
+      if (P[i] < 0){ if (r > t1) return null; if (r > t0) t0 = r; }
+      else { if (r < t0) return null; if (r < t1) t1 = r; }
+    }
+  }
+  return [{ q:a.q + t0*dx, p:a.p + t0*dy }, { q:a.q + t1*dx, p:a.p + t1*dy }];
+}
+
+function curvePts(intercept, slope){
+  return clipLine({ q:intercept, p:0 }, { q:intercept + slope*PMAX, p:PMAX });
+}
+
+function line(seg, color, dash, width){
+  if (!seg) return "";
+  return '<line x1="'+px(seg[0].q).toFixed(1)+'" y1="'+py(seg[0].p).toFixed(1)+
+         '" x2="'+px(seg[1].q).toFixed(1)+'" y2="'+py(seg[1].p).toFixed(1)+
+         '" stroke="'+color+'" stroke-width="'+width+'" stroke-linecap="round"'+
+         (dash ? ' stroke-dasharray="'+dash+'"' : '') + ' />';
+}
+
+function label(seg, text, color){
+  if (!seg) return "";
+  var end = seg[0].p > seg[1].p ? seg[0] : seg[1];
+  var x = px(end.q), y = py(end.p);
+  var anchor = "start", dx = 8;
+  if (x > W - MR - 46){ anchor = "end"; dx = -8; }
+  var dy = (y < MT + 18) ? 16 : -7;
+  return '<text x="'+(x+dx).toFixed(1)+'" y="'+(y+dy).toFixed(1)+'" fill="'+color+
+         '" font-size="15" font-weight="700" text-anchor="'+anchor+'">'+text+'</text>';
+}
+
+function drawChart(){
+  var m = market(state.good, state.d, state.s);
+  var base = market(state.good, {}, {});
+  var svg = [];
+  svg.push('<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Demand and supply diagram for the ice cream market">');
+  svg.push('<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#fff"/>');
+
+  // grid
+  var i;
+  for (i = 0; i <= QMAX; i += 5){
+    svg.push('<line x1="'+px(i)+'" y1="'+py(0)+'" x2="'+px(i)+'" y2="'+MT+'" stroke="#EDF2F3" stroke-width="1"/>');
+    svg.push('<text x="'+px(i)+'" y="'+(H-MB+18)+'" font-size="12" fill="#5D6E79" text-anchor="middle">'+i+'</text>');
+  }
+  for (i = 0; i <= PMAX; i += 2){
+    svg.push('<line x1="'+ML+'" y1="'+py(i)+'" x2="'+(W-MR)+'" y2="'+py(i)+'" stroke="#EDF2F3" stroke-width="1"/>');
+    svg.push('<text x="'+(ML-10)+'" y="'+(py(i)+4)+'" font-size="12" fill="#5D6E79" text-anchor="end">'+i+'</text>');
+  }
+  // axes
+  svg.push('<line x1="'+ML+'" y1="'+MT+'" x2="'+ML+'" y2="'+py(0)+'" stroke="#132029" stroke-width="1.5"/>');
+  svg.push('<line x1="'+ML+'" y1="'+py(0)+'" x2="'+(W-MR)+'" y2="'+py(0)+'" stroke="#132029" stroke-width="1.5"/>');
+  svg.push('<text x="'+((ML+W-MR)/2)+'" y="'+(H-10)+'" font-size="13" fill="#132029" text-anchor="middle">Quantity, thousand litres per week</text>');
+  svg.push('<text transform="translate(16,'+((MT+py(0))/2)+') rotate(-90)" font-size="13" fill="#132029" text-anchor="middle">Price, $ per litre</text>');
+
+  // base (ghost) curves when shifted
+  var dShift = m.D0 - base.D0, sShift = m.S0 - base.S0;
+  if (Math.abs(dShift) > 0.001) svg.push(line(curvePts(base.D0, base.bd), "#E4B9C8", "5 5", 2));
+  if (Math.abs(sShift) > 0.001) svg.push(line(curvePts(base.S0, BS), "#B4CEE2", "5 5", 2));
+
+  // live curves
+  var dSeg = curvePts(m.D0, m.bd), sSeg = curvePts(m.S0, BS);
+  svg.push(line(dSeg, "#C0285C", null, 3));
+  svg.push(line(sSeg, "#1B6FA6", null, 3));
+  svg.push(label(dSeg, "D", "#C0285C"));
+  svg.push(label(sSeg, "S", "#1B6FA6"));
+
+  // equilibrium
+  if (!m.clamped && m.Q > 0 && m.Q <= QMAX){
+    svg.push('<line x1="'+ML+'" y1="'+py(m.P)+'" x2="'+px(m.Q)+'" y2="'+py(m.P)+'" stroke="#132029" stroke-width="1" stroke-dasharray="3 4"/>');
+    svg.push('<line x1="'+px(m.Q)+'" y1="'+py(0)+'" x2="'+px(m.Q)+'" y2="'+py(m.P)+'" stroke="#132029" stroke-width="1" stroke-dasharray="3 4"/>');
+    svg.push('<circle class="dot-eq" cx="'+px(m.Q).toFixed(1)+'" cy="'+py(m.P).toFixed(1)+'" r="6" fill="#132029"/>');
+  }
+
+  // manual price line
+  if (state.manual){
+    var p = state.price;
+    var a = qd(m, p), b = qs(m, p);
+    a = Math.max(0, Math.min(QMAX, a));
+    b = Math.max(0, Math.min(QMAX, b));
+    svg.push('<line x1="'+ML+'" y1="'+py(p)+'" x2="'+(W-MR)+'" y2="'+py(p)+'" stroke="#A85A16" stroke-width="2" stroke-dasharray="7 4"/>');
+    svg.push('<rect x="'+Math.min(px(a),px(b))+'" y="'+(py(p)-9)+'" width="'+Math.abs(px(b)-px(a))+'" height="18" fill="#A85A16" opacity="0.16"/>');
+    svg.push('<circle cx="'+px(a).toFixed(1)+'" cy="'+py(p).toFixed(1)+'" r="5" fill="#C0285C"/>');
+    svg.push('<circle cx="'+px(b).toFixed(1)+'" cy="'+py(p).toFixed(1)+'" r="5" fill="#1B6FA6"/>');
+    var gap = qs(m,p) - qd(m,p);
+    var word = gap > 0.05 ? "surplus " : (gap < -0.05 ? "shortage " : "market clears");
+    var txt = gap === 0 ? word : word + Math.abs(gap).toFixed(1);
+    svg.push('<text x="'+((px(a)+px(b))/2).toFixed(1)+'" y="'+(py(p)-16)+'" font-size="13" font-weight="700" fill="#A85A16" text-anchor="middle">'+txt+'</text>');
+  }
+
+  svg.push('</svg>');
+  document.getElementById("chartHost").innerHTML = svg.join("");
+  return { m:m, base:base, dShift:dShift, sShift:sShift };
+}
+
+/* ----------------------------------------------------------
+   READOUTS
+------------------------------------------------------------*/
+function fmtDelta(now, then, prefix, digits){
+  var diff = now - then;
+  if (Math.abs(diff) < 0.05) return { cls:"flat", text:"unchanged" };
+  var arrow = diff > 0 ? "\u25B2 " : "\u25BC ";
+  return { cls: diff > 0 ? "up" : "down", text: arrow + prefix + Math.abs(diff).toFixed(digits) + " vs base" };
+}
+
+function setDelta(el, res){
+  el.className = "d " + res.cls;
+  el.textContent = res.text;
+}
+
+function shiftWord(x, rightWord, leftWord){
+  if (Math.abs(x) < 0.001) return "at its base position";
+  return (x > 0 ? rightWord : leftWord) + " by " + Math.abs(x).toFixed(1);
+}
+
+function render(){
+  var out = drawChart();
+  var m = out.m, base = out.base;
+
+  document.getElementById("mPrice").textContent = "$" + m.P.toFixed(2);
+  document.getElementById("mQty").textContent = m.Q.toFixed(1);
+  document.getElementById("mRev").textContent = "$" + (m.P * m.Q).toFixed(0) + "k";
+  setDelta(document.getElementById("dPrice"), fmtDelta(m.P, base.P, "$", 2));
+  setDelta(document.getElementById("dQty"), fmtDelta(m.Q, base.Q, "", 1));
+  setDelta(document.getElementById("dRev"), fmtDelta(m.P*m.Q, base.P*base.Q, "$", 0));
+
+  var bdTxt = (m.bd < 0 ? " \u2212 " + Math.abs(m.bd) : " + " + m.bd) + "P";
+  document.getElementById("eqLine").innerHTML =
+    "Qd = <b>" + m.D0.toFixed(1) + "</b>" + bdTxt +
+    " &nbsp;&nbsp; Qs = <b>" + m.S0.toFixed(1) + "</b> + " + BS + "P";
+
+  document.getElementById("shiftLine").innerHTML =
+    'Demand <b style="color:var(--demand)">' + shiftWord(out.dShift, "right", "left") + '</b>' +
+    ' &nbsp;&nbsp; Supply <b style="color:var(--supply)">' + shiftWord(out.sShift, "right", "left") + '</b>';
+
+  var alertBox = document.getElementById("alertBox");
+  if (m.clamped){
+    alertBox.hidden = false;
+    alertBox.textContent = "The equilibrium has run off the edge of the diagram. Pull some shifters back towards zero.";
+  } else if (state.good === "giffen" && Math.abs(out.sShift) > 0.001 && Math.abs(out.dShift) < 0.001){
+    alertBox.hidden = false;
+    alertBox.textContent = "Giffen result worth naming in class: supply moved but price and quantity travelled in the same direction, because demand slopes up.";
+  } else {
+    alertBox.hidden = true;
+  }
+
+  if (state.manual){
+    var gap = qs(m, state.price) - qd(m, state.price);
+    var g = document.getElementById("gapLine");
+    document.getElementById("priceOut").textContent = "$" + state.price.toFixed(2);
+    if (Math.abs(gap) < 0.05){
+      g.textContent = "At this price the market clears.";
+    } else if (gap > 0){
+      g.textContent = "Surplus of " + gap.toFixed(1) + " thousand litres. A price floor above equilibrium leaves unsold stock.";
+    } else {
+      g.textContent = "Shortage of " + Math.abs(gap).toFixed(1) + " thousand litres. A price ceiling below equilibrium leaves queues.";
+    }
+  }
+}
+
+/* ----------------------------------------------------------
+   BUILD CONTROLS
+------------------------------------------------------------*/
+function buildCtrls(list, hostId, store){
+  var host = document.getElementById(hostId);
+  host.innerHTML = "";
+  list.forEach(function(f){
+    var wrap = document.createElement("div");
+    wrap.className = "ctrl";
+    var id = "sl_" + f.id;
+    wrap.innerHTML =
+      '<div class="row"><label for="'+id+'">'+f.label+'</label><output id="out_'+f.id+'">0</output></div>' +
+      '<input type="range" id="'+id+'" min="-5" max="5" step="1" value="'+store[f.id]+'">' +
+      '<span class="why" id="why_'+f.id+'"></span>';
+    host.appendChild(wrap);
+    var input = wrap.querySelector("input");
+    input.addEventListener("input", function(){
+      store[f.id] = parseInt(input.value, 10);
+      document.getElementById("out_"+f.id).textContent = (store[f.id] > 0 ? "+" : "") + store[f.id];
+      render();
+    });
+    document.getElementById("out_"+f.id).textContent = (store[f.id] > 0 ? "+" : "") + store[f.id];
+  });
+}
+
+function refreshWhy(){
+  DEMAND_SHIFTERS.forEach(function(f){
+    var el = document.getElementById("why_" + f.id);
+    if (el) el.textContent = (f.w === "income") ? INCOME_WHY[state.good] : f.why;
+  });
+  SUPPLY_SHIFTERS.forEach(function(f){
+    var el = document.getElementById("why_" + f.id);
+    if (el) el.textContent = f.why;
+  });
+}
+
+function syncSliders(){
+  DEMAND_SHIFTERS.forEach(function(f){
+    document.getElementById("sl_"+f.id).value = state.d[f.id];
+    document.getElementById("out_"+f.id).textContent = (state.d[f.id] > 0 ? "+" : "") + state.d[f.id];
+  });
+  SUPPLY_SHIFTERS.forEach(function(f){
+    document.getElementById("sl_"+f.id).value = state.s[f.id];
+    document.getElementById("out_"+f.id).textContent = (state.s[f.id] > 0 ? "+" : "") + state.s[f.id];
+  });
+}
+
+buildCtrls(DEMAND_SHIFTERS, "demandCtrls", state.d);
+buildCtrls(SUPPLY_SHIFTERS, "supplyCtrls", state.s);
+refreshWhy();
+
+/* good choice */
+var choiceBtns = Array.prototype.slice.call(document.querySelectorAll(".choice"));
+choiceBtns.forEach(function(btn){
+  btn.addEventListener("click", function(){
+    state.good = btn.getAttribute("data-good");
+    choiceBtns.forEach(function(b){ b.setAttribute("aria-pressed", String(b === btn)); });
+    document.getElementById("goodCaveat").textContent = GOODS[state.good].caveat;
+    refreshWhy();
+    loadScenario(currentIndex);
+    render();
+  });
+});
+document.getElementById("goodCaveat").textContent = GOODS.normal.caveat;
+
+document.getElementById("resetBtn").addEventListener("click", function(){
+  DEMAND_SHIFTERS.forEach(function(f){ state.d[f.id] = 0; });
+  SUPPLY_SHIFTERS.forEach(function(f){ state.s[f.id] = 0; });
+  syncSliders();
+  render();
+});
+
+/* manual price */
+var priceBox = document.getElementById("priceBox");
+document.getElementById("manualChk").addEventListener("change", function(e){
+  state.manual = e.target.checked;
+  priceBox.classList.toggle("on", state.manual);
+  render();
+});
+document.getElementById("priceRange").addEventListener("input", function(e){
+  state.price = parseFloat(e.target.value);
+  render();
+});
+
+/* ----------------------------------------------------------
+   CHALLENGE MODE
+------------------------------------------------------------*/
+var SCENARIOS = [
+  { text:"A record heatwave settles over the city for three straight weeks.", d:{ weather:4 } },
+  { text:"Drought abroad sends world milk and sugar prices sharply higher.", s:{ inputs:4 } },
+  { text:"Household incomes jump after a large public-sector wage settlement.", d:{ income:4 } },
+  { text:"A recession cuts household incomes across the city.", d:{ income:-4 } },
+  { text:"Frozen yoghurt chains launch a deep price war.", d:{ substitute:-4 } },
+  { text:"A wheat shortage doubles the price of waffle cones.", d:{ complement:4 } },
+  { text:"The government replaces the dairy subsidy with a per-litre tax.", s:{ tax:4 } },
+  { text:"Two new factories open and flash-freezing technology cuts unit costs.", s:{ sellers:3, tech:3 } },
+  { text:"A heatwave arrives at the same time as the milk price spike.", d:{ weather:4 }, s:{ inputs:4 } },
+  { text:"New capacity comes online just as a recession cuts incomes.", d:{ income:-4 }, s:{ sellers:4 } },
+  { text:"Everyone, buyers and sellers alike, expects prices to jump next month.", d:{ expectD:4 }, s:{ expectS:4 } },
+  { text:"A viral dessert trend takes off while gelato becomes far more profitable on the same plant.", d:{ tastes:4 }, s:{ gelato:4 } }
+];
+
+var currentIndex = 0, answers = { p:null, q:null }, locked = false;
+var score = 0, asked = 0, appliedThis = false;
+
+function scenarioDeltas(sc){
+  var dD = 0, dS = 0;
+  DEMAND_SHIFTERS.forEach(function(f){
+    var v = (sc.d && sc.d[f.id]) || 0;
+    dD += weightOf(f, state.good) * v;
+  });
+  SUPPLY_SHIFTERS.forEach(function(f){
+    var v = (sc.s && sc.s[f.id]) || 0;
+    dS += f.w * v;
+  });
+  return { dD:dD, dS:dS };
+}
+
+function signOfSum(c1, c2){
+  // c1 and c2 are the two contributions to the change
+  var e = 0.0005;
+  var a = Math.abs(c1) < e ? 0 : (c1 > 0 ? 1 : -1);
+  var b = Math.abs(c2) < e ? 0 : (c2 > 0 ? 1 : -1);
+  if (a !== 0 && b !== 0 && a !== b) return "amb";
+  if (a === 0 && b === 0) return "flat";
+  return (a || b) > 0 ? "up" : "down";
+}
+
+function solve(sc){
+  var g = GOODS[state.good], k = BS - g.bd;
+  var t = scenarioDeltas(sc);
+  var pAns = signOfSum(t.dD / k, -t.dS / k);
+  var qAns = signOfSum((BS / k) * t.dD, ((k - BS) / k) * t.dS);
+  return { p:pAns, q:qAns, dD:t.dD, dS:t.dS, k:k };
+}
+
+function explain(sc, sol){
+  var bits = [];
+  if (Math.abs(sol.dD) > 0.0005) bits.push("Demand shifts " + (sol.dD > 0 ? "right" : "left") + ".");
+  if (Math.abs(sol.dS) > 0.0005) bits.push("Supply shifts " + (sol.dS > 0 ? "right" : "left") + ".");
+  var both = Math.abs(sol.dD) > 0.0005 && Math.abs(sol.dS) > 0.0005;
+  if (both){
+    if (sol.p === "amb") bits.push("Both curves move, and they pull price in opposite directions, so the price change depends on which shift is larger.");
+    if (sol.q === "amb") bits.push("Both curves move, and they pull quantity in opposite directions, so the quantity change depends on which shift is larger.");
+  }
+  if (state.good === "giffen" && Math.abs(sol.dS) > 0.0005 && Math.abs(sol.dD) < 0.0005){
+    bits.push("Because demand slopes up here, the market slides along it, so price and quantity move together instead of in opposite directions.");
+  }
+  if (sc.d && sc.d.income){
+    bits.push(state.good === "normal"
+      ? "Income moves demand the same way for a normal good."
+      : "Income moves demand the opposite way, because this good is inferior.");
+  }
+  return bits.join(" ");
+}
+
+var LABELS = { up:"rises", down:"falls", amb:"cannot be signed", flat:"does not change" };
+
+function loadScenario(i){
+  currentIndex = i;
+  var sc = SCENARIOS[i];
+  document.getElementById("scenarioText").textContent = sc.text;
+  answers = { p:null, q:null };
+  locked = false;
+  appliedThis = false;
+  Array.prototype.forEach.call(document.querySelectorAll(".opt"), function(b){
+    b.setAttribute("aria-pressed", "false");
+    b.classList.remove("correct", "wrong");
+  });
+  document.getElementById("checkBtn").disabled = true;
+  document.getElementById("applyBtn").disabled = true;
+  document.getElementById("verdictBox").innerHTML =
+    "<p>Answer both questions to see the reasoning, then apply the shock to the market above.</p>";
+}
+
+Array.prototype.forEach.call(document.querySelectorAll(".opts"), function(group){
+  var key = group.getAttribute("data-q");
+  Array.prototype.forEach.call(group.querySelectorAll(".opt"), function(btn){
+    btn.addEventListener("click", function(){
+      if (locked) return;
+      answers[key] = btn.getAttribute("data-a");
+      Array.prototype.forEach.call(group.querySelectorAll(".opt"), function(b){
+        b.setAttribute("aria-pressed", String(b === btn));
+      });
+      document.getElementById("checkBtn").disabled = !(answers.p && answers.q);
+    });
+  });
+});
+
+document.getElementById("checkBtn").addEventListener("click", function(){
+  if (locked) return;
+  locked = true;
+  var sc = SCENARIOS[currentIndex];
+  var sol = solve(sc);
+  var got = 0;
+  ["p", "q"].forEach(function(key){
+    var group = document.querySelector('.opts[data-q="' + key + '"]');
+    var right = sol[key] === "flat" ? null : sol[key];
+    Array.prototype.forEach.call(group.querySelectorAll(".opt"), function(b){
+      var a = b.getAttribute("data-a");
+      if (a === right) b.classList.add("correct");
+      else if (a === answers[key]) b.classList.add("wrong");
+    });
+    if (answers[key] === right) got++;
+  });
+  score += got; asked += 2;
+  document.getElementById("scoreLine").textContent = "Score " + score + " of " + asked;
+  document.getElementById("verdictBox").innerHTML =
+    "<h4>" + (got === 2 ? "Both correct." : got === 1 ? "One of two." : "Neither, this time.") + "</h4>" +
+    "<p>Price " + LABELS[sol.p] + ". Quantity " + LABELS[sol.q] + ".</p>" +
+    "<p>" + explain(sc, sol) + "</p>";
+  document.getElementById("checkBtn").disabled = true;
+  document.getElementById("applyBtn").disabled = false;
+});
+
+document.getElementById("applyBtn").addEventListener("click", function(){
+  var sc = SCENARIOS[currentIndex];
+  if (sc.d) Object.keys(sc.d).forEach(function(k){
+    state.d[k] = Math.max(-5, Math.min(5, state.d[k] + sc.d[k]));
+  });
+  if (sc.s) Object.keys(sc.s).forEach(function(k){
+    state.s[k] = Math.max(-5, Math.min(5, state.s[k] + sc.s[k]));
+  });
+  syncSliders();
+  render();
+  appliedThis = true;
+  document.getElementById("applyBtn").disabled = true;
+  document.getElementById("chartHost").scrollIntoView({ behavior:"smooth", block:"center" });
+});
+
+document.getElementById("nextBtn").addEventListener("click", function(){
+  loadScenario((currentIndex + 1) % SCENARIOS.length);
+});
+
+loadScenario(0);
+render();
+</script>
+</body>
+</html>
