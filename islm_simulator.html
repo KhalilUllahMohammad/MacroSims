@@ -1,78 +1,3 @@
-
-Thought for 1m 12s
-"Redo" it is — a horizontal SRAS changes the mechanics enough that it needs a different engine, not a slope tweak. The clean way to do it is the reverse-L: horizontal at the sticky price level up to capacity, vertical at potential.
-
-Ran 2 commands, created a file
-One behaviour worth flagging in the interface: when capacity binds, advancing periods lifts the posted price but the equilibrium point itself doesn't move.
-
-Edited a file, ran a command, shared files
-Rebuilt under the same filename, so it replaces the sloped version.
-
-The shape. SRAS is horizontal at the sticky price level P̄ up to potential output, then vertical — the reverse-L. That vertical arm sits on LRAS, drawn dashed in blue over the dark capacity line so both read.
-
-Two regimes, and the interface says which one you're in. A bar above the chart lights up either "demand-determined: output moves, prices do not" or "capacity constrained: prices move, output cannot". Below capacity, output is Y = A − 1.2(P̄ − 100) and the price level is a fact about costs, not demand. At the wall, output is fixed and the price level is bid up to clear the excess.
-
-The result that falls out cleanly: on the flat segment ΔY equals ΔA exactly. Run the slump preset then the rescue preset and demand rises 6.6 points while output rises 6.6 points. No leakage into prices means no crowding out through the price level, and the multiplier runs undiluted. The overheat preset gives the mirror image — the same stimulus buying zero output and 5.8 points of inflation.
-
-Wage rigidity is now a checkbox, on by default. With it on, the price level can be pushed up by excess demand but never drifts down. Open a recessionary gap, press "run to the long run", and nothing happens — periods pass and the gap sits there. A flag says so explicitly. Uncheck it and the same gap closes in about twelve periods as costs fall. That contrast is the whole Keynesian-versus-classical argument in two clicks.
-
-The stickiness slope slider is gone, since a horizontal curve has no slope to vary. The oil shock still works: it lifts the entire flat line, and the economy slides back up AD to less output at a higher price level.
-
-
-Asad simulator v2
-Code·HTML 
-redo it so SRAS curve goes beyond the LRAS and shortun and longrun can be interpreted beyond the natural output allowing for overheading economy in the shortrun.
-
-Thought for 48s
-Extending SRAS past LRAS means the vertical wall has to go — otherwise output can't exceed potential. The right structure is a curve that stays nearly flat below potential and steepens sharply beyond it.
-
-Ran 3 commands, created a file, shared files
-Same filename again, so it replaces the previous version.
-
-The curve. SRAS is now P = Pc + α(Y − Y*) + β(Y − Y*)² above potential. It runs nearly flat through the slack, crosses LRAS, and keeps climbing on the far side — so output above potential is a normal outcome the diagram can show, not something the geometry forbids. Equilibrium is solved by bisection since the curve is non-linear.
-
-Three regimes, with the bar above the chart lighting up spare capacity, at potential, or overheating. The area right of LRAS is tinted so the overheating stretch reads as a place you can be.
-
-The boom preset lands at output 105.0 against potential 100, price level 102.2, unemployment 3.0% — below the natural rate, which is exactly what an overheating economy looks like in the data. Advance the periods and the trail walks up and left along AD: output 103.2, 102.1, 101.3, back to 100.0 while the price level climbs to 106.3. The entire boom converts into price level, and students watch it happen rather than being told.
-
-Two shape controls. Stickiness sets the slope through the slack — drag it to minimum for the fully horizontal Keynesian stretch you asked about last time, still available as a limiting case. The second sets how fast costs bite past potential: at the high end, the same boom yields only +3.4% output and much more inflation.
-
-The asymmetry is now visible. Booms unwind on their own because costs rise easily. With rigidity on, slumps don't, because costs fall reluctantly — run to the long run in a recessionary gap and nothing moves. That contrast is the strongest version of the policy argument the model can make.
-
-
-Asad simulator v2
-Code·HTML 
-Make a similar model for the IS LM model.
-
-Thought for 2m 6s
-Same series treatment, built around the result IS-LM exists to show: how much of a fiscal expansion survives the interest rate response.
-
-Ran 2 commands, created a file
-The economics checks out — crowding out cuts the multiplier from 2.50 to 0.53, the trap raises it to 1.59, the classical case crushes it to 0.13. Let me verify the accounting identity with the shift terms included, since the composition bar must sum to output.
-
-Ran 2 commands, shared files
-Named islm_simulator_v2.html so it sits alongside the one already linked from your hub.
-
-The model is written in deviations from a base of Y = 100, r = 5%. IS: Y = 100 + k(ΔA − b(r − 5)). LM: r = 5 + ((Y − 100) − ΔM)/f. Both curves are anchored at that base point, so the slope sliders rotate them rather than dragging the whole diagram off-screen — you can change the parameters and compare like with like.
-
-Crowding out is measured, not just asserted. After an IS shift the chart shows a hollow marker where output would land if the interest rate never moved, the solid dot where it actually lands, and a shaded strip between them. The fiscal preset shifts IS right by 12.0, output rises only 2.5, and the realised multiplier reads 0.53 against a textbook 2.50 — with the shortfall named as a percentage in the verdict.
-
-A composition bar below the chart shows where output goes, base against now. The fiscal expansion takes government from 20.0 to 24.8 and investment from 20.0 to 16.2. That's the crowding-out mechanism made visible, rather than a number students take on faith. The four components sum exactly to output in every configuration, including when you move the MPC.
-
-The slopes carry the argument. Same spending increase, three economies: baseline gives a realised multiplier of 0.53, the liquidity trap preset (LM nearly flat) gives 1.59, the classical preset (LM nearly vertical) gives 0.13. Monetary expansion runs the other way — 7.9 points of output in the classical case, 3.7 in the trap. The policy mix preset holds the rate near 5% and leaves investment almost untouched.
-
-The price-level slider is worth a minute in class on its own: moving it traces the relationship between P and Y that is the AD curve of the AS-AD file.
-
-
-Islm simulator v2
-Code·HTML 
-
-Make a similar model for the IS LM model.
-
-Claude is AI and can make mistakes.
-
-
-Islm simulator v2 · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,25 +14,25 @@ Islm simulator v2 · HTML
   body{margin:0;background:var(--frost);color:var(--ink);
     font-family:"Helvetica Neue",Helvetica,Arial,"Segoe UI",sans-serif;font-size:16px;line-height:1.55;}
   .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 90px;}
- 
+
   header.masthead{display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px 30px;
     padding-bottom:18px;border-bottom:2px solid var(--ink);margin-bottom:22px;}
   h1{font-size:clamp(28px,4.4vw,44px);line-height:1.02;margin:0;font-weight:700;letter-spacing:-0.022em;max-width:16ch;}
   .standfirst{color:var(--muted);max-width:46ch;margin:0;font-size:15px;}
- 
+
   .tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:22px;}
   .tab{font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;color:var(--muted);
     background:transparent;border:0;border-bottom:3px solid transparent;padding:10px 16px 9px;}
   .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);}
   .tab:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--mint);outline-offset:2px;}
   .view[hidden]{display:none;}
- 
+
   .lab{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:20px;align-items:start;}
   @media (max-width:940px){.lab{grid-template-columns:1fr;}}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);}
   .panel-pad{padding:16px 18px;}
   svg.chart{display:block;width:100%;height:auto;}
- 
+
   .readout{display:flex;flex-wrap:wrap;border-top:1px solid var(--line);}
   .metric{flex:1 1 118px;padding:11px 15px;border-right:1px solid var(--line);}
   .metric:last-child{border-right:0;}
@@ -120,7 +45,7 @@ Islm simulator v2 · HTML
   .note{padding:11px 16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted);}
   .note b{color:var(--ink);font-weight:600;}
   .flag{padding:10px 16px;border-top:1px solid var(--line);background:#FDF3E7;color:var(--warn);font-size:13px;}
- 
+
   .ctrls h3{margin:0;padding:12px 16px;font-size:14px;font-weight:700;border-bottom:1px solid var(--line);}
   .ctrls h3.is{color:var(--is);} .ctrls h3.lm{color:var(--lm);}
   .ctrl{padding:10px 16px;border-bottom:1px solid var(--line);}
@@ -133,17 +58,17 @@ Islm simulator v2 · HTML
   .is-a input[type=range]{accent-color:var(--is);}
   .lm-a input[type=range]{accent-color:var(--lm);}
   .p-a input[type=range]{accent-color:var(--ink);}
- 
+
   .toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:14px 16px;border-top:1px solid var(--line);}
   button.act{font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;background:var(--ink);color:#fff;
     border:1px solid var(--ink);border-radius:var(--radius);padding:8px 14px;}
   button.act.ghost{background:transparent;color:var(--ink);}
- 
+
   .presets{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;border-bottom:1px solid var(--line);}
   .preset{font:inherit;font-size:12.5px;cursor:pointer;padding:6px 10px;background:var(--frost);
     border:1px solid var(--line);border-radius:var(--radius);color:var(--ink);}
   .preset:hover{background:#E2EAEC;}
- 
+
   section.essay{margin-top:38px;}
   section.essay h2{font-size:22px;margin:0 0 4px;letter-spacing:-0.015em;}
   section.essay > p.lede{color:var(--muted);margin:0 0 18px;max-width:74ch;font-size:15px;}
@@ -157,7 +82,7 @@ Islm simulator v2 · HTML
   ul.plain li{padding:9px 0;border-top:1px solid var(--line);font-size:13.5px;}
   ul.plain li:first-child{border-top:0;}
   ul.plain b{display:block;} ul.plain span{color:var(--muted);font-size:13px;}
- 
+
   .quiz{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);}
   @media (max-width:820px){.quiz{grid-template-columns:1fr;}}
   .quiz .left{padding:18px;border-right:1px solid var(--line);}
@@ -178,17 +103,17 @@ Islm simulator v2 · HTML
 </head>
 <body>
 <div class="wrap">
- 
+
   <header class="masthead">
     <h1>What survives the interest rate</h1>
     <p class="standfirst">Fiscal policy shifts IS by the full multiplier. Then the money market answers back. IS-LM exists to show you how much of the push is left when it does.</p>
   </header>
- 
+
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" aria-selected="true"  data-view="v1">The model</button>
     <button class="tab" role="tab" aria-selected="false" data-view="v2">Policy desk</button>
   </div>
- 
+
   <!-- ================= MODEL ================= -->
   <div class="view" id="v1">
     <div class="lab">
@@ -209,7 +134,7 @@ Islm simulator v2 · HTML
           <div id="compHost"></div>
         </div>
       </div>
- 
+
       <div>
         <div class="panel ctrls">
           <div class="presets" id="presets">
@@ -226,12 +151,12 @@ Islm simulator v2 · HTML
           <h3 class="is">Shifters of IS, the goods market</h3>
           <div id="isCtrls" class="is-a"></div>
         </div>
- 
+
         <div class="panel ctrls" style="margin-top:14px;">
           <h3 class="lm">Shifters of LM, the money market</h3>
           <div id="lmCtrls" class="lm-a"></div>
         </div>
- 
+
         <div class="panel ctrls" style="margin-top:14px;">
           <h3>Behavioural parameters</h3>
           <div class="ctrl p-a">
@@ -254,7 +179,7 @@ Islm simulator v2 · HTML
       </div>
     </div>
   </div>
- 
+
   <!-- ================= QUIZ ================= -->
   <div class="view" id="v2" hidden>
     <div class="panel quiz">
@@ -272,7 +197,7 @@ Islm simulator v2 · HTML
       </div>
     </div>
   </div>
- 
+
   <!-- ================= THEORY ================= -->
   <section class="essay">
     <h2>Two markets, one interest rate</h2>
@@ -290,7 +215,7 @@ Islm simulator v2 · HTML
         <td>The nominal money supply, the price level (which sets real balances), and shifts in liquidity preference.</td>
       </tr>
     </table>
- 
+
     <div class="split" style="margin-top:26px;">
       <div class="panel panel-pad">
         <h3 style="margin:0 0 8px;font-size:15px;color:var(--is);">Shifters of IS</h3>
@@ -321,9 +246,9 @@ Islm simulator v2 · HTML
       </div>
     </div>
   </section>
- 
+
   <hr class="rule">
- 
+
   <section class="essay">
     <h2>Five things to demonstrate live</h2>
     <div class="split">
@@ -349,15 +274,15 @@ Islm simulator v2 · HTML
       </div>
     </div>
   </section>
- 
+
   <footer>
     Output is an index with a base of 100 and the interest rate is in percent. Curves are linear and illustrative; both are anchored so that with every shifter at zero the economy sits at output 100 and a rate of 5%. Runs entirely offline in any browser.
   </footer>
 </div>
- 
+
 <script>
 "use strict";
- 
+
 /* ==========================================================
    MODEL, written in deviations from a base of Y = 100, r = 5%
    IS : y = k*dA - k*b*rho          k = 1/(1 - mpc)
@@ -379,16 +304,16 @@ var LM_SHIFTERS = [
   { id:"price", label:"Price level",                w:-2.5, why:"Only real balances matter, so a higher price level shrinks the real money supply and shifts LM left." },
   { id:"liq",   label:"Liquidity preference",       w:-2.0, why:"A flight to cash raises money demand at every rate and shifts LM left." }
 ];
- 
+
 var st = { is:{}, lm:{}, mpc:0.6, b:6, f:4 };
 IS_SHIFTERS.forEach(function(x){ st.is[x.id]=0; });
 LM_SHIFTERS.forEach(function(x){ st.lm[x.id]=0; });
- 
+
 function kMult(){ return 1/(1 - st.mpc); }
 function weightOf(x){ return x.w === "tax" ? -1.2*st.mpc : x.w; }
 function dA(){ var t=0; IS_SHIFTERS.forEach(function(x){ t += weightOf(x)*st.is[x.id]; }); return t; }
 function dM(){ var t=0; LM_SHIFTERS.forEach(function(x){ t += x.w*st.lm[x.id]; }); return t; }
- 
+
 function solve(){
   var k=kMult(), b=st.b, f=st.f, a=dA(), m=dM();
   var y = (k*f*a + k*b*m)/(f + k*b);
@@ -406,7 +331,7 @@ function solve(){
            full: 100 + k*a,                 /* output if the rate never moved */
            realised: Math.abs(a) > 0.001 ? y/a : null };
 }
- 
+
 /* ==========================================================
    DRAWING
 ========================================================== */
@@ -414,7 +339,7 @@ var YMIN=60, YMAX=140, RMIN=0, RMAX=12;
 var W=740, H=430, ML=62, MR=34, MT=22, MB=48;
 function X(y){ return ML + ((y-YMIN)/(YMAX-YMIN))*(W-ML-MR); }
 function R(r){ return H - MB - ((r-RMIN)/(RMAX-RMIN))*(H-MT-MB); }
- 
+
 function svgOpen(w,h,label){
   return '<svg class="chart" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+label+'">'+
          '<rect x="0" y="0" width="'+w+'" height="'+h+'" fill="#fff"/>';
@@ -452,7 +377,7 @@ function line(sg,c,w,dash){
 function isCurve(a){ var k=kMult(); return function(Y){ return 5 + (a - (Y-100)/k)/st.b; }; }
 function lmCurve(m){ return function(Y){ return 5 + ((Y-100) - m)/st.f; }; }
 function asSeg(fn){ return clip({y:YMIN, r:fn(YMIN)}, {y:YMAX, r:fn(YMAX)}); }
- 
+
 function draw(){
   var m = solve(), i, s=[];
   s.push(svgOpen(W,H,"IS and LM curves with the equilibrium level of output and the interest rate"));
@@ -464,7 +389,7 @@ function draw(){
     s.push(seg(ML,R(i),W-MR,R(i),"#EDF2F3",1));
     s.push(txt(ML-9, R(i)+4, i+"%", {anchor:"end"}));
   }
- 
+
   /* crowding-out band: only meaningful when LM has not moved */
   var showCrowd = Math.abs(m.dM) < 0.001 && Math.abs(m.dA) > 0.001 &&
                   m.full > YMIN && m.full < YMAX && m.Y > YMIN && m.Y < YMAX;
@@ -475,15 +400,15 @@ function draw(){
     s.push(seg(X(m.full), R(RMIN), X(m.full), MT, "#A85A16", 1.5, "5 4"));
     s.push(dot(X(m.full), R(5), 6, "#fff", "#A85A16"));
   }
- 
+
   /* base ghosts */
   if (Math.abs(m.dA) > 0.001) s.push(line(asSeg(isCurve(0)), "#E4B9C8", 2, "5 5"));
   if (Math.abs(m.dM) > 0.001) s.push(line(asSeg(lmCurve(0)), "#B4CEE2", 2, "5 5"));
- 
+
   var isSeg = asSeg(isCurve(m.dA)), lmSeg = asSeg(lmCurve(m.dM));
   s.push(line(lmSeg, "#1B6FA6", 3));
   s.push(line(isSeg, "#C0285C", 3));
- 
+
   if (isSeg){
     var e = isSeg[0].r < isSeg[1].r ? isSeg[0] : isSeg[1];
     var anc = X(e.y) > W-MR-40 ? "end" : "start";
@@ -495,16 +420,16 @@ function draw(){
     var dy2 = R(e2.r) < MT+16 ? 16 : -8;
     s.push(txt(X(e2.y) + (anc2==="end"?-9:9), R(e2.r)+dy2, "LM", {size:14, fill:"#1B6FA6", anchor:anc2, weight:700}));
   }
- 
+
   /* base equilibrium reference */
   s.push(dot(X(100), R(5), 5, "#fff", "#8A9AA3"));
- 
+
   if (m.Y>YMIN && m.Y<YMAX && m.r>RMIN && m.r<RMAX){
     s.push(seg(ML,R(m.r),X(m.Y),R(m.r),"#132029",1,"3 4"));
     s.push(seg(X(m.Y),R(RMIN),X(m.Y),R(m.r),"#132029",1,"3 4"));
     s.push(dot(X(m.Y),R(m.r),7,"#132029"));
   }
- 
+
   s.push(seg(ML,MT,ML,R(RMIN),"#132029",1.5));
   s.push(seg(ML,R(RMIN),W-MR,R(RMIN),"#132029",1.5));
   s.push(txt((ML+W-MR)/2, H-8, "Output, index", {size:13, fill:"#132029"}));
@@ -513,7 +438,7 @@ function draw(){
   document.getElementById("chartHost").innerHTML = s.join("");
   return m;
 }
- 
+
 /* expenditure composition, base against now */
 function drawComposition(m){
   var w=740,h=190,ml=62,mr=34,mt=30,mb=40;
@@ -553,7 +478,7 @@ function drawComposition(m){
   s.push('</svg>');
   document.getElementById("compHost").innerHTML = s.join("");
 }
- 
+
 /* ==========================================================
    RENDER
 ========================================================== */
@@ -561,12 +486,12 @@ function arrow(v){ return v>0 ? "▲ " : "▼ "; }
 function render(){
   var m = draw();
   drawComposition(m);
- 
+
   document.getElementById("mY").textContent = m.Y.toFixed(1);
   document.getElementById("mR").textContent = m.r.toFixed(2)+"%";
   document.getElementById("mI").textContent = m.I.toFixed(1);
   document.getElementById("mK").textContent = m.realised === null ? "—" : m.realised.toFixed(2);
- 
+
   var yd = document.getElementById("mYd");
   yd.textContent = Math.abs(m.y)<0.05 ? "at base 100" : arrow(m.y)+Math.abs(m.y).toFixed(1)+" from base";
   yd.className = "d " + (Math.abs(m.y)<0.05 ? "" : (m.y>0?"up":"down"));
@@ -578,7 +503,7 @@ function render(){
   idm.className = "d " + (Math.abs(m.I-20)<0.05 ? "" : (m.I>20?"up":"down"));
   document.getElementById("mKd").textContent = m.realised === null ? "no IS shift to measure"
       : "full multiplier is " + m.k.toFixed(2);
- 
+
   var v = document.getElementById("verdict");
   var isMove = Math.abs(m.dA) > 0.001, lmMove = Math.abs(m.dM) > 0.001;
   if (!isMove && !lmMove){
@@ -602,12 +527,12 @@ function render(){
       (Math.abs(m.rho)<0.3 ? "almost nothing, so very little is crowded out" : "some of the work, so part of the push is offset") +
       " and investment sits at " + m.I.toFixed(1) + ".";
   }
- 
+
   document.getElementById("note").innerHTML =
     "IS: Y = 100 + " + m.k.toFixed(2) + "(<b>" + m.dA.toFixed(1) + "</b> − " + st.b.toFixed(1) +
     "(r − 5)) &nbsp;·&nbsp; LM: r = 5 + ((Y − 100) − <b>" + m.dM.toFixed(1) + "</b>) ÷ " + st.f.toFixed(1) +
     " &nbsp;·&nbsp; C " + m.C.toFixed(1) + " · I " + m.I.toFixed(1) + " · G " + m.G.toFixed(1) + " · NX " + m.NX.toFixed(1);
- 
+
   var f = document.getElementById("flag");
   if (m.Y<YMIN || m.Y>YMAX || m.r<RMIN || m.r>RMAX){
     f.hidden=false;
@@ -623,7 +548,7 @@ function render(){
     f.textContent = "Investment is barely responsive to interest rates, so monetary policy has little to work with even though LM moved. The transmission channel is blocked at the investment end rather than the rate end.";
   } else { f.hidden=true; }
 }
- 
+
 /* ==========================================================
    CONTROLS
 ========================================================== */
@@ -664,7 +589,7 @@ function syncParamLabels(){
 }
 buildCtrls(IS_SHIFTERS,"isCtrls",st.is);
 buildCtrls(LM_SHIFTERS,"lmCtrls",st.lm);
- 
+
 [["pMPC","mpc"],["pB","b"],["pF","f"]].forEach(function(pair){
   document.getElementById(pair[0]).addEventListener("input", function(e){
     st[pair[1]] = parseFloat(e.target.value);
@@ -673,14 +598,14 @@ buildCtrls(LM_SHIFTERS,"lmCtrls",st.lm);
   });
 });
 syncParamLabels();
- 
+
 document.getElementById("bAll").addEventListener("click", function(){
   IS_SHIFTERS.forEach(function(x){ st.is[x.id]=0; });
   LM_SHIFTERS.forEach(function(x){ st.lm[x.id]=0; });
   st.mpc=0.6; st.b=6; st.f=4;
   syncCtrls(); render();
 });
- 
+
 var PRESETS = {
   fiscal:    { is:{gov:4} },
   taxcut:    { is:{tax:-4} },
@@ -704,7 +629,7 @@ Array.prototype.forEach.call(document.querySelectorAll("#presets .preset"), func
     syncCtrls(); render();
   });
 });
- 
+
 /* ==========================================================
    QUIZ
 ========================================================== */
@@ -768,7 +693,7 @@ var QUESTIONS = [
     a:1,
     e:"Spending enters demand at full value, while a tax cut only enters through consumption, so the first round is smaller by the marginal propensity to consume. Raise the MPC slider and the two get closer together; lower it and the gap widens." }
 ];
- 
+
 var qi=0, qPick=null, qLocked=false, qScore=0, qAsked=0;
 function loadQ(){
   var Q = QUESTIONS[qi];
@@ -812,7 +737,7 @@ document.getElementById("qCheck").addEventListener("click", function(){
 document.getElementById("qNext").addEventListener("click", function(){
   qi=(qi+1)%QUESTIONS.length; loadQ();
 });
- 
+
 var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
 tabs.forEach(function(t){
   t.addEventListener("click", function(){
@@ -822,10 +747,9 @@ tabs.forEach(function(t){
     });
   });
 });
- 
+
 render();
 loadQ();
 </script>
 </body>
 </html>
- 
