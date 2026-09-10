@@ -1,482 +1,831 @@
+
+Thought for 1m 12s
+"Redo" it is — a horizontal SRAS changes the mechanics enough that it needs a different engine, not a slope tweak. The clean way to do it is the reverse-L: horizontal at the sticky price level up to capacity, vertical at potential.
+
+Ran 2 commands, created a file
+One behaviour worth flagging in the interface: when capacity binds, advancing periods lifts the posted price but the equilibrium point itself doesn't move.
+
+Edited a file, ran a command, shared files
+Rebuilt under the same filename, so it replaces the sloped version.
+
+The shape. SRAS is horizontal at the sticky price level P̄ up to potential output, then vertical — the reverse-L. That vertical arm sits on LRAS, drawn dashed in blue over the dark capacity line so both read.
+
+Two regimes, and the interface says which one you're in. A bar above the chart lights up either "demand-determined: output moves, prices do not" or "capacity constrained: prices move, output cannot". Below capacity, output is Y = A − 1.2(P̄ − 100) and the price level is a fact about costs, not demand. At the wall, output is fixed and the price level is bid up to clear the excess.
+
+The result that falls out cleanly: on the flat segment ΔY equals ΔA exactly. Run the slump preset then the rescue preset and demand rises 6.6 points while output rises 6.6 points. No leakage into prices means no crowding out through the price level, and the multiplier runs undiluted. The overheat preset gives the mirror image — the same stimulus buying zero output and 5.8 points of inflation.
+
+Wage rigidity is now a checkbox, on by default. With it on, the price level can be pushed up by excess demand but never drifts down. Open a recessionary gap, press "run to the long run", and nothing happens — periods pass and the gap sits there. A flag says so explicitly. Uncheck it and the same gap closes in about twelve periods as costs fall. That contrast is the whole Keynesian-versus-classical argument in two clicks.
+
+The stickiness slope slider is gone, since a horizontal curve has no slope to vary. The oil shock still works: it lifts the entire flat line, and the economy slides back up AD to less output at a higher price level.
+
+
+Asad simulator v2
+Code·HTML 
+redo it so SRAS curve goes beyond the LRAS and shortun and longrun can be interpreted beyond the natural output allowing for overheading economy in the shortrun.
+
+Thought for 48s
+Extending SRAS past LRAS means the vertical wall has to go — otherwise output can't exceed potential. The right structure is a curve that stays nearly flat below potential and steepens sharply beyond it.
+
+Ran 3 commands, created a file, shared files
+Same filename again, so it replaces the previous version.
+
+The curve. SRAS is now P = Pc + α(Y − Y*) + β(Y − Y*)² above potential. It runs nearly flat through the slack, crosses LRAS, and keeps climbing on the far side — so output above potential is a normal outcome the diagram can show, not something the geometry forbids. Equilibrium is solved by bisection since the curve is non-linear.
+
+Three regimes, with the bar above the chart lighting up spare capacity, at potential, or overheating. The area right of LRAS is tinted so the overheating stretch reads as a place you can be.
+
+The boom preset lands at output 105.0 against potential 100, price level 102.2, unemployment 3.0% — below the natural rate, which is exactly what an overheating economy looks like in the data. Advance the periods and the trail walks up and left along AD: output 103.2, 102.1, 101.3, back to 100.0 while the price level climbs to 106.3. The entire boom converts into price level, and students watch it happen rather than being told.
+
+Two shape controls. Stickiness sets the slope through the slack — drag it to minimum for the fully horizontal Keynesian stretch you asked about last time, still available as a limiting case. The second sets how fast costs bite past potential: at the high end, the same boom yields only +3.4% output and much more inflation.
+
+The asymmetry is now visible. Booms unwind on their own because costs rise easily. With rigidity on, slumps don't, because costs fall reluctantly — run to the long run in a recessionary gap and nothing moves. That contrast is the strongest version of the policy argument the model can make.
+
+
+Asad simulator v2
+Code·HTML 
+Make a similar model for the IS LM model.
+
+Thought for 2m 6s
+Same series treatment, built around the result IS-LM exists to show: how much of a fiscal expansion survives the interest rate response.
+
+Ran 2 commands, created a file
+The economics checks out — crowding out cuts the multiplier from 2.50 to 0.53, the trap raises it to 1.59, the classical case crushes it to 0.13. Let me verify the accounting identity with the shift terms included, since the composition bar must sum to output.
+
+Ran 2 commands, shared files
+Named islm_simulator_v2.html so it sits alongside the one already linked from your hub.
+
+The model is written in deviations from a base of Y = 100, r = 5%. IS: Y = 100 + k(ΔA − b(r − 5)). LM: r = 5 + ((Y − 100) − ΔM)/f. Both curves are anchored at that base point, so the slope sliders rotate them rather than dragging the whole diagram off-screen — you can change the parameters and compare like with like.
+
+Crowding out is measured, not just asserted. After an IS shift the chart shows a hollow marker where output would land if the interest rate never moved, the solid dot where it actually lands, and a shaded strip between them. The fiscal preset shifts IS right by 12.0, output rises only 2.5, and the realised multiplier reads 0.53 against a textbook 2.50 — with the shortfall named as a percentage in the verdict.
+
+A composition bar below the chart shows where output goes, base against now. The fiscal expansion takes government from 20.0 to 24.8 and investment from 20.0 to 16.2. That's the crowding-out mechanism made visible, rather than a number students take on faith. The four components sum exactly to output in every configuration, including when you move the MPC.
+
+The slopes carry the argument. Same spending increase, three economies: baseline gives a realised multiplier of 0.53, the liquidity trap preset (LM nearly flat) gives 1.59, the classical preset (LM nearly vertical) gives 0.13. Monetary expansion runs the other way — 7.9 points of output in the classical case, 3.7 in the trap. The policy mix preset holds the rate near 5% and leaves investment almost untouched.
+
+The price-level slider is worth a minute in class on its own: moving it traces the relationship between P and Y that is the AD curve of the AS-AD file.
+
+
+Islm simulator v2
+Code·HTML 
+
+Make a similar model for the IS LM model.
+
+Claude is AI and can make mistakes.
+
+
+Islm simulator v2 · HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IS-LM Model Simulator</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            max-width: 1000px;
-            width: 100%;
-            padding: 40px;
-        }
-
-        h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            color: #1a1a1a;
-        }
-
-        .subtitle {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 30px;
-        }
-
-        .content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            align-items: start;
-        }
-
-        @media (max-width: 1100px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .chart-container {
-            display: flex;
-            justify-content: center;
-        }
-
-        svg {
-            width: 100%;
-            height: auto;
-            max-width: 500px;
-        }
-
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .policy-section {
-            border-left: 4px solid #e0e0e0;
-            padding-left: 15px;
-        }
-
-        .policy-section h3 {
-            font-size: 13px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .policy-section.fiscal {
-            border-left-color: #d32f2f;
-        }
-
-        .policy-section.monetary {
-            border-left-color: #1976d2;
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #1a1a1a;
-        }
-
-        .label-with-value {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .value-display {
-            color: #1976d2;
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 5px;
-            border-radius: 3px;
-            background: linear-gradient(to right, #e0e0e0 0%, #1976d2 100%);
-            outline: none;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #1976d2;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
-        }
-
-        input[type="range"]::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #1976d2;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
-        }
-
-        .range-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            color: #999;
-            margin-top: 3px;
-        }
-
-        .equilibrium-box {
-            background: #f5f5f5;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-
-        .equilibrium-box h3 {
-            font-size: 12px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .equilibrium-values {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .eq-value {
-            text-align: center;
-        }
-
-        .eq-value p {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 4px;
-        }
-
-        .eq-value .number {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1976d2;
-        }
-
-        .info-box {
-            background: #f3e5f5;
-            border: 1px solid #ce93d8;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #4a148c;
-            margin-top: 15px;
-        }
-
-        .info-box strong {
-            color: #4a148c;
-        }
-
-        .instructions {
-            background: #f9f9f9;
-            border-left: 4px solid #1976d2;
-            padding: 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #333;
-            margin-top: 15px;
-        }
-
-        .instructions h3 {
-            font-size: 12px;
-            margin-bottom: 6px;
-            color: #1a1a1a;
-            font-weight: 700;
-        }
-
-        .instructions ul {
-            margin-left: 20px;
-        }
-
-        .instructions li {
-            margin-bottom: 4px;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IS-LM — crowding out, the liquidity trap and the policy mix</title>
+<style>
+  :root{
+    --frost:#EDF2F3;--panel:#FFFFFF;--ink:#132029;--muted:#5D6E79;--line:#D3DEE1;
+    --is:#C0285C;--lm:#1B6FA6;--warn:#A85A16;--good:#2E8B57;--mint:#7FC9B7;--radius:5px;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0;background:var(--frost);color:var(--ink);
+    font-family:"Helvetica Neue",Helvetica,Arial,"Segoe UI",sans-serif;font-size:16px;line-height:1.55;}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 90px;}
+ 
+  header.masthead{display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px 30px;
+    padding-bottom:18px;border-bottom:2px solid var(--ink);margin-bottom:22px;}
+  h1{font-size:clamp(28px,4.4vw,44px);line-height:1.02;margin:0;font-weight:700;letter-spacing:-0.022em;max-width:16ch;}
+  .standfirst{color:var(--muted);max-width:46ch;margin:0;font-size:15px;}
+ 
+  .tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:22px;}
+  .tab{font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;color:var(--muted);
+    background:transparent;border:0;border-bottom:3px solid transparent;padding:10px 16px 9px;}
+  .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);}
+  .tab:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--mint);outline-offset:2px;}
+  .view[hidden]{display:none;}
+ 
+  .lab{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:20px;align-items:start;}
+  @media (max-width:940px){.lab{grid-template-columns:1fr;}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);}
+  .panel-pad{padding:16px 18px;}
+  svg.chart{display:block;width:100%;height:auto;}
+ 
+  .readout{display:flex;flex-wrap:wrap;border-top:1px solid var(--line);}
+  .metric{flex:1 1 118px;padding:11px 15px;border-right:1px solid var(--line);}
+  .metric:last-child{border-right:0;}
+  .metric .k{font-size:12.5px;color:var(--muted);}
+  .metric .v{font-size:25px;font-weight:700;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
+  .metric .d{font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--muted);}
+  .up{color:var(--good);}.down{color:var(--is);}
+  .verdictbar{padding:14px 16px;border-top:1px solid var(--line);font-size:14.5px;}
+  .verdictbar strong{font-size:16px;}
+  .note{padding:11px 16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted);}
+  .note b{color:var(--ink);font-weight:600;}
+  .flag{padding:10px 16px;border-top:1px solid var(--line);background:#FDF3E7;color:var(--warn);font-size:13px;}
+ 
+  .ctrls h3{margin:0;padding:12px 16px;font-size:14px;font-weight:700;border-bottom:1px solid var(--line);}
+  .ctrls h3.is{color:var(--is);} .ctrls h3.lm{color:var(--lm);}
+  .ctrl{padding:10px 16px;border-bottom:1px solid var(--line);}
+  .ctrl:last-child{border-bottom:0;}
+  .ctrl .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .ctrl label{font-size:13.5px;font-weight:600;}
+  .ctrl output{font-size:13px;font-variant-numeric:tabular-nums;color:var(--muted);}
+  .ctrl .why{font-size:12px;color:var(--muted);line-height:1.4;margin-top:3px;display:block;}
+  input[type=range]{width:100%;margin:6px 0 0;}
+  .is-a input[type=range]{accent-color:var(--is);}
+  .lm-a input[type=range]{accent-color:var(--lm);}
+  .p-a input[type=range]{accent-color:var(--ink);}
+ 
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:14px 16px;border-top:1px solid var(--line);}
+  button.act{font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;background:var(--ink);color:#fff;
+    border:1px solid var(--ink);border-radius:var(--radius);padding:8px 14px;}
+  button.act.ghost{background:transparent;color:var(--ink);}
+ 
+  .presets{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;border-bottom:1px solid var(--line);}
+  .preset{font:inherit;font-size:12.5px;cursor:pointer;padding:6px 10px;background:var(--frost);
+    border:1px solid var(--line);border-radius:var(--radius);color:var(--ink);}
+  .preset:hover{background:#E2EAEC;}
+ 
+  section.essay{margin-top:38px;}
+  section.essay h2{font-size:22px;margin:0 0 4px;letter-spacing:-0.015em;}
+  section.essay > p.lede{color:var(--muted);margin:0 0 18px;max-width:74ch;font-size:15px;}
+  .split{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;}
+  table.cmp{border-collapse:collapse;width:100%;font-size:13.5px;}
+  table.cmp th,table.cmp td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.cmp th{font-weight:700;}
+  table.cmp td:first-child{font-weight:600;width:24%;}
+  .rule{border:0;border-top:1px solid var(--line);margin:32px 0;}
+  ul.plain{margin:0;padding:0;list-style:none;}
+  ul.plain li{padding:9px 0;border-top:1px solid var(--line);font-size:13.5px;}
+  ul.plain li:first-child{border-top:0;}
+  ul.plain b{display:block;} ul.plain span{color:var(--muted);font-size:13px;}
+ 
+  .quiz{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);}
+  @media (max-width:820px){.quiz{grid-template-columns:1fr;}}
+  .quiz .left{padding:18px;border-right:1px solid var(--line);}
+  @media (max-width:820px){.quiz .left{border-right:0;border-bottom:1px solid var(--line);}}
+  .quiz .right{padding:18px;}
+  .qtext{font-size:17px;font-weight:600;margin:8px 0 14px;max-width:48ch;line-height:1.4;}
+  .opts{display:flex;flex-direction:column;gap:6px;}
+  .opt{font:inherit;font-size:13.5px;cursor:pointer;padding:9px 12px;text-align:left;background:var(--frost);
+    border:1px solid var(--line);border-radius:var(--radius);color:var(--ink);}
+  .opt[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .opt.correct{background:#E6F3EC;border-color:var(--good);color:#1E5E3B;}
+  .opt.wrong{background:#FBE9EE;border-color:var(--is);color:var(--is);}
+  .score{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .verdict h4{margin:0 0 4px;font-size:14px;}
+  .verdict p{margin:0 0 8px;color:var(--muted);font-size:13.5px;}
+  footer{margin-top:46px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div style="margin-bottom: 20px;">
-            <a href="index.html" style="display: inline-block; padding: 10px 20px; background: #d32f2f; color: white; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600;">← Back to Hub</a>
+<div class="wrap">
+ 
+  <header class="masthead">
+    <h1>What survives the interest rate</h1>
+    <p class="standfirst">Fiscal policy shifts IS by the full multiplier. Then the money market answers back. IS-LM exists to show you how much of the push is left when it does.</p>
+  </header>
+ 
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true"  data-view="v1">The model</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="v2">Policy desk</button>
+  </div>
+ 
+  <!-- ================= MODEL ================= -->
+  <div class="view" id="v1">
+    <div class="lab">
+      <div>
+        <div class="panel">
+          <div id="chartHost"></div>
+          <div class="readout">
+            <div class="metric"><div class="k">Output</div><div class="v" id="mY">—</div><div class="d" id="mYd">&nbsp;</div></div>
+            <div class="metric"><div class="k">Interest rate</div><div class="v" id="mR">—</div><div class="d" id="mRd">&nbsp;</div></div>
+            <div class="metric"><div class="k">Investment</div><div class="v" id="mI">—</div><div class="d" id="mId">&nbsp;</div></div>
+            <div class="metric"><div class="k">Multiplier realised</div><div class="v" id="mK">—</div><div class="d" id="mKd">&nbsp;</div></div>
+          </div>
+          <div class="verdictbar" id="verdict"></div>
+          <div class="note" id="note"></div>
+          <div class="flag" id="flag" hidden></div>
         </div>
-        <h1>IS-LM Model Simulator</h1>
-        <p class="subtitle">Explore how fiscal and monetary policy shift the IS and LM curves</p>
-        
-        <div class="content">
-            <div class="chart-container">
-                <svg viewBox="0 0 500 450" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Chart area -->
-                    <rect x="60" y="20" width="410" height="360" fill="#fafafa" stroke="#e0e0e0" stroke-width="1" rx="4"/>
-                    
-                    <!-- Gridlines -->
-                    <line x1="60" y1="200" x2="470" y2="200" stroke="#e0e0e0" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3"/>
-                    <line x1="60" y1="110" x2="470" y2="110" stroke="#e0e0e0" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3"/>
-                    <line x1="60" y1="290" x2="470" y2="290" stroke="#e0e0e0" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3"/>
-                    
-                    <line x1="150" y1="20" x2="150" y2="380" stroke="#e0e0e0" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3"/>
-                    <line x1="265" y1="20" x2="265" y2="380" stroke="#e0e0e0" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3"/>
-                    <line x1="380" y1="20" x2="380" y2="380" stroke="#e0e0e0" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3"/>
-                    
-                    <!-- IS Curve (red/downward sloping) -->
-                    <path id="isCurve" d="M 80 80 L 420 340" fill="none" stroke="#d32f2f" stroke-width="3.5" stroke-linecap="round"/>
-                    <text id="isLabel" x="330" y="310" font-size="14" font-weight="700" fill="#d32f2f" opacity="0.9">IS</text>
-                    
-                    <!-- LM Curve (blue/upward sloping) -->
-                    <path id="lmCurve" d="M 80 340 L 420 80" fill="none" stroke="#1976d2" stroke-width="3.5" stroke-linecap="round"/>
-                    <text id="lmLabel" x="380" y="110" font-size="14" font-weight="700" fill="#1976d2" opacity="0.9">LM</text>
-                    
-
-                    
-                    <!-- Axes -->
-                    <line x1="60" y1="380" x2="470" y2="380" stroke="#333" stroke-width="2"/>
-                    <line x1="60" y1="20" x2="60" y2="380" stroke="#333" stroke-width="2"/>
-                    
-                    <!-- X-axis labels (Output) -->
-                    <text x="70" y="405" font-size="11" fill="#666">Low</text>
-                    <text x="445" y="405" font-size="11" fill="#666">High</text>
-                    <text x="265" y="430" font-size="12" font-weight="500" fill="#333" text-anchor="middle">Output (Y)</text>
-                    
-                    <!-- Y-axis labels (Interest Rate) -->
-                    <text x="45" y="388" font-size="11" fill="#666" text-anchor="end">Low</text>
-                    <text x="45" y="28" font-size="11" fill="#666" text-anchor="end">High</text>
-                    <text x="25" y="200" font-size="12" font-weight="500" fill="#333" text-anchor="middle" transform="rotate(-90, 25, 200)">Interest rate (r)</text>
-                    
-                    <!-- Legend -->
-                    <g transform="translate(65, 5)">
-                        <line x1="0" y1="0" x2="15" y2="0" stroke="#d32f2f" stroke-width="2.5"/>
-                        <text x="22" y="4" font-size="11" fill="#333" font-weight="500">IS</text>
-                        
-                        <line x1="60" y1="0" x2="75" y2="0" stroke="#1976d2" stroke-width="2.5"/>
-                        <text x="82" y="4" font-size="11" fill="#333" font-weight="500">LM</text>
-                        
-                        <circle cx="120" cy="0" r="3" fill="#4caf50"/>
-                        <text x="130" y="4" font-size="11" fill="#333" font-weight="500">Equilibrium</text>
-                    </g>
-                </svg>
-            </div>
-
-            <div class="controls">
-                <!-- Fiscal Policy Section -->
-                <div class="policy-section fiscal">
-                    <h3>Fiscal Policy</h3>
-                    
-                    <div class="control-group">
-                        <div class="label-with-value">
-                            <label>Government spending (G)</label>
-                            <span class="value-display" id="gValue">100</span>
-                        </div>
-                        <input type="range" id="gSlider" min="50" max="150" value="100" step="5"/>
-                        <div class="range-labels">
-                            <span>Contractionary</span>
-                            <span>Expansionary</span>
-                        </div>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="label-with-value">
-                            <label>Taxes (T)</label>
-                            <span class="value-display" id="tValue">50</span>
-                        </div>
-                        <input type="range" id="tSlider" min="30" max="70" value="50" step="5"/>
-                        <div class="range-labels">
-                            <span>Low taxes</span>
-                            <span>High taxes</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Monetary Policy Section -->
-                <div class="policy-section monetary">
-                    <h3>Monetary Policy</h3>
-                    
-                    <div class="control-group">
-                        <div class="label-with-value">
-                            <label>Money supply (M)</label>
-                            <span class="value-display" id="mValue">100</span>
-                        </div>
-                        <input type="range" id="mSlider" min="50" max="150" value="100" step="5"/>
-                        <div class="range-labels">
-                            <span>Tight</span>
-                            <span>Loose</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Equilibrium Display -->
-                <div class="equilibrium-box">
-                    <h3>Equilibrium</h3>
-                    <div class="equilibrium-values">
-                        <div class="eq-value">
-                            <p>Output (GDP)</p>
-                            <div class="number" id="eqY">400</div>
-                        </div>
-                        <div class="eq-value">
-                            <p>Interest Rate (r)</p>
-                            <div class="number" id="eqR">11%</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Info Box -->
-                <div class="info-box">
-                    <strong>How it works:</strong> The IS curve (red, demand) slopes downward. The LM curve (blue, supply) slopes upward. Fiscal policy shifts IS; monetary policy shifts LM. Watch the equilibrium point move as you adjust policies.
-                </div>
-
-                <!-- Instructions -->
-                <div class="instructions">
-                    <h3>Try these scenarios:</h3>
-                    <ul>
-                        <li><strong>Expansionary fiscal:</strong> Increase G or decrease T → IS shifts right</li>
-                        <li><strong>Expansionary monetary:</strong> Increase M → LM shifts right</li>
-                        <li><strong>Stagflation:</strong> Decrease M while increasing G</li>
-                    </ul>
-                </div>
-            </div>
+        <div class="panel" style="margin-top:16px;">
+          <div id="compHost"></div>
         </div>
+      </div>
+ 
+      <div>
+        <div class="panel ctrls">
+          <div class="presets" id="presets">
+            <button class="preset" data-p="fiscal">Fiscal expansion</button>
+            <button class="preset" data-p="taxcut">Tax cut</button>
+            <button class="preset" data-p="money">Monetary expansion</button>
+            <button class="preset" data-p="mix">Policy mix</button>
+            <button class="preset" data-p="trap">Liquidity trap</button>
+            <button class="preset" data-p="classical">Classical case</button>
+            <button class="preset" data-p="slump">Investment slump</button>
+            <button class="preset" data-p="inflation">Inflation shock</button>
+            <button class="preset" data-p="austerity">Austerity</button>
+          </div>
+          <h3 class="is">Shifters of IS, the goods market</h3>
+          <div id="isCtrls" class="is-a"></div>
+        </div>
+ 
+        <div class="panel ctrls" style="margin-top:14px;">
+          <h3 class="lm">Shifters of LM, the money market</h3>
+          <div id="lmCtrls" class="lm-a"></div>
+        </div>
+ 
+        <div class="panel ctrls" style="margin-top:14px;">
+          <h3>Behavioural parameters</h3>
+          <div class="ctrl p-a">
+            <div class="row"><label for="pMPC">Marginal propensity to consume</label><output id="oMPC"></output></div>
+            <input type="range" id="pMPC" min="0.4" max="0.85" step="0.01" value="0.6">
+            <span class="why">Sets the spending multiplier, which is how far IS shifts sideways for a given push. It does not change the slope of LM at all.</span>
+          </div>
+          <div class="ctrl p-a">
+            <div class="row"><label for="pB">Investment sensitivity to interest rates</label><output id="oB"></output></div>
+            <input type="range" id="pB" min="0.5" max="20" step="0.5" value="6">
+            <span class="why">The slope of IS. Insensitive investment makes IS steep, so a rising interest rate destroys very little of a fiscal push.</span>
+          </div>
+          <div class="ctrl p-a">
+            <div class="row"><label for="pF">Money demand sensitivity to interest rates</label><output id="oF"></output></div>
+            <input type="range" id="pF" min="0.5" max="30" step="0.5" value="4">
+            <span class="why">The slope of LM. Push it high and LM flattens towards the liquidity trap; pull it low and LM steepens towards the classical case.</span>
+          </div>
+          <div class="toolbar"><button class="act ghost" id="bAll">Reset everything</button></div>
+        </div>
+      </div>
     </div>
-
-    <script>
-        const gSlider = document.getElementById('gSlider');
-        const tSlider = document.getElementById('tSlider');
-        const mSlider = document.getElementById('mSlider');
-        
-        const gValue = document.getElementById('gValue');
-        const tValue = document.getElementById('tValue');
-        const mValue = document.getElementById('mValue');
-        
-        const isCurve = document.getElementById('isCurve');
-        const lmCurve = document.getElementById('lmCurve');
-        const isLabel = document.getElementById('isLabel');
-        const lmLabel = document.getElementById('lmLabel');
-        const eqY = document.getElementById('eqY');
-        const eqR = document.getElementById('eqR');
-
-        function updateModel() {
-            const G = parseFloat(gSlider.value);
-            const T = parseFloat(tSlider.value);
-            const M = parseFloat(mSlider.value);
-            
-            gValue.textContent = G;
-            tValue.textContent = T;
-            mValue.textContent = M;
-            
-            // Baseline values
-            const G0 = 100;
-            const T0 = 50;
-            const M0 = 100;
-            
-            // Calculate shifts in pixels
-            // Fiscal policy affects IS: increase in (G-T) shifts IS right
-            const netFiscal = (G - G0) - (T - T0);
-            const isShift = netFiscal * 2; // 2 pixels per unit
-            
-            // Monetary policy affects LM: increase in M shifts LM right
-            const mDelta = M - M0;
-            const lmShift = mDelta * 2; // 2 pixels per unit
-            
-            // IS curve: starts at (80, 80) to (420, 340)
-            // Shift horizontally to the right
-            const isX1 = 80 + isShift;
-            const isX2 = 420 + isShift;
-            isCurve.setAttribute('d', `M ${isX1} 80 L ${isX2} 340`);
-            
-            // Move IS label
-            const isLabelX = 330 + isShift;
-            isLabel.setAttribute('x', isLabelX);
-            
-            // LM curve: starts at (80, 340) to (420, 80)
-            // Shift horizontally to the right
-            const lmX1 = 80 + lmShift;
-            const lmX2 = 420 + lmShift;
-            lmCurve.setAttribute('d', `M ${lmX1} 340 L ${lmX2} 80`);
-            
-            // Move LM label
-            const lmLabelX = 380 + lmShift;
-            lmLabel.setAttribute('x', lmLabelX);
-            
-            // Calculate equilibrium using proper IS-LM equations
-            // IS: r = (15 + 0.05*netFiscal) - 0.01*Y
-            // LM: r = (7 + 0.05*mDelta) + 0.01*Y
-            
-            const isIntercept = 15 + 0.05 * netFiscal;
-            const lmIntercept = 7 + 0.05 * mDelta;
-            
-            // Equilibrium: isIntercept - 0.01*Y = lmIntercept + 0.01*Y
-            // isIntercept - lmIntercept = 0.02*Y
-            // Y = (isIntercept - lmIntercept) / 0.02
-            
-            let Y_eq = (isIntercept - lmIntercept) / 0.02;
-            let r_eq = lmIntercept + 0.01 * Y_eq;
-            
-            // Ensure GDP doesn't go below 0
-            const Y_final = Math.max(0, Y_eq);
-            
-            // If Y was constrained, recalculate r from LM curve
-            let r_final;
-            if (Y_eq < 0) {
-                r_final = lmIntercept + 0.01 * 0;
-            } else {
-                r_final = r_eq;
-            }
-            
-            // Ensure interest rate doesn't go negative
-            r_final = Math.max(0, r_final);
-            
-            // Update equilibrium display values in the control panel
-            eqY.textContent = Y_final.toFixed(0);
-            eqR.textContent = r_final.toFixed(1) + '%';
-        }
-
-        gSlider.addEventListener('input', updateModel);
-        tSlider.addEventListener('input', updateModel);
-        mSlider.addEventListener('input', updateModel);
-
-        updateModel();
-    </script>
+  </div>
+ 
+  <!-- ================= QUIZ ================= -->
+  <div class="view" id="v2" hidden>
+    <div class="panel quiz">
+      <div class="left">
+        <div class="score" id="qScore">Score 0 of 0</div>
+        <p class="qtext" id="qText"></p>
+        <div class="opts" id="qOpts"></div>
+        <div class="toolbar" style="border-top:0;padding-left:0;padding-right:0;">
+          <button class="act" id="qCheck" disabled>Lock in my answer</button>
+          <button class="act ghost" id="qNext">Next question</button>
+        </div>
+      </div>
+      <div class="right">
+        <div class="verdict" id="qVerdict"><p>Ten questions. Most turn on the slopes: how much of a policy works depends on how steep the other curve is.</p></div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ================= THEORY ================= -->
+  <section class="essay">
+    <h2>Two markets, one interest rate</h2>
+    <p class="lede">IS is every combination of output and interest rate at which the goods market clears. LM is every combination at which the money market clears. Only where they cross are both true at once, and the interest rate is what forces them to agree.</p>
+    <table class="cmp">
+      <tr><th>Curve</th><th>Why it slopes that way</th><th>What shifts it</th></tr>
+      <tr>
+        <td>IS, downward</td>
+        <td>A lower interest rate makes more investment projects worth doing. Higher investment raises demand, and the multiplier turns that into a larger rise in output.</td>
+        <td>Government spending, taxes, consumer confidence, business confidence, net exports. Anything that changes planned spending at a given interest rate.</td>
+      </tr>
+      <tr>
+        <td>LM, upward</td>
+        <td>Higher output means more transactions and more demand for money. With the real money supply fixed, the interest rate must rise to persuade people to hold the same quantity.</td>
+        <td>The nominal money supply, the price level (which sets real balances), and shifts in liquidity preference.</td>
+      </tr>
+    </table>
+ 
+    <div class="split" style="margin-top:26px;">
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--is);">Shifters of IS</h3>
+        <ul class="plain">
+          <li><b>Government spending</b><span>Shifts IS right by the full multiplier times the change.</span></li>
+          <li><b>Taxes</b><span>Shifts IS left, but by less than an equal spending cut, because part of a tax rise comes out of saving.</span></li>
+          <li><b>Consumer confidence</b><span>Autonomous consumption at any level of income.</span></li>
+          <li><b>Business confidence</b><span>Investment demand at any interest rate. This is the animal-spirits term.</span></li>
+          <li><b>Net exports</b><span>Foreign incomes and the exchange rate.</span></li>
+        </ul>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--lm);">Shifters of LM</h3>
+        <ul class="plain">
+          <li><b>Nominal money supply</b><span>Open market operations. More money shifts LM right and down.</span></li>
+          <li><b>The price level</b><span>What matters is real balances, so a higher price level shrinks the real money supply and shifts LM left. This is the bridge from IS-LM to the AD curve.</span></li>
+          <li><b>Liquidity preference</b><span>A flight to cash raises money demand at every interest rate and shifts LM left, which is what a financial panic looks like here.</span></li>
+        </ul>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 8px;font-size:15px;">The two slopes decide everything</h3>
+        <ul class="plain">
+          <li><b>Flat LM</b><span>Interest rates barely move, so fiscal policy works almost fully and monetary policy does very little. The liquidity trap.</span></li>
+          <li><b>Steep LM</b><span>Interest rates move sharply, so fiscal policy is largely crowded out and monetary policy is powerful. The classical case.</span></li>
+          <li><b>Steep IS</b><span>Investment ignores interest rates, so a rising rate destroys little of a fiscal push.</span></li>
+          <li><b>Flat IS</b><span>Investment is highly rate-sensitive, so crowding out is severe and monetary policy has a strong grip.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+ 
+  <hr class="rule">
+ 
+  <section class="essay">
+    <h2>Five things to demonstrate live</h2>
+    <div class="split">
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 6px;font-size:15px;">Crowding out, measured</h3>
+        <p style="margin:0;font-size:13.5px;color:var(--muted);">Run the fiscal preset. The hollow marker shows where output would land if the interest rate never moved, the solid dot shows where it actually lands, and the shaded strip between them is what the money market took back. Watch investment in the composition bar fall as it happens.</p>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 6px;font-size:15px;">The same policy, two economies</h3>
+        <p style="margin:0;font-size:13.5px;color:var(--muted);">Apply an identical spending increase with LM flat and then with LM steep. The realised multiplier collapses from close to its textbook value to almost nothing. The policy never changed; the money market's response did.</p>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 6px;font-size:15px;">Why the trap matters</h3>
+        <p style="margin:0;font-size:13.5px;color:var(--muted);">In the trap preset, printing money barely moves output because the interest rate has nowhere to fall, while fiscal policy runs at nearly full strength. That is the whole argument for spending your way out of a deep slump rather than easing your way out.</p>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 6px;font-size:15px;">The policy mix</h3>
+        <p style="margin:0;font-size:13.5px;color:var(--muted);">Combine a spending increase with monetary accommodation. Output rises with the interest rate held near where it started, so investment is not squeezed. Same output, very different composition, which is the point fiscal and monetary coordination is usually making.</p>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 6px;font-size:15px;">The bridge to AD</h3>
+        <p style="margin:0;font-size:13.5px;color:var(--muted);">Move the price level slider and watch output fall as real balances shrink. Trace that relationship between the price level and output and you have drawn the AD curve of the AS-AD model. The two diagrams are the same economy seen from different angles.</p>
+      </div>
+    </div>
+  </section>
+ 
+  <footer>
+    Output is an index with a base of 100 and the interest rate is in percent. Curves are linear and illustrative; both are anchored so that with every shifter at zero the economy sits at output 100 and a rate of 5%. Runs entirely offline in any browser.
+  </footer>
+</div>
+ 
+<script>
+"use strict";
+ 
+/* ==========================================================
+   MODEL, written in deviations from a base of Y = 100, r = 5%
+   IS : y = k*dA - k*b*rho          k = 1/(1 - mpc)
+   LM : rho = (y - dM)/f
+   Solving:  y = (k*f*dA + k*b*dM) / (f + k*b)
+             rho = (y - dM)/f
+   where y = Y - 100, rho = r - 5, dA is the autonomous spending
+   shift and dM the real money supply shift.
+========================================================== */
+var IS_SHIFTERS = [
+  { id:"gov",  label:"Government spending",  w:1.2,  why:"Shifts IS right by the multiplier times the change." },
+  { id:"tax",  label:"Taxes",                w:"tax", why:"Shifts IS left, but by less than an equal spending cut: part of a tax change is absorbed by saving." },
+  { id:"cons", label:"Consumer confidence",  w:1.0,  why:"Autonomous consumption at any level of income." },
+  { id:"binv", label:"Business confidence",  w:1.5,  why:"Investment demand at any interest rate. The animal-spirits term." },
+  { id:"nx",   label:"Net exports",          w:1.0,  why:"Foreign incomes and the exchange rate." }
+];
+var LM_SHIFTERS = [
+  { id:"msup",  label:"Nominal money supply",       w:2.5,  why:"Open market operations. More money shifts LM right and down." },
+  { id:"price", label:"Price level",                w:-2.5, why:"Only real balances matter, so a higher price level shrinks the real money supply and shifts LM left." },
+  { id:"liq",   label:"Liquidity preference",       w:-2.0, why:"A flight to cash raises money demand at every rate and shifts LM left." }
+];
+ 
+var st = { is:{}, lm:{}, mpc:0.6, b:6, f:4 };
+IS_SHIFTERS.forEach(function(x){ st.is[x.id]=0; });
+LM_SHIFTERS.forEach(function(x){ st.lm[x.id]=0; });
+ 
+function kMult(){ return 1/(1 - st.mpc); }
+function weightOf(x){ return x.w === "tax" ? -1.2*st.mpc : x.w; }
+function dA(){ var t=0; IS_SHIFTERS.forEach(function(x){ t += weightOf(x)*st.is[x.id]; }); return t; }
+function dM(){ var t=0; LM_SHIFTERS.forEach(function(x){ t += x.w*st.lm[x.id]; }); return t; }
+ 
+function solve(){
+  var k=kMult(), b=st.b, f=st.f, a=dA(), m=dM();
+  var y = (k*f*a + k*b*m)/(f + k*b);
+  var rho = (y - m)/f;
+  var Y = 100 + y, r = 5 + rho;
+  /* expenditure components, consistent with the identity by construction */
+  var c0 = 56 - 80*st.mpc + st.is.cons*1.0;
+  var T  = 20 + 1.2*st.is.tax;
+  var G  = 20 + 1.2*st.is.gov;
+  var NX = 4 + 1.0*st.is.nx;
+  var I  = 20 + 1.5*st.is.binv - b*rho;
+  var C  = c0 + st.mpc*(Y - T);
+  return { Y:Y, r:r, y:y, rho:rho, dA:a, dM:m, k:k,
+           C:C, I:I, G:G, NX:NX,
+           full: 100 + k*a,                 /* output if the rate never moved */
+           realised: Math.abs(a) > 0.001 ? y/a : null };
+}
+ 
+/* ==========================================================
+   DRAWING
+========================================================== */
+var YMIN=60, YMAX=140, RMIN=0, RMAX=12;
+var W=740, H=430, ML=62, MR=34, MT=22, MB=48;
+function X(y){ return ML + ((y-YMIN)/(YMAX-YMIN))*(W-ML-MR); }
+function R(r){ return H - MB - ((r-RMIN)/(RMAX-RMIN))*(H-MT-MB); }
+ 
+function svgOpen(w,h,label){
+  return '<svg class="chart" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+label+'">'+
+         '<rect x="0" y="0" width="'+w+'" height="'+h+'" fill="#fff"/>';
+}
+function txt(x,y,s,o){
+  o=o||{};
+  return '<text x="'+x+'" y="'+y+'" font-size="'+(o.size||12)+'" fill="'+(o.fill||"#5D6E79")+
+         '" text-anchor="'+(o.anchor||"middle")+'"'+(o.weight?' font-weight="'+o.weight+'"':'')+
+         (o.rot?' transform="rotate('+o.rot+' '+x+' '+y+')"':'')+'>'+s+'</text>';
+}
+function seg(x1,y1,x2,y2,c,w,dash){
+  return '<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+
+         '" stroke="'+c+'" stroke-width="'+(w||2)+'" stroke-linecap="round"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';
+}
+function dot(x,y,rad,fill,stroke){
+  return '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+rad+'" fill="'+fill+'"'+
+         (stroke?' stroke="'+stroke+'" stroke-width="2"':'')+'/>';
+}
+function clip(a,b){
+  var t0=0,t1=1,dx=b.y-a.y,dy=b.r-a.r;
+  var P=[-dx,dx,-dy,dy], Q=[a.y-YMIN, YMAX-a.y, a.r-RMIN, RMAX-a.r];
+  for (var i=0;i<4;i++){
+    if (P[i]===0){ if (Q[i]<0) return null; }
+    else { var t=Q[i]/P[i];
+      if (P[i]<0){ if (t>t1) return null; if (t>t0) t0=t; }
+      else { if (t<t0) return null; if (t<t1) t1=t; } }
+  }
+  return [{y:a.y+t0*dx, r:a.r+t0*dy},{y:a.y+t1*dx, r:a.r+t1*dy}];
+}
+function line(sg,c,w,dash){
+  if (!sg) return "";
+  return seg(X(sg[0].y),R(sg[0].r),X(sg[1].y),R(sg[1].r),c,w,dash);
+}
+/* IS: r = 5 + (dA - (Y-100)/k)/b     LM: r = 5 + ((Y-100) - dM)/f */
+function isCurve(a){ var k=kMult(); return function(Y){ return 5 + (a - (Y-100)/k)/st.b; }; }
+function lmCurve(m){ return function(Y){ return 5 + ((Y-100) - m)/st.f; }; }
+function asSeg(fn){ return clip({y:YMIN, r:fn(YMIN)}, {y:YMAX, r:fn(YMAX)}); }
+ 
+function draw(){
+  var m = solve(), i, s=[];
+  s.push(svgOpen(W,H,"IS and LM curves with the equilibrium level of output and the interest rate"));
+  for (i=YMIN;i<=YMAX;i+=10){
+    s.push(seg(X(i),R(RMIN),X(i),MT,"#EDF2F3",1));
+    s.push(txt(X(i), H-MB+17, i));
+  }
+  for (i=RMIN;i<=RMAX;i+=2){
+    s.push(seg(ML,R(i),W-MR,R(i),"#EDF2F3",1));
+    s.push(txt(ML-9, R(i)+4, i+"%", {anchor:"end"}));
+  }
+ 
+  /* crowding-out band: only meaningful when LM has not moved */
+  var showCrowd = Math.abs(m.dM) < 0.001 && Math.abs(m.dA) > 0.001 &&
+                  m.full > YMIN && m.full < YMAX && m.Y > YMIN && m.Y < YMAX;
+  if (showCrowd){
+    var xa = X(Math.min(m.Y, m.full)), xb = X(Math.max(m.Y, m.full));
+    s.push('<rect x="'+xa+'" y="'+MT+'" width="'+(xb-xa)+'" height="'+(R(RMIN)-MT)+'" fill="#A85A16" opacity="0.10"/>');
+    s.push(txt((xa+xb)/2, MT+15, "crowded out", {size:12, fill:"#A85A16", weight:700}));
+    s.push(seg(X(m.full), R(RMIN), X(m.full), MT, "#A85A16", 1.5, "5 4"));
+    s.push(dot(X(m.full), R(5), 6, "#fff", "#A85A16"));
+  }
+ 
+  /* base ghosts */
+  if (Math.abs(m.dA) > 0.001) s.push(line(asSeg(isCurve(0)), "#E4B9C8", 2, "5 5"));
+  if (Math.abs(m.dM) > 0.001) s.push(line(asSeg(lmCurve(0)), "#B4CEE2", 2, "5 5"));
+ 
+  var isSeg = asSeg(isCurve(m.dA)), lmSeg = asSeg(lmCurve(m.dM));
+  s.push(line(lmSeg, "#1B6FA6", 3));
+  s.push(line(isSeg, "#C0285C", 3));
+ 
+  if (isSeg){
+    var e = isSeg[0].r < isSeg[1].r ? isSeg[0] : isSeg[1];
+    var anc = X(e.y) > W-MR-40 ? "end" : "start";
+    s.push(txt(X(e.y) + (anc==="end"?-9:9), R(e.r)+4, "IS", {size:14, fill:"#C0285C", anchor:anc, weight:700}));
+  }
+  if (lmSeg){
+    var e2 = lmSeg[0].r > lmSeg[1].r ? lmSeg[0] : lmSeg[1];
+    var anc2 = X(e2.y) > W-MR-40 ? "end" : "start";
+    var dy2 = R(e2.r) < MT+16 ? 16 : -8;
+    s.push(txt(X(e2.y) + (anc2==="end"?-9:9), R(e2.r)+dy2, "LM", {size:14, fill:"#1B6FA6", anchor:anc2, weight:700}));
+  }
+ 
+  /* base equilibrium reference */
+  s.push(dot(X(100), R(5), 5, "#fff", "#8A9AA3"));
+ 
+  if (m.Y>YMIN && m.Y<YMAX && m.r>RMIN && m.r<RMAX){
+    s.push(seg(ML,R(m.r),X(m.Y),R(m.r),"#132029",1,"3 4"));
+    s.push(seg(X(m.Y),R(RMIN),X(m.Y),R(m.r),"#132029",1,"3 4"));
+    s.push(dot(X(m.Y),R(m.r),7,"#132029"));
+  }
+ 
+  s.push(seg(ML,MT,ML,R(RMIN),"#132029",1.5));
+  s.push(seg(ML,R(RMIN),W-MR,R(RMIN),"#132029",1.5));
+  s.push(txt((ML+W-MR)/2, H-8, "Output, index", {size:13, fill:"#132029"}));
+  s.push(txt(17, (MT+R(RMIN))/2, "Interest rate, percent", {size:13, fill:"#132029", rot:-90}));
+  s.push('</svg>');
+  document.getElementById("chartHost").innerHTML = s.join("");
+  return m;
+}
+ 
+/* expenditure composition, base against now */
+function drawComposition(m){
+  var w=740,h=190,ml=62,mr=34,mt=30,mb=40;
+  var base = { C:56, I:20, G:20, NX:4, Y:100 };
+  var maxV = Math.max(140, m.Y*1.08);
+  function bx(v){ return ml + (v/maxV)*(w-ml-mr); }
+  var parts = [
+    {k:"C", col:"#C0285C", label:"consumption"},
+    {k:"I", col:"#1B6FA6", label:"investment"},
+    {k:"G", col:"#132029", label:"government"},
+    {k:"NX",col:"#7FC9B7", label:"net exports"}
+  ];
+  var s=[], i;
+  s.push(svgOpen(w,h,"Composition of spending, before and after the shock"));
+  s.push(txt(ml, mt-12, "Where the output goes", {size:12.5, fill:"#132029", anchor:"start", weight:700}));
+  function bar(data, y, label){
+    var o="", run=0;
+    parts.forEach(function(p){
+      var v = data[p.k];
+      o += '<rect x="'+bx(run).toFixed(1)+'" y="'+y+'" width="'+Math.max(0,(bx(run+v)-bx(run))).toFixed(1)+
+           '" height="34" fill="'+p.col+'" opacity="0.85"/>';
+      if (bx(run+v)-bx(run) > 34)
+        o += txt((bx(run)+bx(run+v))/2, y+22, v.toFixed(1), {size:12, fill:"#fff", weight:700});
+      run += v;
+    });
+    o += txt(ml-9, y+22, label, {size:12, anchor:"end"});
+    return o;
+  }
+  s.push(bar(base, mt+4, "base"));
+  s.push(bar({C:m.C,I:m.I,G:m.G,NX:m.NX}, mt+46, "now"));
+  var lx = ml;
+  parts.forEach(function(p){
+    s.push('<rect x="'+lx+'" y="'+(h-mb+14)+'" width="11" height="11" fill="'+p.col+'" opacity="0.85"/>');
+    s.push(txt(lx+16, (h-mb+24), p.label, {size:11.5, anchor:"start"}));
+    lx += 96;
+  });
+  s.push('</svg>');
+  document.getElementById("compHost").innerHTML = s.join("");
+}
+ 
+/* ==========================================================
+   RENDER
+========================================================== */
+function arrow(v){ return v>0 ? "▲ " : "▼ "; }
+function render(){
+  var m = draw();
+  drawComposition(m);
+ 
+  document.getElementById("mY").textContent = m.Y.toFixed(1);
+  document.getElementById("mR").textContent = m.r.toFixed(2)+"%";
+  document.getElementById("mI").textContent = m.I.toFixed(1);
+  document.getElementById("mK").textContent = m.realised === null ? "—" : m.realised.toFixed(2);
+ 
+  var yd = document.getElementById("mYd");
+  yd.textContent = Math.abs(m.y)<0.05 ? "at base 100" : arrow(m.y)+Math.abs(m.y).toFixed(1)+" from base";
+  yd.className = "d " + (Math.abs(m.y)<0.05 ? "" : (m.y>0?"up":"down"));
+  var rd = document.getElementById("mRd");
+  rd.textContent = Math.abs(m.rho)<0.02 ? "at base 5%" : arrow(m.rho)+Math.abs(m.rho).toFixed(2)+" points";
+  rd.className = "d " + (Math.abs(m.rho)<0.02 ? "" : (m.rho>0?"up":"down"));
+  var idm = document.getElementById("mId");
+  idm.textContent = Math.abs(m.I-20)<0.05 ? "at base 20.0" : arrow(m.I-20)+Math.abs(m.I-20).toFixed(1)+" from base";
+  idm.className = "d " + (Math.abs(m.I-20)<0.05 ? "" : (m.I>20?"up":"down"));
+  document.getElementById("mKd").textContent = m.realised === null ? "no IS shift to measure"
+      : "full multiplier is " + m.k.toFixed(2);
+ 
+  var v = document.getElementById("verdict");
+  var isMove = Math.abs(m.dA) > 0.001, lmMove = Math.abs(m.dM) > 0.001;
+  if (!isMove && !lmMove){
+    v.innerHTML = "<strong>Both markets clear at the base.</strong> Output 100 at an interest rate of 5%. Move a shifter, or change a slope, and watch which of the two curves has to give way.";
+  } else if (isMove && !lmMove){
+    var crowd = m.full - m.Y;
+    var share = Math.abs(m.k*m.dA) > 0.001 ? Math.abs(crowd/(m.k*m.dA))*100 : 0;
+    v.innerHTML = "<strong>IS shifts " + (m.dA>0?"right":"left") + " by " + Math.abs(m.k*m.dA).toFixed(1) +
+      ", the full multiplier effect.</strong> Output actually moves " + Math.abs(m.y).toFixed(1) +
+      ", because the interest rate " + (m.rho>0?"rose":"fell") + " to " + m.r.toFixed(2) + "% and " +
+      (m.rho>0?"squeezed":"released") + " investment. That leaves " + share.toFixed(0) +
+      "% of the push " + (m.dA>0?"crowded out":"offset") + ", and a realised multiplier of " +
+      (m.realised).toFixed(2) + " against a textbook " + m.k.toFixed(2) + ".";
+  } else if (!isMove && lmMove){
+    v.innerHTML = "<strong>LM shifts " + (m.dM>0?"right":"left") + ".</strong> The interest rate moves to " +
+      m.r.toFixed(2) + "%, investment to " + m.I.toFixed(1) + ", and output follows to " + m.Y.toFixed(1) +
+      ". Monetary policy works entirely through this channel: it cannot touch output except by first moving the rate and then moving investment.";
+  } else {
+    v.innerHTML = "<strong>Both curves have moved.</strong> Output " + m.Y.toFixed(1) + " at " + m.r.toFixed(2) +
+      "%. With the money market accommodating the fiscal push, the interest rate is doing " +
+      (Math.abs(m.rho)<0.3 ? "almost nothing, so very little is crowded out" : "some of the work, so part of the push is offset") +
+      " and investment sits at " + m.I.toFixed(1) + ".";
+  }
+ 
+  document.getElementById("note").innerHTML =
+    "IS: Y = 100 + " + m.k.toFixed(2) + "(<b>" + m.dA.toFixed(1) + "</b> − " + st.b.toFixed(1) +
+    "(r − 5)) &nbsp;·&nbsp; LM: r = 5 + ((Y − 100) − <b>" + m.dM.toFixed(1) + "</b>) ÷ " + st.f.toFixed(1) +
+    " &nbsp;·&nbsp; C " + m.C.toFixed(1) + " · I " + m.I.toFixed(1) + " · G " + m.G.toFixed(1) + " · NX " + m.NX.toFixed(1);
+ 
+  var f = document.getElementById("flag");
+  if (m.Y<YMIN || m.Y>YMAX || m.r<RMIN || m.r>RMAX){
+    f.hidden=false;
+    f.textContent = "The equilibrium has run off the edge of the diagram. Pull some shifters back towards zero.";
+  } else if (st.f >= 18){
+    f.hidden=false;
+    f.textContent = "LM is nearly flat: this is the liquidity trap. Monetary expansion has almost no grip on output, while fiscal policy runs at close to its full multiplier because the interest rate barely responds.";
+  } else if (st.f <= 1.2){
+    f.hidden=false;
+    f.textContent = "LM is nearly vertical: the classical case. Fiscal policy is almost entirely crowded out, while monetary policy moves output nearly one for one with real balances.";
+  } else if (st.b <= 1.5 && Math.abs(m.dM) > 0.001){
+    f.hidden=false;
+    f.textContent = "Investment is barely responsive to interest rates, so monetary policy has little to work with even though LM moved. The transmission channel is blocked at the investment end rather than the rate end.";
+  } else { f.hidden=true; }
+}
+ 
+/* ==========================================================
+   CONTROLS
+========================================================== */
+function buildCtrls(list, hostId, store){
+  var host = document.getElementById(hostId);
+  host.innerHTML = "";
+  list.forEach(function(x){
+    var d = document.createElement("div");
+    d.className = "ctrl";
+    d.innerHTML =
+      '<div class="row"><label for="sl_'+x.id+'">'+x.label+'</label><output id="out_'+x.id+'">0</output></div>'+
+      '<input type="range" id="sl_'+x.id+'" min="-5" max="5" step="1" value="'+store[x.id]+'">'+
+      '<span class="why">'+x.why+'</span>';
+    host.appendChild(d);
+    d.querySelector("input").addEventListener("input", function(e){
+      store[x.id] = parseInt(e.target.value,10);
+      document.getElementById("out_"+x.id).textContent = (store[x.id]>0?"+":"")+store[x.id];
+      render();
+    });
+  });
+}
+function syncCtrls(){
+  [[IS_SHIFTERS,st.is],[LM_SHIFTERS,st.lm]].forEach(function(pair){
+    pair[0].forEach(function(x){
+      document.getElementById("sl_"+x.id).value = pair[1][x.id];
+      document.getElementById("out_"+x.id).textContent = (pair[1][x.id]>0?"+":"")+pair[1][x.id];
+    });
+  });
+  document.getElementById("pMPC").value = st.mpc;
+  document.getElementById("pB").value = st.b;
+  document.getElementById("pF").value = st.f;
+  syncParamLabels();
+}
+function syncParamLabels(){
+  document.getElementById("oMPC").textContent = st.mpc.toFixed(2) + " — multiplier " + kMult().toFixed(2);
+  document.getElementById("oB").textContent = st.b.toFixed(1) + (st.b<=2 ? " — IS steep" : (st.b>=14 ? " — IS flat" : ""));
+  document.getElementById("oF").textContent = st.f.toFixed(1) + (st.f<=1.2 ? " — LM steep" : (st.f>=18 ? " — LM flat" : ""));
+}
+buildCtrls(IS_SHIFTERS,"isCtrls",st.is);
+buildCtrls(LM_SHIFTERS,"lmCtrls",st.lm);
+ 
+[["pMPC","mpc"],["pB","b"],["pF","f"]].forEach(function(pair){
+  document.getElementById(pair[0]).addEventListener("input", function(e){
+    st[pair[1]] = parseFloat(e.target.value);
+    syncParamLabels();
+    render();
+  });
+});
+syncParamLabels();
+ 
+document.getElementById("bAll").addEventListener("click", function(){
+  IS_SHIFTERS.forEach(function(x){ st.is[x.id]=0; });
+  LM_SHIFTERS.forEach(function(x){ st.lm[x.id]=0; });
+  st.mpc=0.6; st.b=6; st.f=4;
+  syncCtrls(); render();
+});
+ 
+var PRESETS = {
+  fiscal:    { is:{gov:4} },
+  taxcut:    { is:{tax:-4} },
+  money:     { lm:{msup:4} },
+  mix:       { is:{gov:4}, lm:{msup:3} },
+  trap:      { is:{cons:-3, binv:-4}, p:{f:26} },
+  classical: { is:{gov:4}, p:{f:0.8} },
+  slump:     { is:{binv:-5} },
+  inflation: { lm:{price:4} },
+  austerity: { is:{gov:-4, tax:3} }
+};
+Array.prototype.forEach.call(document.querySelectorAll("#presets .preset"), function(btn){
+  btn.addEventListener("click", function(){
+    IS_SHIFTERS.forEach(function(x){ st.is[x.id]=0; });
+    LM_SHIFTERS.forEach(function(x){ st.lm[x.id]=0; });
+    st.mpc=0.6; st.b=6; st.f=4;
+    var p = PRESETS[btn.getAttribute("data-p")];
+    if (p.is) Object.keys(p.is).forEach(function(id){ st.is[id]=p.is[id]; });
+    if (p.lm) Object.keys(p.lm).forEach(function(id){ st.lm[id]=p.lm[id]; });
+    if (p.p)  Object.keys(p.p).forEach(function(id){ st[id]=p.p[id]; });
+    syncCtrls(); render();
+  });
+});
+ 
+/* ==========================================================
+   QUIZ
+========================================================== */
+var QUESTIONS = [
+  { q:"Why does the IS curve slope downward?",
+    o:["Because higher output reduces the demand for money",
+       "Because a lower interest rate raises investment, and the multiplier turns that into a larger rise in output",
+       "Because prices fall when output rises"],
+    a:1,
+    e:"IS traces goods-market equilibrium. A lower rate makes more projects worth financing, investment rises, and the multiplier amplifies it into a bigger increase in output. Every point on the curve is a level of output at which planned spending equals output." },
+  { q:"Why does the LM curve slope upward?",
+    o:["Because higher output raises money demand, and with the real money supply fixed, the rate must rise to clear the market",
+       "Because central banks raise rates in booms",
+       "Because investment falls as output rises"],
+    a:0,
+    e:"LM is money-market equilibrium, not a policy rule. More output means more transactions and more money demanded; with the supply of real balances fixed, only a higher interest rate can persuade people to hold the same amount." },
+  { q:"Government spending rises. What happens to output and the interest rate?",
+    o:["Output rises, the rate falls",
+       "Output rises, the rate rises, and part of the fiscal push is crowded out",
+       "Output is unchanged, only the rate rises"],
+    a:1,
+    e:"IS shifts right by the full multiplier, but the extra output raises money demand and pushes the rate up, which cuts investment. Output ends short of the full multiplier prediction, and the shortfall is the crowding out." },
+  { q:"What exactly gets crowded out in this model?",
+    o:["Government spending", "Private investment, through the higher interest rate", "Consumption, through higher taxes"],
+    a:1,
+    e:"The rate rise bites on interest-sensitive spending, which is investment. Watch the composition bar: government rises, investment falls, and the difference between them is why output rises by less than the multiplier suggested." },
+  { q:"LM is nearly flat, the liquidity trap. How do the two policies compare?",
+    o:["Fiscal policy is nearly fully effective; monetary policy does almost nothing",
+       "Monetary policy is nearly fully effective; fiscal policy does nothing",
+       "Both are equally effective"],
+    a:0,
+    e:"A flat LM means the rate barely moves, so a fiscal push meets almost no crowding out and delivers close to its full multiplier. It also means extra money cannot push the rate down any further, so monetary expansion has almost no grip on output." },
+  { q:"LM is nearly vertical, the classical case. Now what?",
+    o:["Fiscal policy is nearly fully effective",
+       "Fiscal policy is almost entirely crowded out and monetary policy is powerful",
+       "Neither policy works"],
+    a:1,
+    e:"With money demand insensitive to the rate, any output increase forces a large rate rise that cancels almost all of the fiscal push. Monetary policy, by contrast, moves output nearly one for one with real balances. Same model, opposite policy conclusions, driven only by a slope." },
+  { q:"Investment is almost completely insensitive to interest rates, so IS is very steep. What follows?",
+    o:["Crowding out is severe and fiscal policy is weak",
+       "Crowding out is small so fiscal policy is strong, while monetary policy has little to work with",
+       "Both policies become more powerful"],
+    a:1,
+    e:"Crowding out needs investment to respond to the rate. If it does not, the rate can rise without destroying much spending, so fiscal policy is strong. The same insensitivity blocks the monetary transmission channel, because a lower rate no longer buys extra investment." },
+  { q:"A spending increase is combined with monetary accommodation. What is the point of the mix?",
+    o:["It doubles inflation",
+       "Output rises while the interest rate is held near its original level, so investment is not squeezed",
+       "It has no effect because the two cancel out"],
+    a:1,
+    e:"The monetary expansion supplies the extra money demanded by the higher output, so the rate does not need to rise and no crowding out occurs. Same output as an unaccommodated push would have aimed for, with a very different composition between investment and government spending." },
+  { q:"The price level rises with the nominal money supply unchanged. What happens in IS-LM?",
+    o:["LM shifts left, the rate rises and output falls",
+       "LM shifts right and output rises",
+       "IS shifts left"],
+    a:0,
+    e:"Only real balances matter, so a higher price level shrinks the real money supply and shifts LM left. Trace out this relationship between the price level and equilibrium output and you have derived the AD curve of the AS-AD model." },
+  { q:"A tax cut and a spending increase of the same size. Which moves IS further?",
+    o:["The tax cut, always",
+       "The spending increase, because part of a tax cut is saved rather than spent",
+       "They move it identically"],
+    a:1,
+    e:"Spending enters demand at full value, while a tax cut only enters through consumption, so the first round is smaller by the marginal propensity to consume. Raise the MPC slider and the two get closer together; lower it and the gap widens." }
+];
+ 
+var qi=0, qPick=null, qLocked=false, qScore=0, qAsked=0;
+function loadQ(){
+  var Q = QUESTIONS[qi];
+  qPick=null; qLocked=false;
+  document.getElementById("qText").textContent = Q.q;
+  var host = document.getElementById("qOpts");
+  host.innerHTML = "";
+  Q.o.forEach(function(text,i){
+    var b=document.createElement("button");
+    b.className="opt"; b.type="button"; b.textContent=text;
+    b.setAttribute("aria-pressed","false");
+    b.addEventListener("click", function(){
+      if (qLocked) return;
+      qPick=i;
+      Array.prototype.forEach.call(host.querySelectorAll(".opt"), function(x,j){
+        x.setAttribute("aria-pressed", String(j===i));
+      });
+      document.getElementById("qCheck").disabled=false;
+    });
+    host.appendChild(b);
+  });
+  document.getElementById("qCheck").disabled=true;
+  document.getElementById("qVerdict").innerHTML =
+    "<p>Question " + (qi+1) + " of " + QUESTIONS.length + ". Commit to an answer to see the reasoning.</p>";
+}
+document.getElementById("qCheck").addEventListener("click", function(){
+  if (qLocked || qPick===null) return;
+  qLocked=true;
+  var Q=QUESTIONS[qi];
+  var opts=document.getElementById("qOpts").querySelectorAll(".opt");
+  Array.prototype.forEach.call(opts, function(b,i){
+    if (i===Q.a) b.classList.add("correct");
+    else if (i===qPick) b.classList.add("wrong");
+  });
+  qAsked++; if (qPick===Q.a) qScore++;
+  document.getElementById("qScore").textContent = "Score "+qScore+" of "+qAsked;
+  document.getElementById("qVerdict").innerHTML =
+    "<h4>"+(qPick===Q.a?"Correct.":"Not this time.")+"</h4><p>"+Q.e+"</p>";
+  document.getElementById("qCheck").disabled=true;
+});
+document.getElementById("qNext").addEventListener("click", function(){
+  qi=(qi+1)%QUESTIONS.length; loadQ();
+});
+ 
+var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+tabs.forEach(function(t){
+  t.addEventListener("click", function(){
+    tabs.forEach(function(o){ o.setAttribute("aria-selected", String(o===t)); });
+    ["v1","v2"].forEach(function(id){
+      document.getElementById(id).hidden = (id !== t.getAttribute("data-view"));
+    });
+  });
+});
+ 
+render();
+loadQ();
+</script>
 </body>
 </html>
+ 
