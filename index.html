@@ -1,171 +1,199 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Economics Simulators Hub</title>
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+```
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background: linear-gradient(135deg,#667eea,#764ba2);
-            min-height:100vh;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            padding:20px;
-        }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        background: linear-gradient(135deg,#667eea,#764ba2);
+        min-height:100vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        padding:20px;
+    }
 
-        .container{
-            max-width:1100px;
-            width:100%;
-        }
+    .container{
+        max-width:1100px;
+        width:100%;
+    }
 
-        .header{
-            text-align:center;
-            color:white;
-            margin-bottom:50px;
-        }
+    .header{
+        text-align:center;
+        color:white;
+        margin-bottom:50px;
+    }
+
+    .header h1{
+        font-size:42px;
+        margin-bottom:12px;
+    }
+
+    .header p{
+        font-size:18px;
+    }
+
+    .simulators-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+        gap:30px;
+    }
+
+    .simulator-card{
+        background:#fff;
+        border-radius:12px;
+        overflow:hidden;
+        box-shadow:0 10px 35px rgba(0,0,0,.18);
+        transition:.3s;
+    }
+
+    .simulator-card:hover{
+        transform:translateY(-8px);
+        box-shadow:0 18px 45px rgba(0,0,0,.25);
+    }
+
+    .card-header{
+        padding:28px;
+        color:#fff;
+        font-size:22px;
+        font-weight:600;
+    }
+
+    .card-content{
+        padding:25px;
+    }
+
+    .card-description{
+        color:#555;
+        line-height:1.6;
+        min-height:90px;
+        margin-bottom:20px;
+    }
+
+    .card-features h4{
+        margin-bottom:10px;
+        font-size:13px;
+        text-transform:uppercase;
+    }
+
+    .card-features ul{
+        list-style:none;
+        margin-bottom:25px;
+    }
+
+    .card-features li{
+        padding:6px 0;
+        padding-left:18px;
+        position:relative;
+        color:#666;
+    }
+
+    .card-features li::before{
+        content:"✓";
+        position:absolute;
+        left:0;
+        color:green;
+        font-weight:bold;
+    }
+
+    .card-button{
+        display:block;
+        text-align:center;
+        text-decoration:none;
+        color:white;
+        padding:13px;
+        border-radius:6px;
+        font-weight:600;
+        transition:.3s;
+    }
+
+    .card-button:hover{
+        opacity:0.9;
+        transform:translateY(-2px);
+    }
+
+    /* Phillips */
+
+    .phillips{
+        background:linear-gradient(135deg,#1e88e5,#1565c0);
+    }
+
+    /* IS-LM */
+
+    .islm{
+        background:linear-gradient(135deg,#d32f2f,#b71c1c);
+    }
+
+    /* AS-AD */
+
+    .asad{
+        background:linear-gradient(135deg,#f57c00,#e65100);
+    }
+
+    /* Macro Simulator */
+
+    .macro{
+        background:linear-gradient(135deg,#43a047,#2e7d32);
+    }
+
+    /* Demand & Supply */
+
+    .micro{
+        background:linear-gradient(135deg,#ec407a,#ad1457);
+    }
+
+    /* Elasticity */
+
+    .elasticity{
+        background:linear-gradient(135deg,#8e24aa,#5e35b1);
+    }
+
+    .footer{
+        text-align:center;
+        color:white;
+        margin-top:40px;
+        font-size:13px;
+        line-height:1.8;
+    }
+
+    .footer a{
+        color:white;
+        font-weight:600;
+        text-decoration:none;
+        border-bottom:1px solid rgba(255,255,255,0.7);
+        transition:.3s;
+    }
+
+    .footer a:hover{
+        opacity:0.8;
+        border-bottom-color:white;
+    }
+
+    @media(max-width:768px){
 
         .header h1{
-            font-size:42px;
-            margin-bottom:12px;
-        }
-
-        .header p{
-            font-size:18px;
+            font-size:32px;
         }
 
         .simulators-grid{
-            display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-            gap:30px;
+            grid-template-columns:1fr;
         }
 
-        .simulator-card{
-            background:#fff;
-            border-radius:12px;
-            overflow:hidden;
-            box-shadow:0 10px 35px rgba(0,0,0,.18);
-            transition:.3s;
-        }
+    }
 
-        .simulator-card:hover{
-            transform:translateY(-8px);
-            box-shadow:0 18px 45px rgba(0,0,0,.25);
-        }
-
-        .card-header{
-            padding:28px;
-            color:#fff;
-            font-size:22px;
-            font-weight:600;
-        }
-
-        .card-content{
-            padding:25px;
-        }
-
-        .card-description{
-            color:#555;
-            line-height:1.6;
-            min-height:90px;
-            margin-bottom:20px;
-        }
-
-        .card-features h4{
-            margin-bottom:10px;
-            font-size:13px;
-            text-transform:uppercase;
-        }
-
-        .card-features ul{
-            list-style:none;
-            margin-bottom:25px;
-        }
-
-        .card-features li{
-            padding:6px 0;
-            padding-left:18px;
-            position:relative;
-            color:#666;
-        }
-
-        .card-features li::before{
-            content:"✓";
-            position:absolute;
-            left:0;
-            color:green;
-            font-weight:bold;
-        }
-
-        .card-button{
-            display:block;
-            text-align:center;
-            text-decoration:none;
-            color:white;
-            padding:13px;
-            border-radius:6px;
-            font-weight:600;
-            transition:.3s;
-        }
-
-        /* Phillips */
-
-        .phillips{
-            background:linear-gradient(135deg,#1e88e5,#1565c0);
-        }
-
-        /* IS-LM */
-
-        .islm{
-            background:linear-gradient(135deg,#d32f2f,#b71c1c);
-        }
-
-        /* AS-AD */
-
-        .asad{
-            background:linear-gradient(135deg,#f57c00,#e65100);
-        }
-
-        /* Macro Simulator */
-
-        .macro{
-            background:linear-gradient(135deg,#43a047,#2e7d32);
-        }
-
-        /* Demand & Supply */
-
-        .micro{
-            background:linear-gradient(135deg,#ec407a,#ad1457);
-        }
-
-        .footer{
-            text-align:center;
-            color:white;
-            margin-top:40px;
-            font-size:13px;
-        }
-
-        @media(max-width:768px){
-
-            .header h1{
-                font-size:32px;
-            }
-
-            .simulators-grid{
-                grid-template-columns:1fr;
-            }
-
-        }
-
-    </style>
+</style>
+```
 
 </head>
 
@@ -173,178 +201,228 @@
 
 <div class="container">
 
-    <div class="header">
-        <h1>📊 Economics Simulators</h1>
-        <p>Interactive tools for exploring economic models</p>
-    </div>
+```
+<div class="header">
+    <h1>📊 Economics Simulators</h1>
+    <p>Interactive tools for exploring economic models</p>
+</div>
 
-    <div class="simulators-grid">
+<div class="simulators-grid">
 
-        <!-- Phillips Curve -->
+    <!-- Phillips Curve -->
 
-        <div class="simulator-card">
+    <div class="simulator-card">
 
-            <div class="card-header phillips">
-                Phillips Curve
-            </div>
-
-            <div class="card-content">
-
-                <p class="card-description">
-                    Explore the relationship between inflation and unemployment. Adjust inflation expectations and supply shocks to see how the Phillips Curve shifts.
-                </p>
-
-                <div class="card-features">
-                    <h4>Features</h4>
-                    <ul>
-                        <li>Inflation expectations</li>
-                        <li>Supply shocks</li>
-                        <li>Curve shifting</li>
-                        <li>Stagflation scenarios</li>
-                    </ul>
-                </div>
-
-                <a href="phillips_curve_simulator.html" class="card-button phillips">
-                    Open Simulator
-                </a>
-
-            </div>
-
+        <div class="card-header phillips">
+            Phillips Curve
         </div>
 
-        <!-- IS-LM -->
+        <div class="card-content">
 
-        <div class="simulator-card">
+            <p class="card-description">
+                Explore the relationship between inflation and unemployment. Adjust inflation expectations and supply shocks to see how the Phillips Curve shifts.
+            </p>
 
-            <div class="card-header islm">
-                IS-LM Model
+            <div class="card-features">
+                <h4>Features</h4>
+                <ul>
+                    <li>Inflation expectations</li>
+                    <li>Supply shocks</li>
+                    <li>Curve shifting</li>
+                    <li>Stagflation scenarios</li>
+                </ul>
             </div>
 
-            <div class="card-content">
-
-                <p class="card-description">
-                    Study fiscal and monetary policy by adjusting government spending, taxation and money supply.
-                </p>
-
-                <div class="card-features">
-                    <h4>Features</h4>
-                    <ul>
-                        <li>Fiscal policy</li>
-                        <li>Monetary policy</li>
-                        <li>Curve shifting</li>
-                        <li>Equilibrium calculation</li>
-                    </ul>
-                </div>
-
-                <a href="islm_simulator.html" class="card-button islm">
-                    Open Simulator
-                </a>
-
-            </div>
-
-        </div>
-
-        <!-- AS-AD -->
-
-        <div class="simulator-card">
-
-            <div class="card-header asad">
-                AS-AD Model
-            </div>
-
-            <div class="card-content">
-
-                <p class="card-description">
-                    Analyze aggregate supply and aggregate demand. Explore inflation, output and supply shocks.
-                </p>
-
-                <div class="card-features">
-                    <h4>Features</h4>
-                    <ul>
-                        <li>AD curve</li>
-                        <li>SRAS curve</li>
-                        <li>LRAS curve</li>
-                        <li>Supply shocks</li>
-                    </ul>
-                </div>
-
-                <a href="asad_simulator.html" class="card-button asad">
-                    Open Simulator
-                </a>
-
-            </div>
-
-        </div>
-
-        <!-- FOURTH CARD -->
-
-        <div class="simulator-card">
-
-            <div class="card-header macro">
-                Macroeconomics Simulator
-            </div>
-
-            <div class="card-content">
-
-                <p class="card-description">
-                    Comprehensive undergraduate macroeconomics simulator combining multiple policy experiments in one interactive environment.
-                </p>
-
-                <div class="card-features">
-                    <h4>Features</h4>
-                    <ul>
-                        <li>Interactive policy tools</li>
-                        <li>Economic indicators</li>
-                        <li>Scenario analysis</li>
-                        <li>Student learning mode</li>
-                    </ul>
-                </div>
-
-                <a href="macro_simulator_v2.html" class="card-button macro">
-                    Open Simulator
-                </a>
-
-            </div>
-
-        </div>
-
-        <!-- FIFTH CARD -->
-
-        <div class="simulator-card">
-
-            <div class="card-header micro">
-                Demand &amp; Supply
-            </div>
-
-            <div class="card-content">
-
-                <p class="card-description">
-                    Run the market for ice cream. Switch the good between normal, inferior and Giffen, then move the price and non-price shifters to find the new equilibrium.
-                </p>
-
-                <div class="card-features">
-                    <h4>Features</h4>
-                    <ul>
-                        <li>Normal, inferior and Giffen goods</li>
-                        <li>Seven demand and six supply shifters</li>
-                        <li>Price controls, shortage and surplus</li>
-                        <li>Predict-the-shock challenge</li>
-                    </ul>
-                </div>
-
-                <a href="demand_supply_simulator.html" class="card-button micro">
-                    Open Simulator
-                </a>
-
-            </div>
+            <a href="phillips_curve_simulator.html" class="card-button phillips">
+                Open Simulator
+            </a>
 
         </div>
 
     </div>
 
-    <div class="footer">
-        © 2026 - Khalil Ullah Mohammad- Bahria University • Interactive learning tools for Undergraduate economics courses 
+
+    <!-- IS-LM -->
+
+    <div class="simulator-card">
+
+        <div class="card-header islm">
+            IS-LM Model
+        </div>
+
+        <div class="card-content">
+
+            <p class="card-description">
+                Study fiscal and monetary policy by adjusting government spending, taxation and money supply.
+            </p>
+
+            <div class="card-features">
+                <h4>Features</h4>
+                <ul>
+                    <li>Fiscal policy</li>
+                    <li>Monetary policy</li>
+                    <li>Curve shifting</li>
+                    <li>Equilibrium calculation</li>
+                </ul>
+            </div>
+
+            <a href="islm_simulator.html" class="card-button islm">
+                Open Simulator
+            </a>
+
+        </div>
+
     </div>
+
+
+    <!-- AS-AD -->
+
+    <div class="simulator-card">
+
+        <div class="card-header asad">
+            AS-AD Model
+        </div>
+
+        <div class="card-content">
+
+            <p class="card-description">
+                Analyze aggregate supply and aggregate demand. Explore inflation, output and supply shocks.
+            </p>
+
+            <div class="card-features">
+                <h4>Features</h4>
+                <ul>
+                    <li>AD curve</li>
+                    <li>SRAS curve</li>
+                    <li>LRAS curve</li>
+                    <li>Supply shocks</li>
+                </ul>
+            </div>
+
+            <a href="asad_simulator.html" class="card-button asad">
+                Open Simulator
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Macroeconomics Simulator -->
+
+    <div class="simulator-card">
+
+        <div class="card-header macro">
+            Macroeconomics Simulator
+        </div>
+
+        <div class="card-content">
+
+            <p class="card-description">
+                Comprehensive undergraduate macroeconomics simulator combining multiple policy experiments in one interactive environment.
+            </p>
+
+            <div class="card-features">
+                <h4>Features</h4>
+                <ul>
+                    <li>Interactive policy tools</li>
+                    <li>Economic indicators</li>
+                    <li>Scenario analysis</li>
+                    <li>Student learning mode</li>
+                </ul>
+            </div>
+
+            <a href="macro_simulator_v2.html" class="card-button macro">
+                Open Simulator
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Demand & Supply -->
+
+    <div class="simulator-card">
+
+        <div class="card-header micro">
+            Demand &amp; Supply
+        </div>
+
+        <div class="card-content">
+
+            <p class="card-description">
+                Run the market for ice cream. Switch the good between normal, inferior and Giffen, then move the price and non-price shifters to find the new equilibrium.
+            </p>
+
+            <div class="card-features">
+                <h4>Features</h4>
+                <ul>
+                    <li>Normal, inferior and Giffen goods</li>
+                    <li>Seven demand and six supply shifters</li>
+                    <li>Price controls, shortage and surplus</li>
+                    <li>Predict-the-shock challenge</li>
+                </ul>
+            </div>
+
+            <a href="demand_supply_simulator.html" class="card-button micro">
+                Open Simulator
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Elasticity Simulator -->
+
+    <div class="simulator-card">
+
+        <div class="card-header elasticity">
+            Elasticity Simulator
+        </div>
+
+        <div class="card-content">
+
+            <p class="card-description">
+                Explore price, income and cross-price elasticity of demand. Change prices, quantities and consumer income to understand how responsiveness affects total revenue and demand.
+            </p>
+
+            <div class="card-features">
+                <h4>Features</h4>
+                <ul>
+                    <li>Price elasticity of demand</li>
+                    <li>Income elasticity</li>
+                    <li>Cross-price elasticity</li>
+                    <li>Total revenue analysis</li>
+                </ul>
+            </div>
+
+            <a href="elasticity_simulator.html" class="card-button elasticity">
+                Open Simulator
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="footer">
+
+    © 2026 - Khalil Ullah Mohammad - Bahria University
+    • Interactive learning tools for Undergraduate economics courses
+    <br>
+
+    <a href="https://www.linkedin.com/in/khalil-ullah-mohammad-1a151580/"
+       target="_blank"
+       rel="noopener noreferrer">
+        🔗 Connect with me on LinkedIn
+    </a>
+
+</div>
+```
 
 </div>
 
