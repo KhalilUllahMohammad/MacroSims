@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elasticity — pricing, rivals and taxes in the ice cream market</title>
+<style>
+  :root{
+    --frost:#EDF2F3;
+    --panel:#FFFFFF;
+    --ink:#132029;
+    --muted:#5D6E79;
+    --line:#D3DEE1;
+    --demand:#C0285C;
+    --supply:#1B6FA6;
+    --warn:#A85A16;
+    --good:#2E8B57;
+    --mint:#7FC9B7;
+    --radius:5px;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;background:var(--frost);color:var(--ink);
+    font-family:"Helvetica Neue",Helvetica,Arial,"Segoe UI",sans-serif;
+    font-size:16px;line-height:1.55;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 90px;}
+
+  header.masthead{
+    display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px 30px;
+    padding-bottom:18px;border-bottom:2px solid var(--ink);margin-bottom:22px;
+  }
+  h1{font-size:clamp(28px,4.4vw,44px);line-height:1.02;margin:0;font-weight:700;letter-spacing:-0.022em;max-width:16ch;}
+  .standfirst{color:var(--muted);max-width:44ch;margin:0;font-size:15px;}
+
+  /* tabs */
+  .tabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:22px;}
+  .tab{
+    font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;color:var(--muted);
+    background:transparent;border:0;border-bottom:3px solid transparent;
+    padding:10px 16px 9px;
+  }
+  .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);}
+  .tab:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--mint);outline-offset:2px;}
+  .view[hidden]{display:none;}
+
+  .lab{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,336px);gap:20px;align-items:start;}
+  @media (max-width:920px){.lab{grid-template-columns:1fr;}}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);}
+  .panel-pad{padding:16px 18px;}
+  svg.chart{display:block;width:100%;height:auto;}
+
+  .readout{display:flex;flex-wrap:wrap;border-top:1px solid var(--line);}
+  .metric{flex:1 1 120px;padding:11px 15px;border-right:1px solid var(--line);}
+  .metric:last-child{border-right:0;}
+  .metric .k{font-size:12.5px;color:var(--muted);}
+  .metric .v{font-size:25px;font-weight:700;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
+  .metric .d{font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--muted);}
+  .up{color:var(--good);}.down{color:var(--demand);}
+  .note{padding:11px 16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted);}
+  .note b{color:var(--ink);font-weight:600;}
+  .flag{padding:10px 16px;border-top:1px solid var(--line);background:#FDF3E7;color:var(--warn);font-size:13px;}
+
+  .ctrls h3{margin:0;padding:12px 16px;font-size:14px;font-weight:700;border-bottom:1px solid var(--line);}
+  .ctrl{padding:11px 16px;border-bottom:1px solid var(--line);}
+  .ctrl:last-child{border-bottom:0;}
+  .ctrl .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .ctrl label{font-size:13.5px;font-weight:600;}
+  .ctrl output{font-size:13px;font-variant-numeric:tabular-nums;color:var(--muted);}
+  .ctrl .why{font-size:12px;color:var(--muted);line-height:1.4;margin-top:3px;display:block;}
+  input[type=range]{width:100%;margin:6px 0 0;}
+  .dem-a input[type=range]{accent-color:var(--demand);}
+  .sup-a input[type=range]{accent-color:var(--supply);}
+  .neutral-a input[type=range]{accent-color:var(--ink);}
+
+  .presets{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;border-bottom:1px solid var(--line);}
+  .preset{
+    font:inherit;font-size:12.5px;cursor:pointer;padding:6px 10px;background:var(--frost);
+    border:1px solid var(--line);border-radius:var(--radius);color:var(--ink);
+  }
+  .preset:hover{background:#E2EAEC;}
+
+  .verdictbar{padding:14px 16px;border-top:1px solid var(--line);font-size:14.5px;}
+  .verdictbar strong{font-size:16px;}
+
+  section.essay{margin-top:38px;}
+  section.essay h2{font-size:22px;margin:0 0 4px;letter-spacing:-0.015em;}
+  section.essay > p.lede{color:var(--muted);margin:0 0 18px;max-width:74ch;font-size:15px;}
+  .split{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;}
+  table.cmp{border-collapse:collapse;width:100%;font-size:13.5px;}
+  table.cmp th,table.cmp td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.cmp th{font-weight:700;}
+  table.cmp td:first-child{font-weight:600;}
+  .rule{border:0;border-top:1px solid var(--line);margin:32px 0;}
+  ul.plain{margin:0;padding:0;list-style:none;}
+  ul.plain li{padding:9px 0;border-top:1px solid var(--line);font-size:13.5px;}
+  ul.plain li:first-child{border-top:0;}
+  ul.plain b{display:block;}
+  ul.plain span{color:var(--muted);font-size:13px;}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:14px 16px;border-top:1px solid var(--line);}
+  button.act{
+    font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;background:var(--ink);color:#fff;
+    border:1px solid var(--ink);border-radius:var(--radius);padding:8px 14px;
+  }
+  button.act.ghost{background:transparent;color:var(--ink);}
+  button.act:disabled{opacity:.4;cursor:default;}
+
+  /* quiz */
+  .quiz{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);}
+  @media (max-width:820px){.quiz{grid-template-columns:1fr;}}
+  .quiz .left{padding:18px;border-right:1px solid var(--line);}
+  @media (max-width:820px){.quiz .left{border-right:0;border-bottom:1px solid var(--line);}}
+  .quiz .right{padding:18px;}
+  .qtext{font-size:17px;font-weight:600;margin:8px 0 14px;max-width:48ch;line-height:1.4;}
+  .opts{display:flex;flex-direction:column;gap:6px;}
+  .opt{
+    font:inherit;font-size:13.5px;cursor:pointer;padding:9px 12px;text-align:left;
+    background:var(--frost);border:1px solid var(--line);border-radius:var(--radius);color:var(--ink);
+  }
+  .opt[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .opt.correct{background:#E6F3EC;border-color:var(--good);color:#1E5E3B;}
+  .opt.wrong{background:#FBE9EE;border-color:var(--demand);color:var(--demand);}
+  .score{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .verdict h4{margin:0 0 4px;font-size:14px;}
+  .verdict p{margin:0 0 8px;color:var(--muted);font-size:13.5px;}
+  footer{margin-top:46px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <h1>Elasticity, four ways</h1>
+    <p class="standfirst">The same ice cream business, priced four times over: against its own demand curve, against household incomes, against a rival, and against a sugar tax.</p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true"  data-view="v1">Price elasticity and revenue</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="v2">Income and cross-price</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="v3">Supply elasticity and tax incidence</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="v4">The pricing meeting</button>
+  </div>
+
+  <!-- ============ VIEW 1 ============ -->
+  <div class="view" id="v1">
+    <div class="lab">
+      <div>
+        <div class="panel">
+          <div id="c1a"></div>
+          <div id="c1b"></div>
+          <div class="readout">
+            <div class="metric"><div class="k">Price elasticity here</div><div class="v" id="m1e">—</div><div class="d" id="m1eLab">&nbsp;</div></div>
+            <div class="metric"><div class="k">Litres sold</div><div class="v" id="m1q">—</div><div class="d">thousand per week</div></div>
+            <div class="metric"><div class="k">Revenue</div><div class="v" id="m1r">—</div><div class="d" id="m1rd">&nbsp;</div></div>
+          </div>
+          <div class="verdictbar" id="m1verdict"></div>
+          <div class="note" id="m1note"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel ctrls neutral-a">
+          <h3>Your price</h3>
+          <div class="ctrl">
+            <div class="row"><label for="s1p">Price charged</label><output id="o1p"></output></div>
+            <input type="range" id="s1p" min="0.5" max="11" step="0.1" value="5">
+            <span class="why">Slide through the curve. Elasticity is different at every single point, even though the slope never changes.</span>
+          </div>
+          <div class="ctrl">
+            <div class="row"><label for="s1chg">Price change you are considering</label><output id="o1chg"></output></div>
+            <input type="range" id="s1chg" min="-40" max="40" step="1" value="10">
+            <span class="why">The hollow marker is where the change would take you. Watch the revenue verdict, not the volume.</span>
+          </div>
+          <h3 style="border-top:1px solid var(--line)">The market you are selling into</h3>
+          <div class="ctrl dem-a">
+            <div class="row"><label for="s1a">Market size at zero price</label><output id="o1a"></output></div>
+            <input type="range" id="s1a" min="20" max="48" step="1" value="40">
+            <span class="why">This changes the slope of the curve. Watch what it does to elasticity at your current price: nothing at all.</span>
+          </div>
+          <div class="ctrl dem-a">
+            <div class="row"><label for="s1pc">Choke price, where sales hit zero</label><output id="o1pc"></output></div>
+            <input type="range" id="s1pc" min="5" max="11.5" step="0.1" value="10">
+            <span class="why">This is what really moves elasticity. A higher choke price means buyers tolerate more before walking away.</span>
+          </div>
+          <div class="toolbar"><button class="act ghost" id="b1max">Jump to the revenue-maximising price</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ VIEW 2 ============ -->
+  <div class="view" id="v2" hidden>
+    <div class="lab">
+      <div>
+        <div class="panel">
+          <div id="c2a"></div>
+          <div class="readout">
+            <div class="metric"><div class="k">Income elasticity</div><div class="v" id="m2y">—</div><div class="d" id="m2yLab">&nbsp;</div></div>
+            <div class="metric"><div class="k">Cross-price elasticity</div><div class="v" id="m2x">—</div><div class="d" id="m2xLab">&nbsp;</div></div>
+            <div class="metric"><div class="k">Volume at $5</div><div class="v" id="m2q">—</div><div class="d" id="m2qd">&nbsp;</div></div>
+          </div>
+          <div class="verdictbar" id="m2verdict"></div>
+        </div>
+        <div class="panel" style="margin-top:16px;">
+          <div id="c2rulers"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel ctrls">
+          <h3>What the economy does</h3>
+          <div class="ctrl neutral-a">
+            <div class="row"><label for="s2y">Income elasticity of your ice cream</label><output id="o2y"></output></div>
+            <input type="range" id="s2y" min="-2" max="3" step="0.1" value="1.4">
+            <span class="why">Above 1 it is a luxury, between 0 and 1 a necessity, below 0 an inferior good.</span>
+          </div>
+          <div class="ctrl neutral-a">
+            <div class="row"><label for="s2dy">Change in household income</label><output id="o2dy"></output></div>
+            <input type="range" id="s2dy" min="-30" max="30" step="1" value="10">
+          </div>
+          <h3 style="border-top:1px solid var(--line)">What your rival does</h3>
+          <div class="ctrl neutral-a">
+            <div class="row"><label for="s2x">Cross-price elasticity with the other good</label><output id="o2x"></output></div>
+            <input type="range" id="s2x" min="-2" max="2" step="0.1" value="0.8">
+            <span class="why">Positive means a substitute, negative means a complement, near zero means unrelated.</span>
+          </div>
+          <div class="ctrl neutral-a">
+            <div class="row"><label for="s2dx">Change in the other good's price</label><output id="o2dx"></output></div>
+            <input type="range" id="s2dx" min="-30" max="30" step="1" value="10">
+          </div>
+          <div class="presets" id="p2">
+            <button class="preset" data-y="1.6" data-x="1.5">Premium tub vs rival brand</button>
+            <button class="preset" data-y="0.3" data-x="-0.9">Corner-shop cone vs waffle cones</button>
+            <button class="preset" data-y="-0.7" data-x="0.4">Economy tub in a downturn</button>
+            <button class="preset" data-y="0.9" data-x="0.05">Ice cream vs bus fares</button>
+          </div>
+          <div class="note">Presets are illustrative teaching magnitudes, not estimates from a particular study.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ VIEW 3 ============ -->
+  <div class="view" id="v3" hidden>
+    <div class="lab">
+      <div>
+        <div class="panel">
+          <div id="c3a"></div>
+          <div class="readout">
+            <div class="metric"><div class="k">Buyers pay</div><div class="v" id="m3pb">—</div><div class="d" id="m3pbd">&nbsp;</div></div>
+            <div class="metric"><div class="k">Sellers keep</div><div class="v" id="m3ps">—</div><div class="d" id="m3psd">&nbsp;</div></div>
+            <div class="metric"><div class="k">Tax revenue</div><div class="v" id="m3rev">—</div><div class="d" id="m3q">&nbsp;</div></div>
+            <div class="metric"><div class="k">Deadweight loss</div><div class="v" id="m3dwl">—</div><div class="d">value of trades killed</div></div>
+          </div>
+          <div class="verdictbar" id="m3verdict"></div>
+          <div class="note" id="m3note"></div>
+          <div class="flag" id="m3flag" hidden></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel ctrls">
+          <h3>The tax</h3>
+          <div class="ctrl neutral-a">
+            <div class="row"><label for="s3t">Sugar tax per litre</label><output id="o3t"></output></div>
+            <input type="range" id="s3t" min="0" max="4" step="0.1" value="1.5">
+            <span class="why">Levied on sellers here. Try to spot where the burden actually lands, which is not the same question.</span>
+          </div>
+          <h3 style="border-top:1px solid var(--line)">How the two sides respond</h3>
+          <div class="ctrl dem-a">
+            <div class="row"><label for="s3ed">Price elasticity of demand</label><output id="o3ed"></output></div>
+            <input type="range" id="s3ed" min="0.1" max="3" step="0.1" value="0.8">
+            <span class="why">How easily buyers walk away. Low means they are stuck.</span>
+          </div>
+          <div class="ctrl sup-a">
+            <div class="row"><label for="s3es">Price elasticity of supply</label><output id="o3es"></output></div>
+            <input type="range" id="s3es" min="0.1" max="3" step="0.1" value="1.5">
+            <span class="why">How easily sellers change output. Low means capacity is locked in.</span>
+          </div>
+          <div class="presets" id="p3">
+            <button class="preset" data-ed="0.4" data-es="2">Cigarettes</button>
+            <button class="preset" data-ed="0.8" data-es="1.5">Sugary drinks</button>
+            <button class="preset" data-ed="2.5" data-es="0.6">Imported luxury dessert</button>
+            <button class="preset" data-ed="1" data-es="0.1">Beachfront kiosk pitches</button>
+          </div>
+          <div class="note">Buyers' share of the tax is PES ÷ (PES + PED). The inelastic side always carries more, because it has fewer places to go.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ VIEW 4 ============ -->
+  <div class="view" id="v4" hidden>
+    <div class="panel quiz">
+      <div class="left">
+        <div class="score" id="qScore">Score 0 of 0</div>
+        <p class="qtext" id="qText"></p>
+        <div class="opts" id="qOpts"></div>
+        <div class="toolbar" style="border-top:0;padding-left:0;padding-right:0;">
+          <button class="act" id="qCheck" disabled>Lock in my answer</button>
+          <button class="act ghost" id="qNext">Next decision</button>
+        </div>
+      </div>
+      <div class="right">
+        <div class="verdict" id="qVerdict"><p>Ten decisions from a pricing meeting. Each one is settled by an elasticity, and the arithmetic is always in the question.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ THEORY ============ -->
+  <section class="essay">
+    <h2>The four elasticities on one card</h2>
+    <p class="lede">Every elasticity is the same fraction: the percentage change in quantity on top, the percentage change in whatever caused it underneath. Only the denominator changes.</p>
+    <table class="cmp">
+      <tr><th>Measure</th><th>Formula</th><th>What the sign tells you</th><th>What the size tells you</th></tr>
+      <tr>
+        <td>Price elasticity of demand</td>
+        <td>%ΔQd ÷ %ΔP</td>
+        <td>Negative, by the law of demand. Usually quoted as an absolute value.</td>
+        <td>Above 1, elastic and a price cut raises revenue. Below 1, inelastic and a price rise raises revenue.</td>
+      </tr>
+      <tr>
+        <td>Price elasticity of supply</td>
+        <td>%ΔQs ÷ %ΔP</td>
+        <td>Positive. Sellers offer more when price rises.</td>
+        <td>Above 1, output is easy to expand. Below 1, capacity is stuck, which matters most in the short run.</td>
+      </tr>
+      <tr>
+        <td>Income elasticity</td>
+        <td>%ΔQd ÷ %ΔIncome</td>
+        <td>Positive for a normal good, negative for an inferior one.</td>
+        <td>Above 1, a luxury whose sales swing harder than the economy. Between 0 and 1, a necessity that holds up in a downturn.</td>
+      </tr>
+      <tr>
+        <td>Cross-price elasticity</td>
+        <td>%ΔQd of A ÷ %ΔP of B</td>
+        <td>Positive means substitutes, negative means complements.</td>
+        <td>How close the relationship is. Competition authorities use exactly this to decide who your rivals really are.</td>
+      </tr>
+    </table>
+
+    <div class="split" style="margin-top:26px;">
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--demand);">What makes demand elastic</h3>
+        <ul class="plain">
+          <li><b>Close substitutes exist</b><span>One brand of vanilla is elastic. Dessert as a whole is not.</span></li>
+          <li><b>The good is a big share of the budget</b><span>Nobody shops around over a stick of chewing gum.</span></li>
+          <li><b>It is a want, not a need</b><span>Necessities and habits absorb price rises.</span></li>
+          <li><b>Time to adjust</b><span>Almost everything is more elastic in the long run, which is why a profitable price rise this quarter can bleed share for three years.</span></li>
+          <li><b>How narrowly you define the market</b><span>Elasticity is not a property of a product. It is a property of a product, a market definition and a time horizon.</span></li>
+        </ul>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--supply);">What makes supply elastic</h3>
+        <ul class="plain">
+          <li><b>Spare capacity</b><span>An idle production line can answer a price rise this week.</span></li>
+          <li><b>Storable output</b><span>Frozen stock can be released; fresh cream cannot wait.</span></li>
+          <li><b>Mobile inputs</b><span>If labour and equipment can be hired in quickly, supply stretches.</span></li>
+          <li><b>Time to adjust</b><span>Supply is nearly fixed on the day, flexible over a season, and very flexible over years.</span></li>
+          <li><b>Natural limits</b><span>Land and prime retail pitches are close to perfectly inelastic, which is why their owners absorb taxes on them.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section class="essay">
+    <h2>Three results worth taking into a meeting</h2>
+    <div class="split">
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 6px;font-size:15px;">Slope is not elasticity</h3>
+        <p style="margin:0;font-size:13.5px;color:var(--muted);">A single straight demand curve runs from perfectly elastic at the top to perfectly inelastic at the bottom. Anyone who describes a product as simply "elastic" has skipped the question of at which price.</p>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 6px;font-size:15px;">Revenue peaks where elasticity equals one</h3>
+        <p style="margin:0;font-size:13.5px;color:var(--muted);">Above that price you are in the elastic half and should cut. Below it you are in the inelastic half and are leaving money on the table. Note this maximises revenue, not profit, which also needs marginal cost.</p>
+      </div>
+      <div class="panel panel-pad">
+        <h3 style="margin:0 0 6px;font-size:15px;">Who writes the cheque is not who pays</h3>
+        <p style="margin:0;font-size:13.5px;color:var(--muted);">Legal incidence is set by the statute; economic incidence is set by elasticity. Tax the side that cannot escape, and that side carries it whichever name is on the return.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Curves are linear and illustrative. Quantities are thousands of litres per week, prices are dollars per litre, revenue in thousands. Runs entirely offline in any browser.
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ==========================================================
+   SHARED DRAWING HELPERS
+========================================================== */
+function svgOpen(w,h,label){
+  return '<svg class="chart" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+label+'">'+
+         '<rect x="0" y="0" width="'+w+'" height="'+h+'" fill="#fff"/>';
+}
+function txt(x,y,s,opts){
+  opts = opts || {};
+  return '<text x="'+x+'" y="'+y+'" font-size="'+(opts.size||12)+'" fill="'+(opts.fill||"#5D6E79")+
+         '" text-anchor="'+(opts.anchor||"middle")+'"'+(opts.weight?' font-weight="'+opts.weight+'"':'')+
+         (opts.rot?' transform="rotate('+opts.rot+' '+x+' '+y+')"':'')+'>'+s+'</text>';
+}
+function seg(x1,y1,x2,y2,color,width,dash){
+  return '<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+
+         '" stroke="'+color+'" stroke-width="'+(width||2)+'" stroke-linecap="round"'+
+         (dash?' stroke-dasharray="'+dash+'"':'')+'/>';
+}
+function dot(x,y,r,fill,stroke){
+  return '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+r+'" fill="'+fill+'"'+
+         (stroke?' stroke="'+stroke+'" stroke-width="2"':'')+'/>';
+}
+function money(v,d){ return "$"+v.toFixed(d===undefined?2:d); }
+function pct(v,d){ return (v>0?"+":"")+v.toFixed(d===undefined?1:d)+"%"; }
+
+/* ==========================================================
+   VIEW 1 — PRICE ELASTICITY AND REVENUE
+   Demand: Q = a(1 - P/Pc).  PED at P equals P/(Pc-P).
+========================================================== */
+var v1 = { P:5, chg:10, a:40, Pc:10 };
+var QMAX1 = 50, PMAX1 = 12;
+var W1 = 720, H1 = 360, ML1 = 60, MR1 = 30, MT1 = 20, MB1 = 44;
+var H1b = 200, MT1b = 26, MB1b = 46;
+
+function q1(P){ return Math.max(0, v1.a * (1 - P / v1.Pc)); }
+function ped1(P){ return P >= v1.Pc ? Infinity : P / (v1.Pc - P); }
+function tr1(P){ return P * q1(P); }
+function x1(q){ return ML1 + (q/QMAX1)*(W1-ML1-MR1); }
+function y1(p){ return H1 - MB1 - (p/PMAX1)*(H1-MT1-MB1); }
+
+function elasticityLabel(e){
+  if (!isFinite(e)) return "perfectly elastic";
+  if (e > 1.05) return "elastic";
+  if (e < 0.95) return "inelastic";
+  return "unit elastic";
+}
+
+function drawV1(){
+  var Pu = v1.Pc/2, Qu = q1(Pu);
+  var P = v1.P, Q = q1(P), e = ped1(P);
+  var P2 = Math.max(0.05, P*(1+v1.chg/100)), Q2 = q1(P2);
+  var s = [], i;
+
+  /* --- top chart --- */
+  s.push(svgOpen(W1,H1,"Demand curve with elastic and inelastic ranges and the revenue rectangle"));
+  for (i=0;i<=QMAX1;i+=10){
+    s.push(seg(x1(i),y1(0),x1(i),MT1,"#EDF2F3",1));
+    s.push(txt(x1(i), H1-MB1+17, i));
+  }
+  for (i=0;i<=PMAX1;i+=2){
+    s.push(seg(ML1,y1(i),W1-MR1,y1(i),"#EDF2F3",1));
+    s.push(txt(ML1-9, y1(i)+4, i, {anchor:"end"}));
+  }
+
+  /* revenue rectangle */
+  if (Q > 0){
+    s.push('<rect x="'+ML1+'" y="'+y1(P)+'" width="'+(x1(Q)-ML1)+'" height="'+(y1(0)-y1(P))+
+           '" fill="#C0285C" opacity="0.10"/>');
+    s.push(txt((ML1+x1(Q))/2, (y1(P)+y1(0))/2+5, "revenue "+money(tr1(P),0)+"k", {size:13,fill:"#C0285C",weight:700}));
+  }
+
+  /* demand curve in two coloured ranges */
+  var topP = Math.min(PMAX1, v1.Pc);
+  s.push(seg(x1(q1(Pu)), y1(Pu), x1(q1(topP)), y1(topP), "#C0285C", 3.5));
+  s.push(seg(x1(q1(0)), y1(0), x1(q1(Pu)), y1(Pu), "#E39BB3", 3.5));
+  s.push(dot(x1(Qu), y1(Pu), 5, "#fff", "#C0285C"));
+  s.push(txt(x1(Qu)+10, y1(Pu)-9, "unit elastic", {size:12,fill:"#C0285C",anchor:"start",weight:700}));
+  s.push(txt(x1(q1(topP*0.92))+14, y1(topP*0.92), "elastic range", {size:12,fill:"#C0285C",anchor:"start"}));
+  s.push(txt(x1(q1(Pu*0.35)), y1(Pu*0.35)+18, "inelastic range", {size:12,fill:"#C0285C"}));
+
+  /* current point + proposed point */
+  if (Q > 0){
+    s.push(seg(ML1,y1(P),x1(Q),y1(P),"#132029",1,"3 4"));
+    s.push(seg(x1(Q),y1(0),x1(Q),y1(P),"#132029",1,"3 4"));
+    s.push(dot(x1(Q), y1(P), 6.5, "#132029"));
+  }
+  if (Math.abs(v1.chg) > 0.5 && Q2 > 0){
+    s.push(dot(x1(Q2), y1(P2), 6, "#fff", "#132029"));
+    s.push(seg(x1(Q),y1(P),x1(Q2),y1(P2),"#132029",1.5,"2 4"));
+    s.push(txt(x1(Q2), y1(P2)-13, "proposed", {size:11.5,fill:"#132029",weight:700}));
+  }
+  s.push(seg(ML1,MT1,ML1,y1(0),"#132029",1.5));
+  s.push(seg(ML1,y1(0),W1-MR1,y1(0),"#132029",1.5));
+  s.push(txt((ML1+W1-MR1)/2, H1-8, "Quantity, thousand litres per week", {size:13,fill:"#132029"}));
+  s.push(txt(16, (MT1+y1(0))/2, "Price, $ per litre", {size:13,fill:"#132029",rot:-90}));
+  s.push('</svg>');
+  document.getElementById("c1a").innerHTML = s.join("");
+
+  /* --- revenue chart, sharing the quantity axis --- */
+  var trMax = v1.a*v1.Pc/4, top = trMax*1.15;
+  function y1b(v){ return H1b - MB1b - (v/top)*(H1b-MT1b-MB1b); }
+  var t = [];
+  t.push(svgOpen(W1,H1b,"Total revenue against quantity, peaking where demand is unit elastic"));
+  for (i=0;i<=QMAX1;i+=10){
+    t.push(seg(x1(i),y1b(0),x1(i),MT1b,"#EDF2F3",1));
+    t.push(txt(x1(i), H1b-MB1b+17, i));
+  }
+  var path = "";
+  for (i=0;i<=v1.a;i+=0.5){
+    var pp = v1.Pc*(1 - i/v1.a);
+    path += (i===0?"M":"L") + x1(i).toFixed(1) + " " + y1b(pp*i).toFixed(1) + " ";
+  }
+  t.push('<path d="'+path+'" fill="none" stroke="#132029" stroke-width="2.5"/>');
+  t.push(seg(x1(Qu),y1b(0),x1(Qu),MT1b,"#C0285C",1.5,"4 4"));
+  if (Q>0) t.push(dot(x1(Q), y1b(tr1(P)), 6, "#132029"));
+  if (Math.abs(v1.chg)>0.5 && Q2>0) t.push(dot(x1(Q2), y1b(tr1(P2)), 5.5, "#fff", "#132029"));
+  t.push(seg(ML1,MT1b,ML1,y1b(0),"#132029",1.5));
+  t.push(seg(ML1,y1b(0),W1-MR1,y1b(0),"#132029",1.5));
+  t.push(txt(ML1-9, y1b(0)+4, "0", {anchor:"end"}));
+  t.push(txt(ML1-9, y1b(trMax)+4, Math.round(trMax), {anchor:"end"}));
+  t.push(txt(ML1+6, MT1b-6, "Total revenue, $ thousand", {size:12.5,fill:"#132029",anchor:"start"}));
+  t.push(txt((ML1+W1-MR1)/2, H1b-8, "Quantity, thousand litres per week", {size:13,fill:"#132029"}));
+  t.push('</svg>');
+  document.getElementById("c1b").innerHTML = t.join("");
+}
+
+function renderV1(){
+  drawV1();
+  var P = v1.P, Q = q1(P), e = ped1(P), R = tr1(P);
+  var P2 = Math.max(0.05, P*(1+v1.chg/100)), Q2 = q1(P2), R2 = tr1(P2);
+  document.getElementById("o1p").textContent = money(P);
+  document.getElementById("o1chg").textContent = pct(v1.chg,0);
+  document.getElementById("o1a").textContent = v1.a + "k litres";
+  document.getElementById("o1pc").textContent = money(v1.Pc);
+  document.getElementById("m1e").textContent = isFinite(e) ? e.toFixed(2) : "∞";
+  document.getElementById("m1eLab").textContent = elasticityLabel(e) + " at this price";
+  document.getElementById("m1q").textContent = Q.toFixed(1);
+  document.getElementById("m1r").textContent = money(R,0)+"k";
+
+  var dR = R2 - R;
+  var rd = document.getElementById("m1rd");
+  rd.textContent = Math.abs(v1.chg) < 0.5 ? "no change proposed"
+    : (dR >= 0 ? "▲ " : "▼ ") + money(Math.abs(dR),0) + "k if you move";
+  rd.className = "d " + (Math.abs(v1.chg) < 0.5 ? "" : (dR >= 0 ? "up" : "down"));
+
+  var v = document.getElementById("m1verdict");
+  if (Math.abs(v1.chg) < 0.5){
+    v.innerHTML = "<strong>Pick a price change to test.</strong> The rule to check it against: cut price when demand is elastic, raise it when demand is inelastic.";
+  } else {
+    var dQ = Q2 - Q;
+    var arcE = 0;
+    if (Q + Q2 > 0 && P + P2 > 0){
+      arcE = Math.abs(((Q2-Q)/((Q2+Q)/2)) / ((P2-P)/((P2+P)/2)));
+    }
+    var dir = v1.chg > 0 ? "raising" : "cutting";
+    v.innerHTML = "<strong>" + (dR >= 0 ? "Revenue rises." : "Revenue falls.") + "</strong> " +
+      dir + " price to " + money(P2) + " moves volume " + pct(Q>0?((Q2-Q)/Q)*100:0) +
+      " and revenue " + pct(R>0?(dR/R)*100:0) + ". Measured across the two points, elasticity is " +
+      arcE.toFixed(2) + ", which is " + elasticityLabel(arcE) + ".";
+  }
+
+  var note = document.getElementById("m1note");
+  var eq = "Qd = " + v1.a + " × (1 − P ÷ " + v1.Pc.toFixed(1) + ")";
+  note.innerHTML = eq + " &nbsp;·&nbsp; Revenue peaks at <b>" + money(v1.Pc/2) +
+    "</b>, exactly where elasticity equals one. Slide the market-size control and watch the elasticity figure refuse to move: a different slope, the same elasticity.";
+}
+
+["s1p","s1chg","s1a","s1pc"].forEach(function(id){
+  document.getElementById(id).addEventListener("input", function(e){
+    var val = parseFloat(e.target.value);
+    if (id==="s1p") v1.P = val;
+    if (id==="s1chg") v1.chg = val;
+    if (id==="s1a") v1.a = val;
+    if (id==="s1pc"){
+      v1.Pc = val;
+      if (v1.P > v1.Pc - 0.2){ v1.P = v1.Pc - 0.2; document.getElementById("s1p").value = v1.P; }
+    }
+    renderV1();
+  });
+});
+document.getElementById("b1max").addEventListener("click", function(){
+  v1.P = Math.round((v1.Pc/2)*10)/10;
+  document.getElementById("s1p").value = v1.P;
+  renderV1();
+});
+
+/* ==========================================================
+   VIEW 2 — INCOME AND CROSS-PRICE
+========================================================== */
+var v2 = { yed:1.4, dy:10, xed:0.8, dx:10 };
+var P0_2 = 5, A2 = 40, PC2 = 10;
+var W2 = 720, H2 = 340, ML2 = 60, MR2 = 30, MT2 = 20, MB2 = 44;
+function baseQ2(P){ return Math.max(0, A2*(1-P/PC2)); }
+function x2(q){ return ML2 + (q/QMAX1)*(W2-ML2-MR2); }
+function y2(p){ return H2 - MB2 - (p/PMAX1)*(H2-MT2-MB2); }
+
+function shiftFactor(){
+  return 1 + (v2.yed*v2.dy + v2.xed*v2.dx)/100;
+}
+
+function drawV2(){
+  var k = Math.max(0, shiftFactor());
+  var s = [], i;
+  s.push(svgOpen(W2,H2,"Demand curve shifting after an income change and a rival price change"));
+  for (i=0;i<=QMAX1;i+=10){ s.push(seg(x2(i),y2(0),x2(i),MT2,"#EDF2F3",1)); s.push(txt(x2(i),H2-MB2+17,i)); }
+  for (i=0;i<=PMAX1;i+=2){ s.push(seg(ML2,y2(i),W2-MR2,y2(i),"#EDF2F3",1)); s.push(txt(ML2-9,y2(i)+4,i,{anchor:"end"})); }
+
+  s.push(seg(x2(A2),y2(0),x2(0),y2(PC2),"#E4B9C8",2.5,"6 5"));
+  s.push(txt(x2(A2*0.62)+6, y2(PC2*0.38)-8, "before", {size:12,fill:"#C0285C",anchor:"start"}));
+
+  var newA = A2*k;
+  s.push(seg(x2(Math.min(newA,QMAX1)), y2(newA>QMAX1 ? PC2*(1-QMAX1/newA) : 0), x2(0), y2(PC2), "#C0285C", 3.5));
+
+  s.push(seg(ML2,y2(P0_2),W2-MR2,y2(P0_2),"#132029",1.5,"5 4"));
+  s.push(txt(W2-MR2-4, y2(P0_2)-8, "price held at $5", {size:12,fill:"#132029",anchor:"end"}));
+
+  var q0 = baseQ2(P0_2), q1v = q0*k;
+  s.push(dot(x2(q0), y2(P0_2), 5.5, "#fff", "#C0285C"));
+  s.push(dot(x2(q1v), y2(P0_2), 6.5, "#C0285C"));
+  if (Math.abs(q1v-q0) > 0.3){
+    var yA = y2(P0_2)-34;
+    s.push(seg(x2(q0), yA, x2(q1v), yA, "#132029", 2));
+    var dirx = q1v > q0 ? -1 : 1;
+    s.push('<path d="M '+x2(q1v)+' '+yA+' l '+(dirx*9)+' -5 l 0 10 z" fill="#132029"/>');
+    s.push(txt((x2(q0)+x2(q1v))/2, yA-8, (q1v>q0?"+":"")+(q1v-q0).toFixed(1)+"k litres", {size:12,fill:"#132029",weight:700}));
+  }
+
+  s.push(seg(ML2,MT2,ML2,y2(0),"#132029",1.5));
+  s.push(seg(ML2,y2(0),W2-MR2,y2(0),"#132029",1.5));
+  s.push(txt((ML2+W2-MR2)/2, H2-8, "Quantity, thousand litres per week", {size:13,fill:"#132029"}));
+  s.push(txt(16,(MT2+y2(0))/2,"Price, $ per litre",{size:13,fill:"#132029",rot:-90}));
+  s.push('</svg>');
+  document.getElementById("c2a").innerHTML = s.join("");
+}
+
+function drawRulers(){
+  var W = 720, H = 210, L = 70, R = 30;
+  function xr(v){ return L + ((v+3)/6)*(W-L-R); }
+  var s = [];
+  s.push(svgOpen(W,H,"Number lines placing the income and cross-price elasticities in their categories"));
+
+  function ruler(yBase, value, title, zones){
+    var o = [];
+    o.push(txt(L, yBase-34, title, {size:13,fill:"#132029",anchor:"start",weight:700}));
+    zones.forEach(function(z){
+      o.push('<rect x="'+xr(z.from)+'" y="'+(yBase-14)+'" width="'+(xr(z.to)-xr(z.from))+'" height="14" fill="'+z.fill+'"/>');
+      o.push(txt((xr(z.from)+xr(z.to))/2, yBase-18, z.label, {size:11.5, fill:z.text||"#5D6E79"}));
+    });
+    o.push(seg(L, yBase, W-R, yBase, "#132029", 1.5));
+    for (var v=-3; v<=3; v++){
+      o.push(seg(xr(v), yBase, xr(v), yBase+5, "#132029", 1));
+      o.push(txt(xr(v), yBase+18, v));
+    }
+    var cv = Math.max(-3, Math.min(3, value));
+    o.push('<path d="M '+xr(cv)+' '+(yBase-2)+' l -7 -13 l 14 0 z" fill="#132029"/>');
+    o.push(txt(xr(cv), yBase-20, value.toFixed(2), {size:12.5, fill:"#132029", weight:700}));
+    return o.join("");
+  }
+
+  s.push(ruler(84, v2.yed, "Income elasticity", [
+    {from:-3,to:0,label:"inferior",fill:"#F6E1E8"},
+    {from:0,to:1,label:"necessity",fill:"#E7F0EC"},
+    {from:1,to:3,label:"luxury",fill:"#D9EAF5"}
+  ]));
+  s.push(ruler(184, v2.xed, "Cross-price elasticity", [
+    {from:-3,to:-0.1,label:"complements",fill:"#F6E1E8"},
+    {from:-0.1,to:0.1,label:"unrelated",fill:"#EDF2F3"},
+    {from:0.1,to:3,label:"substitutes",fill:"#D9EAF5"}
+  ]));
+  s.push('</svg>');
+  document.getElementById("c2rulers").innerHTML = s.join("");
+}
+
+function yedLabel(y){
+  if (y < -0.05) return "inferior good";
+  if (y < 0.05) return "income neutral";
+  if (y <= 1) return "necessity, income inelastic";
+  return "luxury, income elastic";
+}
+function xedLabel(x){
+  if (x > 1) return "close substitute";
+  if (x > 0.1) return "weak substitute";
+  if (x >= -0.1) return "effectively unrelated";
+  if (x >= -1) return "weak complement";
+  return "strong complement";
+}
+
+function renderV2(){
+  drawV2(); drawRulers();
+  document.getElementById("o2y").textContent = v2.yed.toFixed(2);
+  document.getElementById("o2dy").textContent = pct(v2.dy,0);
+  document.getElementById("o2x").textContent = v2.xed.toFixed(2);
+  document.getElementById("o2dx").textContent = pct(v2.dx,0);
+  document.getElementById("m2y").textContent = v2.yed.toFixed(2);
+  document.getElementById("m2yLab").textContent = yedLabel(v2.yed);
+  document.getElementById("m2x").textContent = v2.xed.toFixed(2);
+  document.getElementById("m2xLab").textContent = xedLabel(v2.xed);
+
+  var q0 = baseQ2(P0_2), k = Math.max(0, shiftFactor()), q1v = q0*k;
+  document.getElementById("m2q").textContent = q1v.toFixed(1);
+  var d = document.getElementById("m2qd");
+  d.textContent = (q1v>=q0?"▲ ":"▼ ") + "from " + q0.toFixed(1);
+  d.className = "d " + (q1v>=q0?"up":"down");
+
+  var fromY = v2.yed*v2.dy, fromX = v2.xed*v2.dx;
+  var rev0 = q0*P0_2, rev1 = q1v*P0_2;
+  document.getElementById("m2verdict").innerHTML =
+    "<strong>" + pct(fromY+fromX) + " on volume.</strong> " +
+    "Incomes contribute " + pct(fromY) + " and the rival's price move contributes " + pct(fromX) +
+    ". At an unchanged $5, weekly revenue goes from " + money(rev0,0) + "k to " + money(rev1,0) + "k. " +
+    "Neither effect moves you along the curve, because your own price never changed; the whole curve moved instead.";
+}
+
+["s2y","s2dy","s2x","s2dx"].forEach(function(id){
+  document.getElementById(id).addEventListener("input", function(e){
+    var val = parseFloat(e.target.value);
+    if (id==="s2y") v2.yed = val;
+    if (id==="s2dy") v2.dy = val;
+    if (id==="s2x") v2.xed = val;
+    if (id==="s2dx") v2.dx = val;
+    renderV2();
+  });
+});
+Array.prototype.forEach.call(document.querySelectorAll("#p2 .preset"), function(b){
+  b.addEventListener("click", function(){
+    v2.yed = parseFloat(b.getAttribute("data-y"));
+    v2.xed = parseFloat(b.getAttribute("data-x"));
+    document.getElementById("s2y").value = v2.yed;
+    document.getElementById("s2x").value = v2.xed;
+    renderV2();
+  });
+});
+
+/* ==========================================================
+   VIEW 3 — SUPPLY ELASTICITY AND TAX INCIDENCE
+   Curves are built to pass through (Q0,P0) with the chosen elasticities.
+========================================================== */
+var v3 = { t:1.5, ed:0.8, es:1.5 };
+var P0_3 = 5, Q0_3 = 20;
+var QMAX3 = 40, PMAX3 = 12;
+var W3 = 720, H3 = 400, ML3 = 60, MR3 = 30, MT3 = 22, MB3 = 46;
+function x3(q){ return ML3 + (q/QMAX3)*(W3-ML3-MR3); }
+function y3(p){ return H3 - MB3 - (p/PMAX3)*(H3-MT3-MB3); }
+
+function taxModel(){
+  var d = -v3.ed*Q0_3/P0_3;      // dQd/dP  (negative)
+  var s =  v3.es*Q0_3/P0_3;      // dQs/dP  (positive)
+  var Pb = P0_3 + v3.t*v3.es/(v3.ed+v3.es);
+  var Ps = Pb - v3.t;
+  var Q1 = Q0_3 + d*(Pb-P0_3);
+  var short = false;
+  if (Q1 < 0){ Q1 = 0; short = true; }
+  return {
+    d:d, s:s, Pb:Pb, Ps:Ps, Q1:Q1, short:short,
+    buyerShare: v3.es/(v3.ed+v3.es),
+    rev: v3.t*Q1,
+    dwl: 0.5*v3.t*(Q0_3-Q1)
+  };
+}
+function qdOf(P,m){ return Q0_3 + m.d*(P-P0_3); }
+function qsOf(P,m,shift){ return Q0_3 + m.s*(P-(shift||0)-P0_3); }
+
+function clipCurve(fn){
+  // returns two on-chart endpoints for a straight line P -> Q
+  var pts = [];
+  var pA = 0, pB = PMAX3;
+  var qA = fn(pA), qB = fn(pB);
+  // simple parametric clip on q within [0,QMAX3]
+  var t0 = 0, t1 = 1, dq = qB-qA;
+  if (dq !== 0){
+    var lo = (0-qA)/dq, hi = (QMAX3-qA)/dq;
+    var a = Math.min(lo,hi), b = Math.max(lo,hi);
+    t0 = Math.max(t0,a); t1 = Math.min(t1,b);
+  } else if (qA < 0 || qA > QMAX3) return null;
+  if (t1 <= t0) return null;
+  pts.push({p:pA+t0*(pB-pA), q:qA+t0*dq});
+  pts.push({p:pA+t1*(pB-pA), q:qA+t1*dq});
+  return pts;
+}
+
+function drawV3(){
+  var m = taxModel();
+  var s = [], i;
+  s.push(svgOpen(W3,H3,"Tax wedge between the price buyers pay and the price sellers keep"));
+  for (i=0;i<=QMAX3;i+=10){ s.push(seg(x3(i),y3(0),x3(i),MT3,"#EDF2F3",1)); s.push(txt(x3(i),H3-MB3+17,i)); }
+  for (i=0;i<=PMAX3;i+=2){ s.push(seg(ML3,y3(i),W3-MR3,y3(i),"#EDF2F3",1)); s.push(txt(ML3-9,y3(i)+4,i,{anchor:"end"})); }
+
+  /* burden blocks */
+  if (v3.t > 0.01 && m.Q1 > 0 && !m.short){
+    s.push('<rect x="'+ML3+'" y="'+y3(m.Pb)+'" width="'+(x3(m.Q1)-ML3)+'" height="'+(y3(P0_3)-y3(m.Pb))+
+           '" fill="#C0285C" opacity="0.18"/>');
+    s.push('<rect x="'+ML3+'" y="'+y3(P0_3)+'" width="'+(x3(m.Q1)-ML3)+'" height="'+(y3(m.Ps)-y3(P0_3))+
+           '" fill="#1B6FA6" opacity="0.18"/>');
+    if (y3(P0_3)-y3(m.Pb) > 15)
+      s.push(txt((ML3+x3(m.Q1))/2, (y3(m.Pb)+y3(P0_3))/2+4, "buyers' share", {size:12.5,fill:"#C0285C",weight:700}));
+    if (y3(m.Ps)-y3(P0_3) > 15)
+      s.push(txt((ML3+x3(m.Q1))/2, (y3(P0_3)+y3(m.Ps))/2+4, "sellers' share", {size:12.5,fill:"#1B6FA6",weight:700}));
+    /* deadweight loss triangle */
+    s.push('<path d="M '+x3(m.Q1)+' '+y3(m.Pb)+' L '+x3(m.Q1)+' '+y3(m.Ps)+' L '+x3(Q0_3)+' '+y3(P0_3)+
+           ' z" fill="#A85A16" opacity="0.30"/>');
+  }
+
+  /* curves */
+  var dSeg = clipCurve(function(P){ return qdOf(P,m); });
+  var sSeg = clipCurve(function(P){ return qsOf(P,m,0); });
+  var s2Seg = clipCurve(function(P){ return qsOf(P,m,v3.t); });
+  if (dSeg) s.push(seg(x3(dSeg[0].q),y3(dSeg[0].p),x3(dSeg[1].q),y3(dSeg[1].p),"#C0285C",3));
+  if (sSeg) s.push(seg(x3(sSeg[0].q),y3(sSeg[0].p),x3(sSeg[1].q),y3(sSeg[1].p),"#1B6FA6",3));
+  if (s2Seg && v3.t>0.01) s.push(seg(x3(s2Seg[0].q),y3(s2Seg[0].p),x3(s2Seg[1].q),y3(s2Seg[1].p),"#1B6FA6",2.5,"7 5"));
+  if (dSeg) s.push(txt(x3(dSeg[1].q)+10, y3(dSeg[1].p)+4, "D", {size:15,fill:"#C0285C",anchor:"start",weight:700}));
+  if (sSeg) s.push(txt(x3(sSeg[1].q)+10, y3(sSeg[1].p)+4, "S", {size:15,fill:"#1B6FA6",anchor:"start",weight:700}));
+  if (s2Seg && v3.t>0.01) s.push(txt(x3(s2Seg[1].q)+10, y3(s2Seg[1].p)+4, "S + tax", {size:13,fill:"#1B6FA6",anchor:"start",weight:700}));
+
+  /* markers */
+  s.push(dot(x3(Q0_3), y3(P0_3), 5.5, "#fff", "#132029"));
+  if (v3.t > 0.01 && m.Q1 > 0 && !m.short){
+    s.push(dot(x3(m.Q1), y3(m.Pb), 6.5, "#C0285C"));
+    s.push(dot(x3(m.Q1), y3(m.Ps), 6.5, "#1B6FA6"));
+    s.push(seg(x3(m.Q1), y3(m.Pb), x3(m.Q1), y3(m.Ps), "#132029", 2));
+    s.push(txt(x3(m.Q1)+8, (y3(m.Pb)+y3(m.Ps))/2+4, "tax "+money(v3.t), {size:12.5,fill:"#132029",anchor:"start",weight:700}));
+  }
+  s.push(seg(ML3,MT3,ML3,y3(0),"#132029",1.5));
+  s.push(seg(ML3,y3(0),W3-MR3,y3(0),"#132029",1.5));
+  s.push(txt((ML3+W3-MR3)/2, H3-8, "Quantity, thousand litres per week", {size:13,fill:"#132029"}));
+  s.push(txt(16,(MT3+y3(0))/2,"Price, $ per litre",{size:13,fill:"#132029",rot:-90}));
+  s.push('</svg>');
+  document.getElementById("c3a").innerHTML = s.join("");
+  return m;
+}
+
+function renderV3(){
+  var m = drawV3();
+  document.getElementById("o3t").textContent = money(v3.t);
+  document.getElementById("o3ed").textContent = v3.ed.toFixed(1);
+  document.getElementById("o3es").textContent = v3.es.toFixed(1);
+  document.getElementById("m3pb").textContent = money(m.Pb);
+  document.getElementById("m3ps").textContent = money(m.Ps);
+  document.getElementById("m3pbd").textContent = "up " + money(m.Pb-P0_3) + " from $5";
+  document.getElementById("m3psd").textContent = "down " + money(P0_3-m.Ps) + " from $5";
+  document.getElementById("m3rev").textContent = m.short ? "—" : money(m.rev,0)+"k";
+  document.getElementById("m3q").textContent = m.short ? "no trade left to tax"
+    : "on " + m.Q1.toFixed(1) + "k litres, was 20.0";
+  document.getElementById("m3dwl").textContent = m.short ? "—" : money(m.dwl,1)+"k";
+
+  var bs = m.buyerShare*100;
+  var who = bs > 55 ? "Buyers carry most of this tax" : (bs < 45 ? "Sellers carry most of this tax" : "The two sides split it almost evenly");
+  var why = bs > 55 ? "because demand is the more inelastic side and has fewer alternatives."
+          : (bs < 45 ? "because supply is the more inelastic side and cannot easily shift resources elsewhere."
+          : "because the two elasticities are close to equal.");
+  document.getElementById("m3verdict").innerHTML =
+    "<strong>" + who + ": " + bs.toFixed(0) + "% to buyers, " + (100-bs).toFixed(0) + "% to sellers</strong> — " + why;
+
+  document.getElementById("m3note").innerHTML =
+    "Buyers' share = PES ÷ (PES + PED) = " + v3.es.toFixed(1) + " ÷ " + (v3.es+v3.ed).toFixed(1) +
+    ". <b>The tax is collected from sellers here, and that fact appears nowhere in the formula.</b> " +
+    "Volume falls " + (Q0_3-m.Q1).toFixed(1) + "k litres, and those lost trades are the deadweight loss triangle.";
+
+  var f = document.getElementById("m3flag");
+  if (m.short){
+    f.hidden = false;
+    f.textContent = "This tax is large enough to close the market at these elasticities. Reduce it, or make demand less elastic.";
+  } else if (v3.t > 0.01 && v3.ed >= 2 && m.dwl > m.rev*0.35){
+    f.hidden = false;
+    f.textContent = "Elastic demand, heavy distortion: the deadweight loss is large relative to the revenue raised. This is why governments tax the inelastic things.";
+  } else {
+    f.hidden = true;
+  }
+}
+
+["s3t","s3ed","s3es"].forEach(function(id){
+  document.getElementById(id).addEventListener("input", function(e){
+    var val = parseFloat(e.target.value);
+    if (id==="s3t") v3.t = val;
+    if (id==="s3ed") v3.ed = val;
+    if (id==="s3es") v3.es = val;
+    renderV3();
+  });
+});
+Array.prototype.forEach.call(document.querySelectorAll("#p3 .preset"), function(b){
+  b.addEventListener("click", function(){
+    v3.ed = parseFloat(b.getAttribute("data-ed"));
+    v3.es = parseFloat(b.getAttribute("data-es"));
+    document.getElementById("s3ed").value = v3.ed;
+    document.getElementById("s3es").value = v3.es;
+    renderV3();
+  });
+});
+
+/* ==========================================================
+   VIEW 4 — THE PRICING MEETING
+========================================================== */
+var QUESTIONS = [
+  { q:"Your price elasticity of demand is 0.4. Marketing proposes a 10% price cut to drive volume. What happens to revenue?",
+    o:["It rises, because volume grows","It falls, because volume grows by only about 4%","It is unchanged, the effects cancel"],
+    a:1,
+    e:"With inelastic demand the volume gain is proportionally smaller than the price cut, so revenue falls. At 0.4, a 10% cut buys roughly 4% more litres and you lose about 6% of revenue. Inelastic demand argues for raising price, not cutting it." },
+  { q:"A different line has elasticity 2.2. The same 10% price cut is proposed. What happens to revenue?",
+    o:["It rises, volume grows by about 22%","It falls","It is unchanged"],
+    a:0,
+    e:"Elastic demand means the volume response outweighs the price given up. Roughly 22% more litres against 10% less price leaves revenue clearly higher." },
+  { q:"You are pricing above the midpoint of a straight-line demand curve and want to maximise revenue. What do you do?",
+    o:["Raise price further","Cut price towards the midpoint","Hold, revenue is already at its peak"],
+    a:1,
+    e:"Above the midpoint you are in the elastic half, so cutting price raises revenue until you reach the midpoint, where elasticity equals one and revenue peaks. Below it you would raise price instead." },
+  { q:"Your income elasticity is −0.6. A wage settlement lifts household incomes by 10%. What happens to your volume?",
+    o:["Up about 6%","Down about 6%","Unchanged, income does not affect volume"],
+    a:1,
+    e:"A negative income elasticity marks an inferior good, so rising incomes cut your sales: −0.6 × 10% is a 6% fall. Plan for that in a boom, not just in a recession." },
+  { q:"Cross-price elasticity between your tubs and a rival brand is +1.4. The rival cuts price 10%. What happens to your volume?",
+    o:["Falls about 14%","Rises about 14%","Falls about 1.4%"],
+    a:0,
+    e:"A large positive cross-price elasticity means close substitutes. Their 10% cut costs you roughly 14% of volume, which is exactly the number that should decide whether you match the cut." },
+  { q:"Cross-price elasticity between your ice cream and waffle cones is −0.5. Cone prices rise 20%. What happens to your volume?",
+    o:["Rises about 10%","Falls about 10%","Unaffected, cones are a different market"],
+    a:1,
+    e:"A negative sign means complements: the two are bought together, so a dearer cone drags your sales down by about 10%. Complement pricing is a reason to bundle." },
+  { q:"A sugar tax of $1 per litre is levied on sellers. Demand elasticity is 0.5 and supply elasticity is 2.0. Who bears most of it?",
+    o:["Sellers, since the law names them","Buyers, about 80% of it","It is split evenly by law"],
+    a:1,
+    e:"Buyers' share is PES ÷ (PES + PED) = 2.0 ÷ 2.5 = 80%. The statute decides who writes the cheque; elasticity decides who pays. The inelastic side always carries more." },
+  { q:"Same $1 tax, but now demand elasticity is 2.0 and supply elasticity is 0.5. What changes?",
+    o:["Buyers still bear 80%","Sellers now bear 80%","Nobody bears it, the tax vanishes"],
+    a:1,
+    e:"The formula flips: buyers' share is 0.5 ÷ 2.5 = 20%, so sellers absorb 80%. When buyers can walk away easily, sellers cannot pass the tax on." },
+  { q:"A finance ministry wants steady revenue with the least disruption to output. Which base should it tax?",
+    o:["A good with elastic demand","A good with inelastic demand","It makes no difference to revenue"],
+    a:1,
+    e:"Inelastic demand means quantity barely falls, so the base survives and the deadweight loss triangle stays small. This is the efficiency case for taxing fuel, tobacco and land, and it sits in tension with fairness, because those bases often fall hardest on lower-income households." },
+  { q:"Your 8% price rise lifted revenue this quarter. What should you expect over the next two years, other things equal?",
+    o:["The same gain repeats indefinitely","Demand becomes more elastic as buyers find alternatives, so the gain erodes","Demand becomes more inelastic over time"],
+    a:1,
+    e:"Elasticity rises with the time buyers have to search, switch and change habits. Short-run inelastic demand that made the rise look profitable can become elastic in the long run, which is how firms quietly lose share after a successful price move." }
+];
+
+var qi = 0, qPick = null, qLocked = false, qScore = 0, qAsked = 0;
+
+function loadQ(){
+  var Q = QUESTIONS[qi];
+  qPick = null; qLocked = false;
+  document.getElementById("qText").textContent = Q.q;
+  var host = document.getElementById("qOpts");
+  host.innerHTML = "";
+  Q.o.forEach(function(text,i){
+    var b = document.createElement("button");
+    b.className = "opt"; b.type = "button"; b.textContent = text;
+    b.setAttribute("aria-pressed","false");
+    b.addEventListener("click", function(){
+      if (qLocked) return;
+      qPick = i;
+      Array.prototype.forEach.call(host.querySelectorAll(".opt"), function(x,j){
+        x.setAttribute("aria-pressed", String(j===i));
+      });
+      document.getElementById("qCheck").disabled = false;
+    });
+    host.appendChild(b);
+  });
+  document.getElementById("qCheck").disabled = true;
+  document.getElementById("qVerdict").innerHTML =
+    "<p>Question " + (qi+1) + " of " + QUESTIONS.length + ". Commit to an answer to see the reasoning.</p>";
+}
+
+document.getElementById("qCheck").addEventListener("click", function(){
+  if (qLocked || qPick === null) return;
+  qLocked = true;
+  var Q = QUESTIONS[qi];
+  var opts = document.getElementById("qOpts").querySelectorAll(".opt");
+  Array.prototype.forEach.call(opts, function(b,i){
+    if (i === Q.a) b.classList.add("correct");
+    else if (i === qPick) b.classList.add("wrong");
+  });
+  qAsked++; if (qPick === Q.a) qScore++;
+  document.getElementById("qScore").textContent = "Score " + qScore + " of " + qAsked;
+  document.getElementById("qVerdict").innerHTML =
+    "<h4>" + (qPick === Q.a ? "Correct." : "Not this time.") + "</h4><p>" + Q.e + "</p>";
+  document.getElementById("qCheck").disabled = true;
+});
+
+document.getElementById("qNext").addEventListener("click", function(){
+  qi = (qi+1) % QUESTIONS.length;
+  loadQ();
+});
+
+/* ==========================================================
+   TABS
+========================================================== */
+var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+tabs.forEach(function(t){
+  t.addEventListener("click", function(){
+    tabs.forEach(function(o){ o.setAttribute("aria-selected", String(o===t)); });
+    ["v1","v2","v3","v4"].forEach(function(id){
+      document.getElementById(id).hidden = (id !== t.getAttribute("data-view"));
+    });
+  });
+});
+
+renderV1();
+renderV2();
+renderV3();
+loadQ();
+</script>
+</body>
+</html>
