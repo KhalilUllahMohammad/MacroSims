@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Who Sets the Price? A Market Structures Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F5F7; --grid:#E1E8EE; --card:#FFFFFF; --ink:#17263A; --ink2:#4E5E72; --rule:#C9D3DC;
+  --cs:#2F74D0; --ps:#D48C0E; --ps-text:#8F5E00; --dwl:#C43D3D; --good:#2E7D4F; --soft:#EAF0F5;
+  --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; color:var(--ink); font-family:var(--sans); font-size:16px; line-height:1.55;
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+h1,h2,h3{font-family:var(--serif); line-height:1.15; margin:0}
+h2{font-size:1.6rem; font-weight:700}
+h3{font-size:1.15rem; font-weight:700}
+p{margin:0 0 .75em}
+b,strong{font-weight:700}
+button{font:inherit; cursor:pointer}
+:focus-visible{outline:3px solid var(--cs); outline-offset:2px}
+[hidden]{display:none !important}
+.wrap{max-width:1180px; margin:0 auto; padding:32px 20px 64px}
+.num{font-variant-numeric:tabular-nums}
+
+/* Buttons */
+.primary{background:var(--ink); color:#fff; border:0; border-radius:6px; padding:12px 20px; font-weight:700}
+.primary:hover{background:#243954}
+.primary:disabled{background:#8C98A7; cursor:not-allowed}
+.ghost{background:transparent; color:var(--ink); border:1.5px solid var(--ink); border-radius:6px; padding:10px 16px; font-weight:700}
+.ghost:hover{background:var(--soft)}
+.textbtn{background:none; border:0; color:var(--ink); padding:6px 0; font-weight:700; text-decoration:underline; text-underline-offset:3px}
+
+/* Home */
+.hero{max-width:760px; padding:24px 0 36px}
+.hero h1{font-size:clamp(2.8rem,7vw,5.2rem); font-weight:700; letter-spacing:-.02em; margin-bottom:18px}
+.lede{font-size:1.2rem; max-width:62ch; color:var(--ink)}
+.start{display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin-top:22px}
+.start .field{display:flex; flex-direction:column; gap:4px}
+.start label{font-size:.9rem; color:var(--ink2)}
+.start input{font:inherit; padding:11px 12px; border:1.5px solid var(--rule); border-radius:6px; min-width:260px; background:#fff}
+.start input:focus{border-color:var(--cs)}
+
+.stair{display:grid; grid-template-columns:repeat(4,1fr); align-items:end; gap:0; margin-top:12px; border-bottom:2px solid var(--ink)}
+.step{position:relative; display:flex; flex-direction:column; justify-content:flex-start; padding:16px 16px 18px; border-top:3px solid var(--ink); border-left:1px solid var(--rule); min-height:var(--h)}
+.step:first-child{border-left:0}
+.step:nth-child(1){--h:190px; background:rgba(23,38,58,.03)}
+.step:nth-child(2){--h:240px; background:rgba(23,38,58,.06)}
+.step:nth-child(3){--h:290px; background:rgba(23,38,58,.10)}
+.step:nth-child(4){--h:340px; background:rgba(23,38,58,.15)}
+.step h3{font-size:1.3rem; margin-bottom:6px}
+.step p{font-size:.95rem; color:var(--ink2); margin-bottom:12px}
+.step .done{font-size:.9rem; color:var(--good); font-weight:700; margin-bottom:10px}
+.step .ghost{align-self:flex-start; margin-top:auto; background:#fff}
+.axis{display:flex; justify-content:space-between; font-size:.9rem; color:var(--ink2); padding-top:6px}
+
+.section{margin-top:56px}
+.section > h2{margin-bottom:14px}
+.tablewrap{overflow-x:auto; background:var(--card); border:1px solid var(--rule); border-radius:8px}
+table{border-collapse:collapse; width:100%; font-size:.95rem}
+th,td{text-align:left; padding:10px 14px; border-bottom:1px solid var(--grid); vertical-align:top}
+thead th{font-family:var(--serif); font-size:1rem; border-bottom:2px solid var(--ink); background:#fff}
+tbody th{font-weight:700; color:var(--ink2); white-space:nowrap}
+tbody tr:last-child th, tbody tr:last-child td{border-bottom:0}
+
+.keys{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+.key{padding:14px 16px; background:var(--card); border:1px solid var(--rule); border-radius:8px}
+.key h3{display:flex; align-items:center; gap:10px; margin-bottom:6px; font-size:1.05rem}
+.swatch{display:inline-block; width:18px; height:18px; border-radius:3px; flex:none}
+.sw-cs{background:var(--cs)} .sw-ps{background:var(--ps)} .sw-dwl{background:var(--dwl)}
+.key p{margin:0; font-size:.95rem; color:var(--ink2)}
+.footnote{margin-top:40px; font-size:.9rem; color:var(--ink2); max-width:70ch}
+
+/* Game */
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; padding-bottom:14px; border-bottom:2px solid var(--ink); margin-bottom:20px}
+.topbar h2{font-size:1.7rem}
+.topbar .sub{color:var(--ink2); font-size:.95rem}
+.scorebox{font-size:.95rem; color:var(--ink2); text-align:right}
+.scorebox b{display:block; font-family:var(--serif); font-size:1.6rem; color:var(--ink)}
+.layout{display:grid; grid-template-columns:minmax(300px,390px) 1fr; gap:22px; align-items:start}
+.panel{background:var(--card); border:1px solid var(--rule); border-radius:8px; padding:18px}
+.stage{background:var(--card); border:1px solid var(--rule); border-radius:8px; padding:16px 18px; min-width:0}
+
+.about{border-bottom:1px solid var(--grid); padding-bottom:10px; margin-bottom:14px}
+.about summary{font-weight:700; cursor:pointer}
+.about dl{display:grid; grid-template-columns:auto 1fr; gap:4px 12px; margin:10px 0 0; font-size:.92rem}
+.about dt{color:var(--ink2)} .about dd{margin:0}
+.situation .event{background:var(--soft); border-left:4px solid var(--ink); padding:10px 12px; margin-bottom:12px; border-radius:0 6px 6px 0}
+.facts{display:grid; grid-template-columns:auto 1fr; gap:4px 12px; margin:0 0 14px; font-size:.95rem}
+.facts dt{color:var(--ink2)} .facts dd{margin:0; font-weight:700}
+.payoff{margin:6px 0 14px; font-size:.9rem}
+.payoff summary{font-weight:700; cursor:pointer}
+.payoff table{margin-top:8px; font-size:.88rem}
+.payoff td,.payoff th{padding:6px 8px}
+
+.controls{display:flex; flex-direction:column; gap:16px; padding:14px 0; border-top:1px solid var(--grid)}
+.ctrl-top{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+.ctrl-top label{font-weight:700}
+.ctrl-val{display:flex; align-items:center; gap:6px}
+.ctrl-val output{font-family:var(--serif); font-size:1.35rem; font-weight:700; min-width:5.5ch; text-align:center}
+.stepbtn{width:32px; height:32px; border-radius:6px; border:1.5px solid var(--rule); background:#fff; font-weight:700; line-height:1}
+.stepbtn:hover{border-color:var(--ink)}
+input[type=range]{width:100%; accent-color:var(--ink); margin:8px 0 0; height:28px}
+.help{font-size:.85rem; color:var(--ink2); margin:2px 0 0}
+.check{display:flex; gap:10px; align-items:flex-start; font-weight:700}
+.check input{width:20px; height:20px; margin-top:2px; accent-color:var(--ink); flex:none}
+.actions{display:flex; gap:10px; flex-wrap:wrap}
+.hint{background:#FFF7E6; border:1px solid #EBCB8B; border-radius:6px; padding:10px 12px; margin:12px 0 0; font-size:.95rem}
+.feedback{margin-top:14px}
+.feedback p{font-size:.95rem}
+.feedback .verdict{font-family:var(--serif); font-size:1.25rem; font-weight:700; margin-bottom:6px}
+
+.tabs{display:flex; gap:4px; border-bottom:1px solid var(--rule); margin-bottom:10px}
+.tabs button{background:none; border:0; border-bottom:3px solid transparent; padding:8px 12px; font-weight:700; color:var(--ink2)}
+.tabs button[aria-selected=true]{color:var(--ink); border-bottom-color:var(--ink)}
+.chartwrap canvas{display:block; width:100%; height:390px}
+.chart-note{font-size:.88rem; color:var(--ink2); margin:6px 0 14px}
+
+.stats{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); border:1px solid var(--grid); border-radius:6px; overflow:hidden; margin-bottom:18px}
+.stat{background:#fff; padding:10px 12px; border-right:1px solid var(--grid); border-bottom:1px solid var(--grid); margin:0 -1px -1px 0}
+.stat span{display:block; font-size:.8rem; color:var(--ink2)}
+.stat b{font-family:var(--serif); font-size:1.25rem; font-variant-numeric:tabular-nums}
+.pos{color:var(--good)} .neg{color:var(--dwl)}
+.empty{color:var(--ink2); font-size:.95rem; padding:10px 0 16px}
+
+.wbar-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:8px}
+.wbar-head span{font-size:.9rem; color:var(--ink2)}
+.wbar{display:flex; height:30px; border-radius:4px; overflow:hidden; background:var(--grid)}
+.wbar i{display:block; height:100%}
+.wbar .cs{background:var(--cs)} .wbar .ps{background:var(--ps)} .wbar .dwl{background:var(--dwl)}
+.wlegend{display:flex; flex-wrap:wrap; gap:6px 20px; margin:8px 0 4px; font-size:.92rem}
+.wlegend span{display:flex; align-items:center; gap:6px}
+.wlegend .swatch{width:12px; height:12px}
+.wnote{font-size:.85rem; color:var(--ink2); margin:4px 0 18px}
+
+.logwrap{overflow-x:auto}
+.logwrap table{font-size:.88rem}
+.logwrap td,.logwrap th{padding:6px 8px; white-space:nowrap; text-align:right}
+.logwrap th:first-child,.logwrap td:first-child{text-align:left}
+.logwrap thead th{font-family:var(--sans); font-size:.82rem; color:var(--ink2); border-bottom:1px solid var(--ink)}
+
+/* Debrief */
+.debrief{display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start}
+.card{background:var(--card); border:1px solid var(--rule); border-radius:8px; padding:20px}
+.card h3{margin-bottom:10px}
+.bigscore{font-family:var(--serif); font-size:3rem; font-weight:700; line-height:1}
+.q{border:0; border-top:1px solid var(--grid); padding:14px 0 6px; margin:0}
+.q legend{font-weight:700; padding:0; margin-bottom:8px}
+.q label{display:flex; gap:10px; align-items:flex-start; padding:5px 0; font-size:.95rem}
+.q input{margin-top:4px; accent-color:var(--ink)}
+.q .right{color:var(--good); font-weight:700}
+.q .wrong{color:var(--dwl); font-weight:700; text-decoration:line-through}
+.why{font-size:.92rem; background:var(--soft); padding:8px 10px; border-radius:6px; margin-top:6px}
+.formmsg{color:var(--dwl); font-weight:700; font-size:.92rem}
+
+/* Report */
+.cmp-row{display:grid; grid-template-columns:200px 1fr; gap:14px; align-items:center; padding:8px 0; border-bottom:1px solid var(--grid)}
+.cmp-row:last-child{border-bottom:0}
+.cmp-row .lab{font-weight:700; font-size:.95rem}
+.cmp-row .lab small{display:block; font-weight:400; color:var(--ink2)}
+.cmp-bars .wbar{height:22px}
+.cmp-bars .wbar + .wbar{height:10px; margin-top:4px; opacity:.75}
+.cmp-bars .pct{font-size:.82rem; color:var(--ink2); margin-top:3px}
+
+@media (max-width:980px){
+  .layout,.debrief{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .stair{grid-template-columns:1fr 1fr}
+  .step{min-height:auto; border-left:0}
+  .step:nth-child(odd){border-right:1px solid var(--rule)}
+  .keys{grid-template-columns:1fr}
+  .chartwrap canvas{height:320px}
+  .cmp-row{grid-template-columns:1fr}
+  .start input{min-width:0; width:100%}
+  .start .field{flex:1 1 100%}
+}
+@media (prefers-reduced-motion:no-preference){
+  .feedback.flash{animation:flash .6s ease-out}
+  @keyframes flash{from{background:#FFF7E6}to{background:transparent}}
+}
+@media print{
+  body{background:#fff}
+  .noprint,button{display:none !important}
+  .card{border-color:#999}
+}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<section id="home">
+  <div class="wrap">
+    <header class="hero">
+      <h1>Who sets the price?</h1>
+      <p class="lede">Run a firm in four markets, from a wheat farm with a hundred rivals to a patent holder with none. Choose your price or output, watch rivals enter or retaliate, and see how every decision splits total surplus between buyers, sellers and deadweight loss.</p>
+      <div class="start">
+        <div class="field">
+          <label for="studentName">Your name (printed on your report)</label>
+          <input id="studentName" type="text" autocomplete="name" placeholder="e.g. Ayesha Khan">
+        </div>
+        <button class="primary" id="startBtn">Start with perfect competition</button>
+        <button class="ghost" id="reportBtn" hidden>See your report</button>
+      </div>
+    </header>
+
+    <div class="stair" id="stair" aria-label="The four markets, ordered by market power"></div>
+    <div class="axis" aria-hidden="true"><span>Many sellers, no market power</span><span>One seller, most market power</span></div>
+
+    <div class="section">
+      <h2>How the four markets differ</h2>
+      <div class="tablewrap"><table id="traitTable"></table></div>
+    </div>
+
+    <div class="section">
+      <h2>The colours in every chart</h2>
+      <div class="keys">
+        <div class="key"><h3><span class="swatch sw-cs"></span>Consumer surplus</h3><p>What buyers were willing to pay minus what they actually paid. The area under demand and above the price.</p></div>
+        <div class="key"><h3><span class="swatch sw-ps"></span>Producer surplus</h3><p>Revenue minus variable cost. The area above marginal cost and below the price. Economic profit is producer surplus minus fixed cost.</p></div>
+        <div class="key"><h3><span class="swatch sw-dwl"></span>Deadweight loss</h3><p>Surplus nobody gets because output is below (or above) the efficient level where price equals marginal cost.</p></div>
+      </div>
+      <p class="footnote">Total surplus = consumer surplus + producer surplus. Its largest possible value is reached where demand meets marginal cost; deadweight loss is the gap between that maximum and what the market achieves. The game uses linear demand and simple cost curves, so all numbers are illustrative.</p>
+    </div>
+  </div>
+</section>
+
+<!-- GAME -->
+<section id="game" hidden>
+  <div class="wrap">
+    <header class="topbar">
+      <div>
+        <button class="textbtn noprint" id="backHome">All markets</button>
+        <h2 id="gTitle"></h2>
+        <div class="sub" id="gSub"></div>
+      </div>
+      <div class="scorebox">Average score<b id="gScore">–</b></div>
+    </header>
+    <div class="layout">
+      <aside class="panel">
+        <details class="about"><summary>About this market</summary><dl id="gTraits"></dl></details>
+        <div class="situation" id="gSituation"></div>
+        <div class="controls" id="gControls"></div>
+        <div class="actions">
+          <button class="primary" id="runBtn">Run period</button>
+          <button class="ghost" id="hintBtn">Show the rule</button>
+        </div>
+        <p class="hint" id="gHint" hidden></p>
+        <div class="feedback" id="gFeedback" aria-live="polite"></div>
+      </aside>
+      <main class="stage">
+        <div class="tabs" role="tablist">
+          <button role="tab" data-view="firm" aria-selected="true">Your firm</button>
+          <button role="tab" data-view="market" aria-selected="false">Market and welfare</button>
+        </div>
+        <div class="chartwrap"><canvas id="chart" role="img" aria-label="Economic diagram for the current decision"></canvas></div>
+        <p class="chart-note" id="chartNote"></p>
+        <div id="gStats"></div>
+        <div id="gWelfare"></div>
+        <div class="logwrap"><table id="gLog"></table></div>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- DEBRIEF -->
+<section id="debrief" hidden>
+  <div class="wrap">
+    <header class="topbar">
+      <div>
+        <button class="textbtn noprint" id="backHome2">All markets</button>
+        <h2 id="dTitle"></h2>
+        <div class="sub">Debrief and check your understanding</div>
+      </div>
+    </header>
+    <div class="debrief">
+      <div class="card">
+        <h3>How you did</h3>
+        <div class="bigscore" id="dScore"></div>
+        <p class="sub" style="color:var(--ink2)">average decision score out of 100</p>
+        <div id="dWelfare" style="margin-top:14px"></div>
+        <h3 style="margin-top:8px">What this market teaches</h3>
+        <div id="dTake"></div>
+      </div>
+      <div class="card">
+        <h3>Questions</h3>
+        <form id="quiz"></form>
+        <p class="formmsg" id="quizMsg" hidden></p>
+        <div class="actions" style="margin-top:12px">
+          <button class="primary" id="checkBtn">Check answers</button>
+          <button class="primary" id="nextLevelBtn" hidden>Next market</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REPORT -->
+<section id="report" hidden>
+  <div class="wrap">
+    <header class="topbar">
+      <div>
+        <button class="textbtn noprint" id="backHome3">All markets</button>
+        <h2>Your market structures report</h2>
+        <div class="sub" id="rSub"></div>
+      </div>
+      <button class="ghost noprint" onclick="window.print()">Print or save as PDF</button>
+    </header>
+    <div class="card">
+      <h3>Scores</h3>
+      <div class="tablewrap" style="border:0"><table id="rTable"></table></div>
+    </div>
+    <div class="card" style="margin-top:22px">
+      <h3>Who gets the surplus in each market?</h3>
+      <p style="color:var(--ink2); font-size:.95rem">Each thick bar shows the textbook outcome as a share of the largest possible total surplus. The thin bar under it shows the average from your own decisions.</p>
+      <div class="wlegend"><span><i class="swatch sw-cs"></i>Consumer surplus</span><span><i class="swatch sw-ps"></i>Producer surplus</span><span><i class="swatch sw-dwl"></i>Deadweight loss</span></div>
+      <div id="rCompare"></div>
+    </div>
+    <div class="card" style="margin-top:22px">
+      <h3>The big picture</h3>
+      <p>As market power rises, firms push price further above marginal cost. The Lerner index, (P − MC) ÷ P, moves from zero under perfect competition toward its highest values under monopoly or a successful cartel.</p>
+      <p>Barriers to entry decide whether profit survives. Free entry wiped out profit in perfect and monopolistic competition; licences, economies of scale and patents protected it in oligopoly and monopoly.</p>
+      <p>Market power moves surplus from buyers to sellers and destroys some of it altogether. Deadweight loss is zero only when output reaches the level where price equals marginal cost.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const clamp = (x,a,b) => Math.max(a, Math.min(b, x));
+const r1 = x => Math.round(x*10)/10;
+function num(x, d=1){ const f=10**d; const v=Math.round(x*f)/f; return (Object.is(v,-0)?0:v).toLocaleString('en-US',{maximumFractionDigits:d}); }
+function money(x, d){
+  if(d===undefined) d = Math.abs(x) >= 100 ? 0 : 1;
+  const v = Math.round(Math.abs(x)*10**d)/10**d;
+  return (x < 0 && v !== 0 ? '−' : '') + '$' + v.toLocaleString('en-US',{maximumFractionDigits:d});
+}
+const C = {};
+function readColors(){
+  const s = getComputedStyle(document.documentElement);
+  ['ink','ink2','rule','cs','ps','dwl','good','grid'].forEach(k => C[k] = s.getPropertyValue('--'+k).trim());
+  C.psText = s.getPropertyValue('--ps-text').trim();
+}
+const FILL = {cs:'rgba(47,116,208,.26)', ps:'rgba(212,140,14,.32)', dwl:'rgba(196,61,61,.32)', loss:'rgba(196,61,61,.22)'};
+
+function niceStep(max){
+  const raw = max/6, p = 10**Math.floor(Math.log10(raw));
+  for(const m of [1,2,2.5,5,10]) if(m*p >= raw) return m*p;
+  return 10*p;
+}
+
+/* ---------- plotting ---------- */
+function makePlot(canvas, o){
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  const fam = getComputedStyle(document.body).fontFamily;
+  const m = {l:58, r:14, t:14, b:48};
+  const pw = w-m.l-m.r, ph = h-m.t-m.b;
+  const X = x => m.l + x/o.xmax*pw;
+  const Y = y => m.t + ph - y/o.ymax*ph;
+  const font = (sz,wt=400) => `${wt} ${sz}px ${fam}`;
+  const P = {ctx, X, Y};
+  const clip = f => { ctx.save(); ctx.beginPath(); ctx.rect(m.l, m.t, pw, ph); ctx.clip(); f(); ctx.restore(); };
+
+  P.text = (txt, x, y, color, opt={}) => {
+    ctx.font = font(opt.size||12.5, opt.weight||700);
+    const tw = ctx.measureText(txt).width;
+    let px = X(x) + (opt.dx ?? 5), py = Y(y) + (opt.dy ?? -8);
+    const align = opt.align || 'left';
+    let left = align==='left' ? px : align==='right' ? px - tw : px - tw/2;
+    left = clamp(left, m.l + 2, w - tw - 4);
+    py = clamp(py, m.t + 10, m.t + ph - 4);
+    if(opt.halo !== false){ ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(left-2, py-11, tw+4, 15); }
+    ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(txt, left, py);
+  };
+  P.axes = () => {
+    const xt = niceStep(o.xmax), yt = niceStep(o.ymax);
+    ctx.lineWidth = 1; ctx.strokeStyle = C.grid; ctx.font = font(12); ctx.fillStyle = C.ink2;
+    for(let x=0; x<=o.xmax+1e-9; x+=xt){
+      ctx.beginPath(); ctx.moveTo(X(x), m.t); ctx.lineTo(X(x), m.t+ph); ctx.stroke();
+      ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(num(x,1), X(x), m.t+ph+6);
+    }
+    for(let y=0; y<=o.ymax+1e-9; y+=yt){
+      ctx.beginPath(); ctx.moveTo(m.l, Y(y)); ctx.lineTo(m.l+pw, Y(y)); ctx.stroke();
+      ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillText(num(y,1), m.l-8, Y(y));
+    }
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(m.l, m.t); ctx.lineTo(m.l, m.t+ph); ctx.lineTo(m.l+pw, m.t+ph); ctx.stroke();
+    ctx.fillStyle = C.ink; ctx.font = font(13,700);
+    ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(o.xlabel, m.l+pw/2, h-3);
+    ctx.save(); ctx.translate(13, m.t+ph/2); ctx.rotate(-Math.PI/2); ctx.textBaseline='middle'; ctx.fillText(o.ylabel, 0, 0); ctx.restore();
+  };
+  P.curve = (f, x0, x1, color, opt={}) => {
+    const pts = [];
+    for(let i=0; i<=160; i++){ const x = x0+(x1-x0)*i/160, y = f(x); if(isFinite(y)) pts.push([x,y]); }
+    clip(() => {
+      ctx.strokeStyle = color; ctx.lineWidth = opt.width || 2.4; ctx.setLineDash(opt.dash || []);
+      ctx.beginPath(); pts.forEach((p,i) => i ? ctx.lineTo(X(p[0]),Y(p[1])) : ctx.moveTo(X(p[0]),Y(p[1]))); ctx.stroke();
+      ctx.setLineDash([]);
+    });
+    if(opt.label && opt.at !== undefined) P.text(opt.label, opt.at, f(opt.at), color, opt);
+  };
+  P.hline = (y, color, opt={}) => P.curve(() => y, opt.x0 ?? 0, opt.x1 ?? o.xmax, color, {width:2, ...opt, at: opt.at ?? (opt.x1 ?? o.xmax)*0.99, align: opt.align || 'right', dx: opt.dx ?? 0});
+  P.vline = (x, color, opt={}) => {
+    clip(() => {
+      ctx.strokeStyle = color; ctx.lineWidth = opt.width || 1.5; ctx.setLineDash(opt.dash || [4,4]);
+      ctx.beginPath(); ctx.moveTo(X(x), Y(opt.y0 ?? 0)); ctx.lineTo(X(x), Y(opt.y1 ?? o.ymax)); ctx.stroke(); ctx.setLineDash([]);
+    });
+    if(opt.label) P.text(opt.label, x, opt.ly ?? o.ymax*0.96, color, {dx:5, dy:4, weight:400, ...opt.lopt});
+  };
+  P.poly = (pts, fill, label, lcolor) => {
+    if(pts.length < 3) return;
+    clip(() => {
+      ctx.fillStyle = fill; ctx.beginPath();
+      pts.forEach((p,i) => i ? ctx.lineTo(X(p[0]),Y(p[1])) : ctx.moveTo(X(p[0]),Y(p[1])));
+      ctx.closePath(); ctx.fill();
+    });
+    if(label){
+      let a = 0, cx = 0, cy = 0;
+      for(let i=0;i<pts.length;i++){ const [x1,y1]=[X(pts[i][0]),Y(pts[i][1])], [x2,y2]=[X(pts[(i+1)%pts.length][0]),Y(pts[(i+1)%pts.length][1])]; const cr = x1*y2-x2*y1; a+=cr; cx+=(x1+x2)*cr; cy+=(y1+y2)*cr; }
+      if(Math.abs(a/2) < 700) return;
+      cx/=(3*a); cy/=(3*a);
+      ctx.font = font(13,700); ctx.fillStyle = lcolor || C.ink; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(label, cx, cy);
+    }
+  };
+  P.band = (top, bot, x0, x1, fill, label, lcolor) => {
+    if(Math.abs(x1-x0) < 1e-6) return;
+    const a=[], b=[];
+    for(let i=0;i<=60;i++){ const x=x0+(x1-x0)*i/60; a.push([x,top(x)]); b.unshift([x,bot(x)]); }
+    P.poly(a.concat(b), fill, label, lcolor);
+  };
+  P.rect = (x0,y0,x1,y1,fill,label,lcolor) => P.poly([[x0,y0],[x1,y0],[x1,y1],[x0,y1]], fill, label, lcolor);
+  P.dot = (x, y, color, label, opt={}) => {
+    clip(() => { ctx.fillStyle = '#fff'; ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(X(x),Y(y),6.5,0,Math.PI*2); ctx.fill(); ctx.stroke(); });
+    if(label) P.text(label, x, y, color, {dx:10, dy:-10, ...opt});
+  };
+  return P;
+}
+
+/* ---------- LEVEL 1: perfect competition ---------- */
+const PC = {
+  id:'pc', name:'Perfect competition', periods:6,
+  blurb:'You run one wheat farm among dozens. The market sets the price.',
+  traits:[['Number of firms','Very many'],['Product','Identical'],['Barriers to entry','None: free entry and exit'],['Control over price','None: a price taker'],['Demand facing one firm','Horizontal at the market price'],['Long-run economic profit','Zero']],
+  P:{B:10, F:100, c:2, d:1, A0:1200},
+  rule:'A price taker maximises profit where <b>P = MC</b>. Here MC = 2 + 2q, so q = (P − 2) ÷ 2. Keep producing as long as price covers minimum average variable cost ($2). Charging above the market price loses every customer.',
+  price(st){ const {B,c,d}=this.P; return r1((st.A + st.N*c/(2*d)) / (B + st.N/(2*d))); },
+  init(){ return {period:1, N:20, A:this.P.A0, event:'Wheat prices are high this season and only 20 farms supply the market.'}; },
+  controls(st){
+    const pm = this.price(st);
+    return [
+      {id:'q', label:'Your output', kind:'units', min:0, max:60, step:0.5, value:15},
+      {id:'p', label:'Your asking price', kind:'$', min:Math.max(0,r1(pm-10)), max:r1(pm+10), step:0.1, value:pm, help:`The market price is $${num(pm)}. You may try a different price.`}
+    ];
+  },
+  situation(st){
+    const pm = this.price(st);
+    return `<dl class="facts">
+      <dt>Market price</dt><dd>$${num(pm)}</dd>
+      <dt>Farms in the market</dt><dd>${st.N}</dd>
+      <dt>Market demand</dt><dd>Q = ${st.A} − 10P</dd>
+      <dt>Your costs</dt><dd>Fixed $100, MC = 2 + 2q</dd>
+      <dt>Minimum ATC</dt><dd>$22 at 10 units</dd></dl>`;
+  },
+  evaluate(st, dec){
+    const {B,F,c,d} = this.P, pm = this.price(st);
+    const q = dec.q, p = dec.p;
+    const above = p > pm + 0.05, below = p < pm - 0.05;
+    const sold = above ? 0 : q;
+    const tc = F + c*q + d*q*q, tr = p*sold, profit = tr - tc;
+    const qo = Math.max(0,(pm-c)/(2*d)), tro = pm*qo, po = tro - (F + c*qo + d*qo*qo);
+    const Q = st.A - B*pm, CS = 0.5*(st.A/B - pm)*Q, PS = 0.5*(pm-c)*Q;
+    const mcq = c + 2*d*q, notes = [];
+    if(above) notes.push(`You asked $${num(p)}, above the market price of $${num(pm)}. Buyers switched to identical wheat from other farms, so you sold nothing and still paid for all ${num(q)} units.`);
+    else if(below) notes.push(`You priced below the market. Every bushel could have sold at $${num(pm)}, so the discount only gave revenue away.`);
+    if(Math.abs(q-qo) <= 0.75) notes.push(`Your output sits where P = MC ($${num(pm)}), the profit-maximising rule for a price taker.`);
+    else if(q < qo) notes.push(`At ${num(q)} units your MC is $${num(mcq)}, below the price. Each extra unit still adds profit, so expand toward ${num(qo)} units.`);
+    else notes.push(`At ${num(q)} units your MC is $${num(mcq)}, above the price. Your last units cost more than they earn; cut back to ${num(qo)} units.`);
+    if(po < -0.5) notes.push(`Even the best output loses money at this price. Because the price is above minimum AVC ($2), producing still loses less than shutting down, which would cost the full $100 fixed cost.`);
+    else if(po > 0.5) notes.push(`The typical farm earns economic profit of ${money(po)}. With no barriers to entry, that will attract new farms.`);
+    else notes.push(`Economic profit is about zero: price equals minimum ATC. This is the long-run equilibrium.`);
+    return {P:p, q, sold, profit, po, tro, CS, PS, DWL:0, TSmax:CS+PS, lerner:0,
+      wTitle:'Wheat market surplus', wNote:'Market price is set by supply and demand, so the market reaches the efficient output and deadweight loss is zero. Producer surplus here is revenue minus variable cost across all farms.',
+      extra:[['Market price', money(pm,1)], ['Farms', st.N], ['Profit left on the table', money(Math.max(0,po-profit))]],
+      notes, qLabel:'Output sold'};
+  },
+  advance(st, dec, res){
+    const {B,F,c,d} = this.P, msgs = [];
+    const qmin = Math.sqrt(F/d), atcmin = c + 2*Math.sqrt(F*d);
+    const neq = Math.round((st.A - B*atcmin)/qmin);
+    if(res.po > 1 && st.N < neq){
+      const n2 = Math.min(neq, st.N + Math.max(1, Math.round(0.55*(neq-st.N))));
+      msgs.push(`${n2-st.N} new farms entered, drawn by economic profit. Market supply shifted right and the price fell.`); st.N = n2;
+    } else if(res.po < -1 && st.N > neq){
+      const n2 = Math.max(neq, st.N - Math.max(1, Math.round(0.55*(st.N-neq))));
+      msgs.push(`${st.N-n2} farms left the industry after losses. Market supply shifted left and the price rose.`); st.N = n2;
+    }
+    if(st.period === 4){ st.A = 1000; msgs.push('<b>Demand shock:</b> a cheaper imported grain cuts wheat demand to Q = 1000 − 10P.'); }
+    st.event = msgs.join(' ');
+    st.period++;
+  },
+  draw(cv, view, st, dec){
+    const {B,F,c,d} = this.P, pm = this.price(st);
+    if(view === 'firm'){
+      const ymax = Math.max(70, Math.ceil(pm*1.3/10)*10);
+      const P = makePlot(cv, {xmax:60, ymax, xlabel:'Your output (units)', ylabel:'Price and cost ($)'});
+      P.axes();
+      const atc = x => F/x + c + d*x, q = dec.q, ask = dec.p, above = ask > pm + 0.05;
+      if(q > 0.3){
+        if(above) P.rect(0,0,q,atc(q),FILL.loss,'Loss: nothing sold',C.dwl);
+        else { const top=Math.max(ask,atc(q)), bot=Math.min(ask,atc(q)); P.rect(0,bot,q,top, ask>=atc(q)?FILL.ps:FILL.loss, ask>=atc(q)?'Profit':'Loss', ask>=atc(q)?C.psText:C.dwl); }
+      }
+      P.curve(atc, 1.3, 60, C.ink2, {label:'ATC', at:44});
+      P.curve(x => c+d*x, 0, 60, C.ink2, {dash:[6,4], width:1.6, label:'AVC', at:24, dy:18});
+      P.curve(x => c+2*d*x, 0, 60, C.ink, {label:'MC', at:Math.min(58,(ymax*0.9-c)/(2*d))});
+      P.hline(pm, C.cs, {label:`P = MR = d  ($${num(pm)})`, width:2.6, at:59});
+      if(Math.abs(ask-pm) > 0.05) P.hline(ask, C.dwl, {dash:[6,4], label:`Your asking price $${num(ask)}`, at:59, dy: ask>pm?-8:18});
+      P.vline(q, C.ink2, {y1:ask});
+      P.dot(q, ask, C.ink);
+    } else {
+      const A = st.A, Q = A - B*pm;
+      const P = makePlot(cv, {xmax:1300, ymax:130, xlabel:'Market quantity (units)', ylabel:'Price ($)'});
+      P.axes();
+      P.poly([[0,A/B],[0,pm],[Q,pm]], FILL.cs, 'CS', C.cs);
+      P.poly([[0,pm],[Q,pm],[0,c]], FILL.ps, 'PS', C.psText);
+      if(A !== this.P.A0) P.curve(x => (this.P.A0-x)/B, 0, this.P.A0, C.rule, {dash:[6,4], width:1.8, label:'Demand before shock', at:900, dy:-8});
+      P.curve(x => (A-x)/B, 0, A, C.ink, {label:'Demand', at:A*0.16});
+      const sAt = Math.min(1230, (0.86*130 - c)*st.N/(2*d));
+      P.curve(x => c + 2*d*x/st.N, 0, 1300, C.ink2, {label:`Supply (${st.N} farms)`, at:sAt, align:'right', dx:-8});
+      P.dot(Q, pm, C.ink, `P = $${num(pm)}, Q = ${num(Q,0)}`, {dy:22});
+    }
+  },
+  note(view){ return view==='firm' ? 'The amber rectangle is your profit and the red one a loss: (price − ATC) × output. The blue line is the price you must accept.' : 'Blue = consumer surplus, amber = producer surplus. Entry shifts supply right; the demand shock shifts demand left.'; },
+  takeaways:`<p>A single farm cannot influence the price: charging more lost every customer, and charging less wasted revenue. The only real decision was output, and the best output always set <b>P = MC</b>.</p>
+    <p>Economic profit attracted entry because nothing blocked it. Supply shifted right until price fell toward minimum ATC ($22). The demand shock then produced losses, and farms began to exit until price returns to $22 with about 78 farms.</p>
+    <p>Because price equals marginal cost, the market produces the efficient quantity. Total surplus is maximised and deadweight loss is zero; there is no market power (Lerner index = 0).</p>`,
+  quiz:[
+    {q:'A wheat farm raises its price slightly above the market price. What happens?', o:['It sells slightly less','It sells nothing, because buyers switch to identical wheat','It sells the same amount at a higher price','Other farms raise their prices too'], a:1, why:'Each firm faces a perfectly elastic (horizontal) demand curve. With identical products and many sellers, any price above the market price loses every buyer.'},
+    {q:'Why did new farms keep entering in the early periods?', o:['The government subsidised entry','Price was above minimum ATC, so farms earned economic profit and nothing blocked entry','Price was below minimum AVC','Demand was falling'], a:1, why:'With no barriers to entry, economic profit is a signal that draws new firms in until price falls to minimum ATC.'},
+    {q:'Which statement describes long-run equilibrium in perfect competition?', o:['P > MC and profit is positive','P = MC = minimum ATC, economic profit is zero and deadweight loss is zero','P = ATC but above MC, with excess capacity','Firms earn profit protected by barriers'], a:1, why:'Free entry and exit drive price to minimum ATC, and price-taking firms set P = MC, so output is efficient.'}
+  ]
+};
+
+/* ---------- LEVEL 2: monopolistic competition ---------- */
+const MCL = {
+  id:'mc', name:'Monopolistic competition', periods:5,
+  blurb:'You run a café brand. Your coffee is a little different, but rivals are close substitutes.',
+  traits:[['Number of firms','Many'],['Product','Differentiated (brands, style, location)'],['Barriers to entry','Low'],['Control over price','Some, limited by close substitutes'],['Demand facing one firm','Downward sloping and fairly elastic'],['Long-run economic profit','Zero']],
+  P:{F:100, c:2, d:1, beta:1, Nlr:12, ad:60, shift:6},
+  rule:'Set <b>MR = MC</b>. Your demand is P = α − q, so MR = α − 2q; with MC = 2 + 2q, the best output is q = (α − 2) ÷ 4 and the best price is α − q. Advertise only if it adds more than $60 of profit.',
+  alpha(N){ const {c,d,beta,F,Nlr}=this.P; return c + 2*Math.sqrt((beta+d)*F)*Math.sqrt(Nlr/N); },
+  best(al){ const {c,d,beta,F}=this.P; const q=(al-c)/(2*(beta+d)); const P=al-beta*q; return {q, P, pi:(al-c)**2/(4*(beta+d)) - F, tr:P*q}; },
+  init(){ return {period:1, N:4, event:'Only four café brands operate in town, and customers queue at all of them.'}; },
+  controls(st){
+    const al = this.alpha(st.N);
+    return [
+      {id:'p', label:'Your price', kind:'$', min:2, max:Math.ceil(al+this.P.shift), step:0.5, value:Math.round(al*0.8*2)/2},
+      {id:'ad', type:'check', label:'Run an advertising campaign ($60)', value:false, help:'Advertising shifts your demand right by 6 this period.'}
+    ];
+  },
+  situation(st){
+    const al = this.alpha(st.N);
+    return `<dl class="facts">
+      <dt>Café brands</dt><dd>${st.N}</dd>
+      <dt>Your demand</dt><dd>P = ${num(al)} − q</dd>
+      <dt>Your costs</dt><dd>Fixed $100, MC = 2 + 2q</dd>
+      <dt>Minimum ATC</dt><dd>$22 at 10 hundred cups</dd></dl>`;
+  },
+  evaluate(st, dec){
+    const {F,c,d,beta,ad,shift} = this.P;
+    const a0 = this.alpha(st.N), ae = a0 + (dec.ad ? shift : 0);
+    const P = dec.p, q = Math.max(0,(ae-P)/beta), fixed = F + (dec.ad ? ad : 0);
+    const tr = P*q, profit = tr - fixed - c*q - d*q*q;
+    const b0 = this.best(a0), b1 = this.best(a0+shift); b1.pi -= ad;
+    const bo = b1.pi > b0.pi ? b1 : b0, adPays = b1.pi > b0.pi;
+    const qe = (ae-c)/(beta+2*d);
+    const CS = 0.5*beta*q*q, PS = tr - c*q - d*q*q;
+    const TSmax = (ae-c)*qe - (beta+2*d)/2*qe*qe;
+    const DWL = Math.abs((ae-c)*(qe-q) - (beta+2*d)/2*(qe*qe-q*q));
+    const mcq = c + 2*d*q, mr = ae - 2*beta*q, qmin = Math.sqrt(fixed/d), notes = [];
+    if(Math.abs(mr-mcq) <= 1.2) notes.push(`MR (${money(mr,1)}) is about equal to MC (${money(mcq,1)}): the profit-maximising point.`);
+    else if(mr > mcq) notes.push(`MR (${money(mr,1)}) is above MC (${money(mcq,1)}). A lower price would sell enough extra cups to raise profit.`);
+    else notes.push(`MR (${money(mr,1)}) is below MC (${money(mcq,1)}). You are selling cups that add less revenue than cost; raise the price.`);
+    const gross = b1.pi + ad - b0.pi;
+    notes.push(`At the best price, advertising adds ${money(gross)} of profit before its $60 cost, so it ${adPays ? 'paid' : 'did not pay'} this period.${dec.ad === adPays ? ' Your choice was right.' : ''}`);
+    if(q > 0 && q < qmin - 0.3) notes.push(`You sell ${num(q)} hundred cups, below the ${num(qmin)} hundred that minimise average cost. This excess capacity is typical of monopolistic competition.`);
+    if(bo.pi < 5) notes.push('The best possible profit is now about zero. Entry has pushed your demand curve down until it just touches ATC: the long-run tangency.');
+    return {P, q, sold:q, profit, po:bo.pi, tro:bo.tr, CS, PS, DWL, TSmax,
+      lerner: P>0 ? (P-mcq)/P : 0, wTitle:'Surplus in your corner of the market',
+      wNote:'Even at the best price, P stays above MC, so some cups worth more to buyers than they cost are never sold.',
+      extra:[['Best price', money(bo.P,1)], ['Min-ATC output', num(qmin)]],
+      notes, qLabel:'Cups sold (hundreds)'};
+  },
+  advance(st, dec, res){
+    const {Nlr} = this.P;
+    if(res.po > 1 && st.N < Nlr){
+      const n2 = Math.min(Nlr, st.N + Math.max(1, Math.round(0.5*(Nlr-st.N))));
+      st.event = `${n2-st.N} new café brands opened, attracted by profits of about ${money(res.po)} each. Some of your customers left, so your demand shifted left and became more elastic.`;
+      st.N = n2;
+    } else st.event = 'No new brands opened: there is no profit left to attract them.';
+    st.period++;
+  },
+  draw(cv, view, st, dec){
+    const {F,c,d,beta,ad,shift} = this.P;
+    const a0 = this.alpha(st.N), ae = a0 + (dec.ad ? shift : 0);
+    const P0 = dec.p, q = Math.max(0,(ae-P0)/beta), fixed = F + (dec.ad ? ad : 0);
+    const D = x => ae - beta*x, MC = x => c + 2*d*x;
+    const P = makePlot(cv, {xmax:40, ymax:65, xlabel:'Your output (hundreds of cups)', ylabel:'Price and cost ($)'});
+    P.axes();
+    if(view === 'firm'){
+      const atc = x => fixed/x + c + d*x, qmin = Math.sqrt(fixed/d);
+      if(q > 0.2){ const up = P0 >= atc(q); P.rect(0,Math.min(P0,atc(q)),q,Math.max(P0,atc(q)), up?FILL.ps:FILL.loss, up?'Profit':'Loss', up?C.psText:C.dwl); }
+      P.vline(qmin, C.ink2, {label:'Min-ATC output', ly:3, lopt:{dy:-4}});
+      if(dec.ad) P.curve(x => a0 - beta*x, 0, a0/beta, C.rule, {dash:[6,4], width:1.8, label:'d before ads', at:4, dy:18});
+      P.curve(atc, 2.2, 40, C.ink2, {label:'ATC', at:34});
+      P.curve(MC, 0, 40, C.ink, {label:'MC', at:26});
+      P.curve(D, 0, ae/beta, C.cs, {label:'Demand (d)', at:Math.min(30,ae*0.62), dy:-8});
+      P.curve(x => ae - 2*beta*x, 0, ae/(2*beta), C.cs, {dash:[6,4], width:2, label:'MR', at:ae/(2*beta)*0.8, dy:18, dx:-24});
+      P.vline(q, C.ink2, {y1:P0});
+      P.dot(q, P0, C.ink);
+    } else {
+      const qe = (ae-c)/(beta+2*d);
+      P.band(D, () => P0, 0, q, FILL.cs, 'CS', C.cs);
+      P.band(() => P0, MC, 0, q, FILL.ps, 'PS', C.psText);
+      P.poly([[q,D(q)],[qe,D(qe)],[q,MC(q)]], FILL.dwl, 'DWL', C.dwl);
+      P.curve(MC, 0, 40, C.ink, {label:'MC', at:26});
+      P.curve(D, 0, ae/beta, C.cs, {label:'Demand (d)', at:Math.min(30,ae*0.62)});
+      P.dot(qe, D(qe), C.good, 'Efficient: P = MC', {dy:-12, weight:400});
+      P.dot(q, P0, C.ink);
+    }
+  },
+  note(view){ return view==='firm' ? 'Profit is the rectangle between your price and ATC. The dashed line marks the output where ATC is lowest; producing left of it means excess capacity.' : 'Blue = consumer surplus, amber = producer surplus, red = deadweight loss between your output and the efficient output (green point).'; },
+  takeaways:`<p>Your brand gave you a downward-sloping demand curve, so you chose a price rather than accepting one. The best price always came from <b>MR = MC</b>, and it stayed above marginal cost.</p>
+    <p>Low barriers meant early profits attracted new brands. Each entrant took customers, shifting your demand left and making it more elastic, until demand was just tangent to ATC and economic profit was zero.</p>
+    <p>Zero profit does not mean efficiency. Because P > MC there is still some deadweight loss, and firms produce left of minimum ATC (excess capacity). That is the price of product variety. Advertising can pay when profits are high, but not once competition has squeezed margins.</p>`,
+  quiz:[
+    {q:'What happened to your demand curve as new café brands entered?', o:['It shifted right','It shifted left and became more elastic','It became perfectly inelastic','It did not change'], a:1, why:'Entrants offer close substitutes, so each existing firm keeps fewer customers and faces more price-sensitive demand.'},
+    {q:'In long-run equilibrium, a monopolistically competitive firm…', o:['earns positive economic profit protected by barriers','sets P = MC = minimum ATC','earns zero economic profit but charges P > MC and produces below the minimum-ATC output','shuts down'], a:2, why:'Demand is tangent to ATC on its downward-sloping part: zero profit, P > MC, and excess capacity.'},
+    {q:'Why is there deadweight loss even when profit is zero?', o:['Because fixed costs are high','Because P > MC, so some units buyers value above their cost are not produced','Because advertising is wasteful','Because there are too few firms'], a:1, why:'Any gap between price and marginal cost means output is below the efficient level, whatever the level of profit.'}
+  ]
+};
+
+/* ---------- LEVEL 3: oligopoly ---------- */
+const OL = {
+  id:'olig', name:'Oligopoly', periods:6,
+  blurb:'You and one rival make all the cement. Your rival proposes a quota.',
+  traits:[['Number of firms','A few (here: two)'],['Product','Identical or differentiated'],['Barriers to entry','High: plant scale, licences'],['Control over price','Considerable, but shared with rivals'],['Demand facing one firm','Depends on what rivals do'],['Long-run economic profit','Can persist']],
+  P:{a:120, b:1, c:20, F:300},
+  rule:'Your one-period best response to the rival\'s output q<sub>r</sub> is <b>q = (100 − q<sub>r</sub>) ÷ 2</b>. The quota of 25 each maximises joint profit. Your rival copies any output above the quota in the next period, and returns to 25 once you do.',
+  pay(q1,q2){ const {a,b,c,F}=this.P; const P=Math.max(0,a-b*(q1+q2)); return [(P-c)*q1-F, (P-c)*q2-F]; },
+  init(){ return {period:1, rivalQ:25, event:'Building a cement plant takes huge investment and a government licence, so no one else can enter. Your rival proposes that each of you produce 25 units, half the monopoly output.'}; },
+  controls(){ return [{id:'q', label:'Your output', kind:'units', min:0, max:60, step:0.5, value:25}]; },
+  situation(st){
+    const t = (x,y) => { const [u,v] = this.pay(x,y); return `${money(u)} / ${money(v)}`; };
+    const last = st.period === this.periods ? '<p><b>This is the final period.</b> Your rival cannot punish you afterwards.</p>' : '';
+    return `${last}<dl class="facts">
+      <dt>Market demand</dt><dd>P = 120 − (your q + rival q)</dd>
+      <dt>Rival's planned output</dt><dd>${num(st.rivalQ)} units</dd>
+      <dt>Costs (each firm)</dt><dd>Fixed $300, MC = $20</dd>
+      <dt>Cartel quota</dt><dd>25 units each</dd></dl>
+      <details class="payoff"><summary>Payoff table: keep the quota or produce 35?</summary>
+      <table><thead><tr><th>You / Rival</th><th>Rival: 25</th><th>Rival: 35</th></tr></thead>
+      <tbody><tr><th>You: 25</th><td>${t(25,25)}</td><td>${t(25,35)}</td></tr>
+      <tr><th>You: 35</th><td>${t(35,25)}</td><td>${t(35,35)}</td></tr></tbody></table>
+      <p class="help">Profits shown as yours / rival's. Producing 35 is better for you whatever the rival does, yet both do worse at 35 than at 25: a prisoner's dilemma.</p></details>`;
+  },
+  evaluate(st, dec){
+    const {a,b,c,F} = this.P, qp = dec.q, qr = st.rivalQ, Q = qp+qr, P = Math.max(0, a-b*Q);
+    const [profit, rprofit] = this.pay(qp, qr);
+    const qbr = Math.max(0,(a-c-b*qr)/(2*b)), pbr = this.pay(qbr, qr)[0];
+    const cartel = (a-c)**2/(8*b) - F;
+    const Qc = (a-c)/b, CS = 0.5*b*Q*Q, PS = (P-c)*Q, DWL = 0.5*Math.abs(P-c)*Math.abs(Qc-Q), TSmax = 0.5*(a-c)*Qc;
+    const notes = [];
+    notes.push(`Total output was ${num(Q)} units, so the price was $${num(P)}. You earned ${money(profit)} and your rival ${money(rprofit)}.`);
+    if(qp > 26 && qr <= 25.5) notes.push(`You broke the quota. Your extra output lowered the price for both firms, but you captured the extra sales, so your profit rose while your rival's fell. Industry profit fell from ${money(2*cartel)} to ${money(profit+rprofit)}.`);
+    if(qr > 25.5) notes.push(`Your rival is retaliating with ${num(qr)} units. The price war cuts the profits of both firms.`);
+    if(qp <= 26 && qr <= 25.5) notes.push('You both kept to the quota, reaching the monopoly output and the highest joint profit.');
+    notes.push(`Your best one-period response to ${num(qr)} units was ${num(qbr)} units, for a profit of ${money(pbr)}. That short-run temptation is what makes cartels fragile.`);
+    if(qp < 24) notes.push('Producing below the quota gives your rival the benefit of the higher price at your expense.');
+    const score = Math.round(clamp(100*(profit+F)/(cartel+F), 0, 100));
+    return {P, q:qp, sold:qp, profit, po:cartel, CS, PS, DWL, TSmax, lerner: P>0 ? (P-c)/P : 0, score,
+      poLabel:'Profit at the quota', qLabel:'Your output',
+      wTitle:'Cement market surplus',
+      wNote:'Benchmarks: a cartel produces 50 units (DWL 25% of potential surplus), Cournot rivals about 67 units (11%), a competitive market 100 units (0%).',
+      extra:[['Rival output', num(qr)+' units'], ['Rival profit', money(rprofit)], ['Market output', num(Q)+' units']],
+      notes};
+  },
+  advance(st, dec){
+    const prev = st.rivalQ;
+    if(dec.q <= 26){
+      st.rivalQ = 25;
+      st.event = prev > 25.5 ? 'You returned to the quota, so your rival forgives you and plans 25 units again.' : 'You kept to the quota. Your rival plans 25 units again.';
+    } else {
+      st.rivalQ = Math.round(dec.q*2)/2;
+      st.event = `You produced ${num(dec.q)} units, above the quota. Your rival noticed the price fall and will match you with ${num(st.rivalQ)} units.`;
+    }
+    st.period++;
+  },
+  draw(cv, view, st, dec){
+    const {a,b,c} = this.P, qp = dec.q, qr = st.rivalQ, Q = qp+qr, Pr = Math.max(0,a-b*Q);
+    const P = makePlot(cv, {xmax:120, ymax:125, xlabel: view==='firm' ? 'Your output (units)' : 'Market output (units)', ylabel:'Price and cost ($)'});
+    P.axes();
+    if(view === 'firm'){
+      const ar = a - b*qr;
+      if(qp > 0.2){ const up = Pr >= c; P.rect(0,Math.min(Pr,c),qp,Math.max(Pr,c), up?FILL.ps:FILL.loss, up?'Operating profit':'Loss', up?C.psText:C.dwl); }
+      P.curve(x => a-b*x, 0, a/b, C.rule, {dash:[6,4], width:1.6, label:'Market demand', at:62, dy:-8});
+      P.curve(x => ar-b*x, 0, ar/b, C.cs, {label:`Your residual demand (rival makes ${num(qr)})`, at:6, dy:-10});
+      P.curve(x => ar-2*b*x, 0, ar/(2*b), C.cs, {dash:[6,4], width:2, label:'Your MR', at:ar/(2*b)*0.55, dy:22, dx:-10});
+      P.hline(c, C.ink, {label:'MC = $20', at:118, dy:-8});
+      P.vline(25, C.ink2, {label:'Quota', ly:118});
+      P.vline(qp, C.ink2, {y1:Pr, dash:[2,3]});
+      P.dot(qp, Pr, C.ink);
+    } else {
+      const Qc = (a-c)/b;
+      P.poly([[0,a],[0,Pr],[Q,Pr]], FILL.cs, 'CS', C.cs);
+      P.rect(0,c,Q,Pr, FILL.ps, 'PS', C.psText);
+      P.poly([[Q,Pr],[Qc,c],[Q,c]], FILL.dwl, 'DWL', C.dwl);
+      P.curve(x => a-b*x, 0, a/b, C.ink, {label:'Market demand', at:90});
+      P.hline(c, C.ink, {label:'MC', at:118, dy:18});
+      [[50,'Cartel'],[200/3,'Cournot'],[100,'Competitive']].forEach(([x,l]) => P.vline(x, C.ink2, {y0:0, y1:12, dash:[2,2], label:l, ly:12, lopt:{dx:-18, dy:-4}}));
+      P.dot(Q, Pr, C.ink, `You ${num(qp)} + rival ${num(qr)}`, {dy:-12});
+    }
+  },
+  note(view){ return view==='firm' ? 'Your demand depends on the rival: the more it produces, the further left your residual demand sits. The rectangle is (price − MC) × your output, before the $300 fixed cost.' : 'Blue = consumer surplus, amber = producer surplus of both firms, red = deadweight loss. Tick marks show cartel, Cournot and competitive output.'; },
+  takeaways:`<p>In oligopoly your profit depends on your rival's choice as well as your own. That interdependence is what separates oligopoly from the other three markets.</p>
+    <p>Keeping the quota recreated the monopoly outcome and the highest joint profit, but each firm could gain in the short run by producing more. Repeated play made cooperation sustainable: retaliation turned a one-period gain into later losses. In the final period that threat disappears.</p>
+    <p>High barriers (plant scale and licences) kept entrants out, so profit could last. Compared with competition, output is lower and price higher; a cartel causes as much deadweight loss as a monopoly, and non-cooperative (Cournot) rivalry sits in between.</p>`,
+  quiz:[
+    {q:'Why is each firm tempted to exceed the cartel quota?', o:['Because extra output always raises the price','Because the firm gains the extra sales, while the price fall is shared with its rival','Because fixed costs fall','Because the regulator rewards higher output'], a:1, why:'A firm that produces more captures all the added sales, but the lower price hurts both firms, so part of the cost falls on the rival.'},
+    {q:'With the same demand and costs, which ranking of market output is correct?', o:['Competition < Cournot < cartel','Cartel (50) < Cournot (≈67) < competition (100)','Cournot < cartel < competition','All three produce the same output'], a:1, why:'A cartel acts like a monopoly; independent rivals produce more; competition produces where P = MC.'},
+    {q:'Why is cooperation hardest to sustain in the last period?', o:['Demand is lowest','There is no future period in which the rival can punish cheating','Costs rise at the end','Entry barriers disappear'], a:1, why:'The threat of future retaliation is what supports cooperation in repeated games. When no future remains, the one-shot incentive to cheat takes over.'}
+  ]
+};
+
+/* ---------- LEVEL 4: monopoly ---------- */
+const MO = {
+  id:'mono', name:'Monopoly', periods:6,
+  blurb:'You hold the only patent for a water-purification tablet. No close substitutes exist.',
+  traits:[['Number of firms','One'],['Product','Unique, no close substitutes'],['Barriers to entry','Very high: patents, licences, key inputs'],['Control over price','Price maker'],['Demand facing one firm','The whole market demand'],['Long-run economic profit','Can persist']],
+  P:{F:500, renew:400},
+  rule:'Choose output where <b>MR = MC</b> and read the price off demand. With P = a − bQ and constant MC, that gives P = (a + MC) ÷ 2. Under a price cap below that price, charge the cap.',
+  pars(st, renewed){
+    const p = st.period, ren = renewed ?? st.renewed;
+    let a = 120, b = 1, c = 30, cap = null;
+    if(p >= 2) c = 40;
+    if(p >= 3) a = 140;
+    if(p >= 5 && !ren){ a = 100; b = 1.5; }
+    if(p === 6) cap = 60;
+    return {a,b,c,cap};
+  },
+  init(){ return {period:1, renewed:null, event:'Your patent is a legal barrier: no one else may make these tablets.'}; },
+  controls(st){
+    const {a,c,cap} = this.pars(st);
+    const ctr = [{id:'p', label:'Your price', kind:'$', min:0, max:cap ?? a, step:0.5, value:cap ? 50 : Math.round(a*0.45)}];
+    if(st.period === 4) ctr.push({id:'renew', type:'check', label:'Renew the patent ($400 now)', value:false, help:'Without renewal, a rival enters next period.'});
+    return ctr;
+  },
+  situation(st){
+    const {a,b,c,cap} = this.pars(st);
+    return `<dl class="facts">
+      <dt>Market demand</dt><dd>P = ${a} − ${b===1?'':b}Q</dd>
+      <dt>Your costs</dt><dd>Fixed $500, MC = $${c}</dd>
+      ${cap ? `<dt>Price cap</dt><dd>$${cap}</dd>` : ''}
+      <dt>Entry</dt><dd>${st.period >= 5 && !st.renewed ? 'A rival has entered' : 'Blocked by your patent'}</dd></dl>`;
+  },
+  evaluate(st, dec){
+    const {F, renew} = this.P, {a,b,c,cap} = this.pars(st);
+    const P = dec.p, Q = Math.max(0,(a-P)/b), extra = (st.period===4 && dec.renew) ? renew : 0;
+    const profit = (P-c)*Q - F - extra;
+    const bp = this.pars(st, true), Po = Math.min(bp.cap ?? Infinity, (bp.a+bp.c)/2), Qo = (bp.a-Po)/bp.b;
+    const po = (Po-bp.c)*Qo - F - (st.period===4 ? renew : 0);
+    const Pown = Math.min(cap ?? Infinity, (a+c)/2);
+    const Qe = (a-c)/b, CS = 0.5*(a-P)*Q, PS = (P-c)*Q, DWL = 0.5*Math.abs(P-c)*Math.abs(Qe-Q), TSmax = 0.5*(a-c)*Qe;
+    const mr = a - 2*b*Q, notes = [];
+    if(cap && P >= cap - 0.25 && (a+c)/2 > cap) notes.push(`The cap binds. At $${cap}, MR is flat at the cap until demand runs out at ${num(Q)} units, so the best response is to charge the cap and sell more than an unregulated monopolist would. Output rises and deadweight loss falls.`);
+    else if(Math.abs(mr-c) <= 2) notes.push(`MR (${money(mr,1)}) is about equal to MC ($${c}): the monopoly optimum.`);
+    else if(mr > c) notes.push(`MR (${money(mr,1)}) is above MC ($${c}). A lower price would add more revenue than cost.`);
+    else notes.push(`MR (${money(mr,1)}) is below MC ($${c}). The last units you sell add less revenue than they cost; raise the price.`);
+    if(Q > 0){ const e = P/(b*Q); notes.push(`Demand elasticity at your price is ${num(e,2)}. ${e > 1 ? 'A monopolist should always operate in the elastic range, as you did.' : 'You are in the inelastic range, where raising the price increases revenue and cuts cost, so it must raise profit.'}`); }
+    if(st.period === 2) notes.push('Marginal cost rose by $10, but the best price rose by only $5. With linear demand a monopolist passes on half of a cost increase.');
+    if(st.period === 4) notes.push(dec.renew ? 'You paid $400 to keep the legal barrier in place and block entry.' : 'You saved $400, but the patent lapses and a rival enters next period.');
+    if(st.period >= 5 && !st.renewed) notes.push(`With a rival in the market your demand is smaller and more elastic; your best price is now $${num(Pown)} and profit is much lower. Keeping the patent would have been worth far more than $400.`);
+    return {P, q:Q, sold:Q, profit, po, tro:Po*Qo, CS, PS, DWL, TSmax, lerner: P>0 ? (P-c)/P : 0,
+      wTitle:'Market surplus', qLabel:'Tablets sold (thousands)',
+      wNote: cap ? 'The price cap moves output toward the efficient level where price equals marginal cost.' : 'The monopolist restricts output to raise price: part of the lost consumer surplus becomes profit, and the rest is deadweight loss.',
+      extra:[['Best price', money(Po,1)], ['MR at your output', money(mr,1)]],
+      notes};
+  },
+  advance(st, dec){
+    const msgs = {1:'<b>Cost shock:</b> the price of a key chemical rises. Your MC is now $40.',
+      2:'<b>Demand grows:</b> a public health campaign raises demand to P = 140 − Q.',
+      3:'<b>Patent decision:</b> your patent expires after this period. Renew it for $400, or a rival enters next period and your demand falls to P = 100 − 1.5Q.',
+      5:'<b>Regulation:</b> the regulator caps the price of tablets at $60.'};
+    if(st.period === 4){
+      st.renewed = !!dec.renew;
+      st.event = st.renewed ? 'Your patent was renewed. Entry remains blocked.' : 'Your patent lapsed. A rival now sells a close copy, and your demand is P = 100 − 1.5Q.';
+    } else st.event = msgs[st.period] || '';
+    st.period++;
+  },
+  draw(cv, view, st, dec){
+    const {F, renew} = this.P, {a,b,c,cap} = this.pars(st);
+    const P0 = dec.p, Q = Math.max(0,(a-P0)/b);
+    const D = x => a - b*x;
+    const P = makePlot(cv, {xmax:150, ymax:150, xlabel:'Quantity (thousands of tablets)', ylabel:'Price and cost ($)'});
+    P.axes();
+    if(view === 'firm'){
+      const fixed = F + ((st.period===4 && dec.renew) ? renew : 0), atc = x => fixed/x + c;
+      if(Q > 0.2){ const up = P0 >= atc(Q); P.rect(0,Math.min(P0,atc(Q)),Q,Math.max(P0,atc(Q)), up?FILL.ps:FILL.loss, up?'Profit':'Loss', up?C.psText:C.dwl); }
+      P.curve(atc, 4, 150, C.ink2, {label:'ATC', at:140, dy:-8, align:'right', dx:-4});
+      P.curve(D, 0, a/b, C.cs, {label:'Demand', at:a/b*0.12});
+      P.curve(x => a - 2*b*x, 0, a/(2*b), C.cs, {dash:[6,4], width:2, label:'MR', at:a/(2*b)*0.8, dy:22, dx:-8});
+      P.hline(c, C.ink, {label:`MC = $${c}`, at:148, dy:18});
+      if(cap) P.hline(cap, C.dwl, {dash:[6,4], label:`Price cap $${cap}`, at:148});
+      P.vline(Q, C.ink2, {y1:P0});
+      P.dot(Q, P0, C.ink);
+    } else {
+      const Qe = (a-c)/b;
+      P.poly([[0,a],[0,P0],[Q,P0]], FILL.cs, 'CS', C.cs);
+      P.rect(0,c,Q,P0, P0>=c?FILL.ps:FILL.loss, 'PS', C.psText);
+      if(Q < Qe) P.poly([[Q,P0],[Qe,c],[Q,c]], FILL.dwl, 'DWL', C.dwl);
+      else P.poly([[Qe,c],[Q,c],[Q,P0]], FILL.dwl, 'DWL', C.dwl);
+      P.curve(D, 0, a/b, C.ink, {label:'Demand', at:a/b*0.12});
+      P.hline(c, C.ink, {label:'MC', at:148, dy:18});
+      if(cap) P.hline(cap, C.dwl, {dash:[6,4], label:`Price cap $${cap}`, at:148});
+      P.dot(Qe, c, C.good, 'Efficient: P = MC', {dy:-12, weight:400});
+      P.dot(Q, P0, C.ink);
+    }
+  },
+  note(view){ return view==='firm' ? 'You face the whole market demand, so selling more means cutting price. MR lies below demand. The rectangle is (price − ATC) × quantity.' : 'Blue = consumer surplus, amber = producer surplus, red = deadweight loss. The green point is the efficient outcome a competitive market would reach.'; },
+  takeaways:`<p>As the only seller you chose the price, but demand still limited you: a higher price meant fewer sales. The best choice set <b>MR = MC</b> and always landed in the elastic part of demand. A $10 cost increase raised the best price by only $5.</p>
+    <p>The patent is a legal barrier to entry. Renewing it cost $400 but protected thousands in profit, which is why firms spend heavily to defend barriers. Society pays through a higher price and a large deadweight loss.</p>
+    <p>A well-set price cap can raise output: below the monopoly price, the firm's MR becomes flat at the cap, so it sells more. Consumer surplus rises and deadweight loss shrinks. Market power is measured by the Lerner index, (P − MC) ÷ P.</p>`,
+  quiz:[
+    {q:'How does a profit-maximising monopolist choose its output?', o:['Where P = MC','Where MR = MC, then charges the highest price demand allows','Where ATC is lowest','Where demand is unit elastic'], a:1, why:'Profit rises while MR exceeds MC. The monopolist stops where they are equal and reads the price off the demand curve.'},
+    {q:'When the regulator capped the price at $60, what happened?', o:['Output fell and deadweight loss rose','Output rose and deadweight loss fell','The firm shut down','Nothing changed'], a:1, why:'Below the monopoly price, the cap makes MR flat at $60 over a range of output, so the firm expands sales toward the efficient quantity.'},
+    {q:'A monopolist charges $75 with a marginal cost of $30. What is its Lerner index?', o:['0.40','0.60','2.50','0.30'], a:1, why:'Lerner index = (P − MC) ÷ P = (75 − 30) ÷ 75 = 0.60. It is 0 under perfect competition.'},
+    {q:'Why did renewing the patent pay off for the firm but not for society?', o:['It lowered prices for consumers','It kept a legal entry barrier, preserving monopoly profit along with high prices and deadweight loss','It reduced marginal cost','It increased total surplus'], a:1, why:'The barrier protected profit by keeping the rival out. Consumers kept paying the monopoly price, so deadweight loss persisted.'}
+  ]
+};
+
+const LEVELS = [PC, MCL, OL, MO];
+
+/* ---------- benchmark surplus shares for the report ---------- */
+function benchmarks(){
+  const pcP = 22, pcQ = 1200 - 10*pcP, pcCS = 0.5*(120-pcP)*pcQ, pcPS = 0.5*(pcP-2)*pcQ;
+  const al = MCL.alpha(12), b = MCL.best(al), qe = (al-2)/3;
+  const mcCS = 0.5*b.q*b.q, mcPS = b.P*b.q - 2*b.q - b.q*b.q, mcTS = (al-2)*qe - 1.5*qe*qe;
+  const cour = (() => { const Q = 200/3, P = 120-Q; return [0.5*Q*Q, (P-20)*Q, 5000]; })();
+  const cart = [0.5*50*50, 50*50, 5000];
+  const mono = [0.5*45*45, 45*45, 0.5*90*90];
+  const sh = (cs,ps,ts) => ({cs:cs/ts, ps:ps/ts, dwl:Math.max(0,1-(cs+ps)/ts)});
+  return [
+    {id:'pc', label:'Perfect competition', sub:'long run, P = min ATC', s:sh(pcCS,pcPS,pcCS+pcPS)},
+    {id:'mc', label:'Monopolistic competition', sub:'long-run tangency', s:sh(mcCS,mcPS,mcTS)},
+    {id:'olig', label:'Oligopoly', sub:'Cournot rivals', s:sh(...cour)},
+    {id:'olig', label:'Oligopoly', sub:'successful cartel', s:sh(...cart), noPlay:true},
+    {id:'mono', label:'Monopoly', sub:'unregulated', s:sh(...mono)}
+  ];
+}
+
+/* ---------- state and screens ---------- */
+const G = {L:null, st:null, phase:'decide', view:'firm', log:[], results:{}, ctrls:[], lastDec:null, lastRes:null, name:''};
+
+function show(id){ ['home','game','debrief','report'].forEach(s => $('#'+s).hidden = s !== id); window.scrollTo(0,0); }
+
+function renderHome(){
+  $('#stair').innerHTML = LEVELS.map(L => {
+    const r = G.results[L.id];
+    return `<div class="step">
+      <h3>${L.name}</h3>
+      <p>${L.blurb}</p>
+      ${r ? `<div class="done">Completed: decisions ${r.game}/100, questions ${r.quiz}%</div>` : ''}
+      <button class="ghost" data-play="${L.id}">${r ? 'Play again' : 'Play'} (${L.periods} periods)</button>
+    </div>`;
+  }).join('');
+  $('#stair').querySelectorAll('[data-play]').forEach(b => b.onclick = () => startLevel(b.dataset.play));
+  const rows = PC.traits.map((t,i) => `<tr><th scope="row">${t[0]}</th>${LEVELS.map(L => `<td>${L.traits[i][1]}</td>`).join('')}</tr>`).join('');
+  $('#traitTable').innerHTML = `<thead><tr><th></th>${LEVELS.map(L => `<th scope="col">${L.name}</th>`).join('')}</tr></thead><tbody>${rows}</tbody>`;
+  $('#reportBtn').hidden = Object.keys(G.results).length === 0;
+  const next = LEVELS.find(L => !G.results[L.id]);
+  $('#startBtn').textContent = next ? (Object.keys(G.results).length ? `Continue with ${next.name.toLowerCase()}` : 'Start with perfect competition') : 'Play perfect competition again';
+  show('home');
+}
+
+function startLevel(id){
+  G.name = $('#studentName').value.trim();
+  G.L = LEVELS.find(L => L.id === id);
+  G.st = G.L.init(); G.log = []; G.phase = 'decide'; G.view = 'firm';
+  $('#gTitle').textContent = G.L.name;
+  $('#gTraits').innerHTML = G.L.traits.map(t => `<dt>${t[0]}</dt><dd>${t[1]}</dd>`).join('');
+  $('#gHint').innerHTML = G.L.rule; $('#gHint').hidden = true; $('#hintBtn').textContent = 'Show the rule';
+  show('game');
+  renderPeriod();
+}
+
+function renderPeriod(){
+  const L = G.L, st = G.st;
+  $('#gSub').textContent = `Period ${st.period} of ${L.periods}`;
+  $('#gSituation').innerHTML = (st.event ? `<p class="event">${st.event}</p>` : '') + L.situation(st);
+  $('#gFeedback').innerHTML = '';
+  $('#gStats').innerHTML = `<p class="empty">Set your decision and run the period. The chart updates as you move the controls; the numbers appear after the period runs.</p>`;
+  $('#gWelfare').innerHTML = '';
+  $('#runBtn').textContent = `Run period ${st.period}`;
+  renderControls();
+  renderLog();
+  updateScore();
+  setTabs();
+}
+
+function renderControls(){
+  G.ctrls = G.L.controls(G.st);
+  $('#gControls').innerHTML = G.ctrls.map(c => c.type === 'check'
+    ? `<div><label class="check"><input type="checkbox" id="c_${c.id}" ${c.value?'checked':''}><span>${c.label}</span></label>${c.help?`<p class="help">${c.help}</p>`:''}</div>`
+    : `<div class="ctrl"><div class="ctrl-top"><label for="c_${c.id}">${c.label}</label>
+        <span class="ctrl-val"><button type="button" class="stepbtn" data-for="c_${c.id}" data-dir="-1" aria-label="Decrease ${c.label.toLowerCase()}">−</button><output id="o_${c.id}" class="num"></output><button type="button" class="stepbtn" data-for="c_${c.id}" data-dir="1" aria-label="Increase ${c.label.toLowerCase()}">+</button></span></div>
+        <input type="range" id="c_${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.value}">
+        ${c.help?`<p class="help">${c.help}</p>`:''}</div>`).join('');
+  G.ctrls.forEach(c => $('#c_'+c.id).addEventListener(c.type==='check' ? 'change' : 'input', onInput));
+  $('#gControls').querySelectorAll('.stepbtn').forEach(b => b.onclick = () => {
+    const el = $('#'+b.dataset.for); if(el.disabled) return;
+    b.dataset.dir === '1' ? el.stepUp() : el.stepDown();
+    el.dispatchEvent(new Event('input'));
+  });
+  onInput();
+}
+
+function readDecision(){
+  const d = {};
+  G.ctrls.forEach(c => { const el = $('#c_'+c.id); d[c.id] = c.type === 'check' ? el.checked : parseFloat(el.value); });
+  return d;
+}
+function setControlsEnabled(on){ $('#gControls').querySelectorAll('input,button').forEach(el => el.disabled = !on); }
+
+function onInput(){
+  const d = readDecision();
+  G.ctrls.forEach(c => { if(c.type !== 'check') $('#o_'+c.id).textContent = c.kind === '$' ? '$'+num(d[c.id]) : num(d[c.id]); });
+  drawChart(d);
+}
+
+function drawChart(dec){
+  if(!dec) return;
+  G.L.draw($('#chart'), G.view, G.st, dec);
+  $('#chartNote').textContent = G.L.note(G.view);
+}
+function currentDecision(){ return G.phase === 'decide' ? readDecision() : G.lastDec; }
+
+function setTabs(){
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.view === G.view)));
+}
+
+function runPeriod(){
+  const L = G.L, dec = readDecision(), res = L.evaluate(G.st, dec);
+  if(res.score === undefined){
+    const S = Math.max(100, 0.35*Math.abs(res.tro));
+    res.score = Math.round(clamp(100*(1 - (res.po - res.profit)/S), 0, 100));
+  }
+  G.lastDec = dec; G.lastRes = res; G.phase = 'review';
+  G.log.push({period:G.st.period, P:res.P, q:res.sold, profit:res.profit, CS:res.CS, PS:res.PS, DWL:res.DWL, TSmax:res.TSmax, score:res.score});
+  setControlsEnabled(false);
+  renderStats(res);
+  $('#gWelfare').innerHTML = welfareBar(res.CS, res.PS, res.DWL, res.TSmax, res.wTitle) + `<p class="wnote">${res.wNote}</p>`;
+  const verdict = res.score >= 90 ? 'Excellent decision' : res.score >= 70 ? 'Good, with room to improve' : res.score >= 40 ? 'Some profit left on the table' : 'A costly decision';
+  const fb = $('#gFeedback');
+  fb.innerHTML = `<p class="verdict">${verdict}</p>` + res.notes.map(n => `<p>${n}</p>`).join('');
+  fb.classList.remove('flash'); void fb.offsetWidth; fb.classList.add('flash');
+  renderLog(); updateScore();
+  $('#runBtn').textContent = G.st.period < L.periods ? `Go to period ${G.st.period+1}` : 'Finish and answer the questions';
+  drawChart(dec);
+}
+
+function nextStep(){
+  if(G.phase === 'decide'){ runPeriod(); return; }
+  if(G.st.period >= G.L.periods){ finishLevel(); return; }
+  G.L.advance(G.st, G.lastDec, G.lastRes);
+  G.phase = 'decide';
+  renderPeriod();
+  setControlsEnabled(true);
+  $('#gSituation').scrollIntoView({block:'nearest'});
+}
+
+function renderStats(res){
+  const rows = [
+    ['Price', money(res.P,1)],
+    [res.qLabel || 'Output sold', num(res.sold)],
+    ['Your profit', money(res.profit), res.profit >= 0 ? 'pos' : 'neg'],
+    [res.poLabel || 'Best possible profit', money(res.po)],
+    ['Lerner index', num(res.lerner,2)],
+    ...res.extra,
+    ['Period score', `${res.score} / 100`]
+  ];
+  $('#gStats').innerHTML = `<div class="stats">${rows.map(r => `<div class="stat"><span>${r[0]}</span><b class="${r[2]||''}">${r[1]}</b></div>`).join('')}</div>`;
+}
+
+function welfareBar(cs, ps, dwl, ts, title){
+  const total = Math.max(ts, cs + Math.max(0,ps) + dwl, 1e-9);
+  const w = v => (100*Math.max(0,v)/total).toFixed(2);
+  const pct = v => `${num(100*v/Math.max(ts,1e-9),0)}%`;
+  return `<div class="wbar-head"><h3>${title}</h3><span>Largest possible total surplus: ${money(ts)}</span></div>
+    <div class="wbar" role="img" aria-label="Consumer surplus ${pct(cs)}, producer surplus ${pct(ps)}, deadweight loss ${pct(dwl)}"><i class="cs" style="width:${w(cs)}%"></i><i class="ps" style="width:${w(ps)}%"></i><i class="dwl" style="width:${w(dwl)}%"></i></div>
+    <div class="wlegend num">
+      <span><i class="swatch sw-cs"></i>Consumer surplus ${money(cs)} (${pct(cs)})</span>
+      <span><i class="swatch sw-ps"></i>Producer surplus ${money(ps)} (${pct(ps)})</span>
+      <span><i class="swatch sw-dwl"></i>Deadweight loss ${money(dwl)} (${pct(dwl)})</span>
+      <span><b>Total surplus ${money(cs+ps)}</b></span>
+    </div>`;
+}
+
+function renderLog(){
+  if(!G.log.length){ $('#gLog').innerHTML = ''; return; }
+  $('#gLog').innerHTML = `<thead><tr><th>Period</th><th>Price</th><th>Output</th><th>Profit</th><th>CS</th><th>PS</th><th>DWL</th><th>Score</th></tr></thead><tbody>` +
+    G.log.map(r => `<tr class="num"><td>${r.period}</td><td>${money(r.P,1)}</td><td>${num(r.q)}</td><td class="${r.profit>=0?'pos':'neg'}">${money(r.profit)}</td><td>${money(r.CS)}</td><td>${money(r.PS)}</td><td>${money(r.DWL)}</td><td>${r.score}</td></tr>`).join('') + '</tbody>';
+}
+
+function avgScore(log){ return log.length ? Math.round(log.reduce((s,r) => s + r.score, 0)/log.length) : null; }
+function updateScore(){ const a = avgScore(G.log); $('#gScore').textContent = a === null ? '–' : a; }
+
+function finishLevel(){
+  const L = G.L, game = avgScore(G.log);
+  G.results[L.id] = {game, quiz:null, log:G.log.slice()};
+  $('#dTitle').textContent = `${L.name}: debrief`;
+  $('#dScore').textContent = game;
+  const sums = G.log.reduce((s,r) => ({cs:s.cs+r.CS, ps:s.ps+r.PS, dwl:s.dwl+r.DWL, ts:s.ts+r.TSmax}), {cs:0,ps:0,dwl:0,ts:0});
+  const n = G.log.length;
+  $('#dWelfare').innerHTML = welfareBar(sums.cs/n, sums.ps/n, sums.dwl/n, sums.ts/n, 'Average surplus per period');
+  $('#dTake').innerHTML = L.takeaways;
+  const shuffle = n => { const a = [...Array(n).keys()]; for(let i=n-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; };
+  $('#quiz').innerHTML = L.quiz.map((q,i) => `<fieldset class="q"><legend>${i+1}. ${q.q}</legend>${shuffle(q.o.length).map(j => `<label><input type="radio" name="q${i}" value="${j}"><span>${q.o[j]}</span></label>`).join('')}<p class="why" hidden></p></fieldset>`).join('');
+  $('#quizMsg').hidden = true;
+  $('#checkBtn').hidden = false; $('#nextLevelBtn').hidden = true;
+  const idx = LEVELS.indexOf(L);
+  $('#nextLevelBtn').textContent = idx < LEVELS.length-1 ? `Next market: ${LEVELS[idx+1].name.toLowerCase()}` : 'See your report';
+  show('debrief');
+}
+
+function checkQuiz(){
+  const L = G.L, fs = [...document.querySelectorAll('#quiz .q')];
+  const answers = fs.map((f,i) => { const x = f.querySelector(`input[name=q${i}]:checked`); return x ? +x.value : null; });
+  if(answers.includes(null)){ $('#quizMsg').textContent = 'Answer every question before checking.'; $('#quizMsg').hidden = false; return; }
+  $('#quizMsg').hidden = true;
+  let right = 0;
+  fs.forEach((f,i) => {
+    const q = L.quiz[i], labels = f.querySelectorAll('label');
+    labels.forEach(lab => { const inp = lab.querySelector('input'), j = +inp.value; inp.disabled = true; if(j === q.a) lab.querySelector('span').className = 'right'; else if(j === answers[i]) lab.querySelector('span').className = 'wrong'; });
+    if(answers[i] === q.a) right++;
+    const why = f.querySelector('.why'); why.innerHTML = (answers[i] === q.a ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.why; why.hidden = false;
+  });
+  G.results[L.id].quiz = Math.round(100*right/L.quiz.length);
+  $('#quizMsg').hidden = false; $('#quizMsg').style.color = 'var(--ink)';
+  $('#quizMsg').textContent = `You answered ${right} of ${L.quiz.length} correctly.`;
+  $('#checkBtn').hidden = true; $('#nextLevelBtn').hidden = false;
+}
+
+function nextLevel(){
+  const idx = LEVELS.indexOf(G.L);
+  if(idx < LEVELS.length-1) startLevel(LEVELS[idx+1].id); else renderReport();
+}
+
+function renderReport(){
+  const name = $('#studentName').value.trim();
+  $('#rSub').textContent = (name ? name + ', ' : '') + new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+  const rows = LEVELS.map(L => { const r = G.results[L.id]; return `<tr><th scope="row">${L.name}</th><td>${r ? r.game : 'Not played'}</td><td>${r && r.quiz !== null ? r.quiz + '%' : '–'}</td></tr>`; }).join('');
+  const done = LEVELS.map(L => G.results[L.id]).filter(Boolean);
+  const avgG = done.length ? Math.round(done.reduce((s,r) => s + r.game, 0)/done.length) : '–';
+  const qd = done.filter(r => r.quiz !== null);
+  const avgQ = qd.length ? Math.round(qd.reduce((s,r) => s + r.quiz, 0)/qd.length) + '%' : '–';
+  $('#rTable').innerHTML = `<thead><tr><th>Market</th><th>Decision score (out of 100)</th><th>Questions</th></tr></thead><tbody>${rows}<tr><th scope="row">Overall</th><td><b>${avgG}</b></td><td><b>${avgQ}</b></td></tr></tbody>`;
+  const bar = (s, cls='') => `<div class="wbar ${cls}"><i class="cs" style="width:${(100*s.cs).toFixed(1)}%"></i><i class="ps" style="width:${(100*s.ps).toFixed(1)}%"></i><i class="dwl" style="width:${(100*s.dwl).toFixed(1)}%"></i></div>`;
+  $('#rCompare').innerHTML = benchmarks().map(bm => {
+    const r = G.results[bm.id];
+    let mine = '';
+    if(r && !bm.noPlay){
+      const t = r.log.reduce((s,x) => ({cs:s.cs+x.CS, ps:s.ps+Math.max(0,x.PS), dwl:s.dwl+x.DWL, ts:s.ts+x.TSmax}), {cs:0,ps:0,dwl:0,ts:0});
+      const tot = Math.max(t.ts, t.cs+t.ps+t.dwl);
+      mine = bar({cs:t.cs/tot, ps:t.ps/tot, dwl:t.dwl/tot});
+    }
+    return `<div class="cmp-row"><div class="lab">${bm.label}<small>${bm.sub}</small></div><div class="cmp-bars">${bar(bm.s)}${mine}<div class="pct num">CS ${num(100*bm.s.cs,0)}%, PS ${num(100*bm.s.ps,0)}%, DWL ${num(100*bm.s.dwl,0)}%</div></div></div>`;
+  }).join('');
+  show('report');
+}
+
+/* ---------- wiring ---------- */
+$('#startBtn').onclick = () => { const next = LEVELS.find(L => !G.results[L.id]) || PC; startLevel(next.id); };
+$('#reportBtn').onclick = renderReport;
+['#backHome','#backHome2','#backHome3'].forEach(s => $(s).onclick = renderHome);
+$('#runBtn').onclick = nextStep;
+$('#hintBtn').onclick = () => { const h = $('#gHint'); h.hidden = !h.hidden; $('#hintBtn').textContent = h.hidden ? 'Show the rule' : 'Hide the rule'; };
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { G.view = b.dataset.view; setTabs(); drawChart(currentDecision()); });
+$('#checkBtn').onclick = e => { e.preventDefault(); checkQuiz(); };
+$('#nextLevelBtn').onclick = e => { e.preventDefault(); nextLevel(); };
+$('#quiz').onsubmit = e => e.preventDefault();
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if(!$('#game').hidden) drawChart(currentDecision()); }, 120); });
+
+readColors();
+renderHome();
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if(!$('#game').hidden) drawChart(currentDecision()); });
+</script>
+</body>
+</html>
