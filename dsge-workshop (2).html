@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DSGE Workshop: build an RBC model step by step</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,650;1,6..72,400;1,6..72,500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  startup: {
+    typeset: false,
+    ready: function () {
+      MathJax.startup.defaultReady();
+      MathJax.startup.promise.then(function () {
+        window.__mjReady = true;
+        (window.__mjPending || []).forEach(function (fn) { fn(); });
+        window.__mjPending = [];
+      });
+    }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js" async onerror="window.__mjFailed=true;(window.__mjPending||[]).forEach(function(fn){fn();});window.__mjPending=[];"></script>
+<style>
+:root {
+  --paper: #EDF1EA;
+  --gridline: rgba(31, 78, 140, 0.075);
+  --gridline-major: rgba(31, 78, 140, 0.14);
+  --card: #F9FBF7;
+  --ink: #1F2A36;
+  --muted: #56626C;
+  --line: #C6D0C3;
+  --blue: #1F4E8C;
+  --blue-soft: rgba(31, 78, 140, 0.09);
+  --red: #B3362C;
+  --red-soft: rgba(179, 54, 44, 0.09);
+  --green: #2F6B45;
+  --green-soft: rgba(47, 107, 69, 0.1);
+  --hi: #F3D34A;
+  --s1: #1F4E8C; --s2: #B3362C; --s3: #2F6B45; --s4: #8A5A00; --s5: #6B3FA0; --s6: #56626C;
+  --serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --sans: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #16201C; --gridline: rgba(190, 215, 200, 0.045); --gridline-major: rgba(190, 215, 200, 0.085);
+    --card: #1C2823; --ink: #E3E9E1; --muted: #9CA9A1; --line: #33443C;
+    --blue: #8DB6F0; --blue-soft: rgba(141, 182, 240, 0.12);
+    --red: #F0897C; --red-soft: rgba(240, 137, 124, 0.12);
+    --green: #86C99B; --green-soft: rgba(134, 201, 155, 0.12);
+    --hi: #E3C144;
+    --s1: #8DB6F0; --s2: #F0897C; --s3: #86C99B; --s4: #E3B25A; --s5: #C4A3F0; --s6: #9CA9A1;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #16201C; --gridline: rgba(190, 215, 200, 0.045); --gridline-major: rgba(190, 215, 200, 0.085);
+  --card: #1C2823; --ink: #E3E9E1; --muted: #9CA9A1; --line: #33443C;
+  --blue: #8DB6F0; --blue-soft: rgba(141, 182, 240, 0.12);
+  --red: #F0897C; --red-soft: rgba(240, 137, 124, 0.12);
+  --green: #86C99B; --green-soft: rgba(134, 201, 155, 0.12);
+  --hi: #E3C144;
+  --s1: #8DB6F0; --s2: #F0897C; --s3: #86C99B; --s4: #E3B25A; --s5: #C4A3F0; --s6: #9CA9A1;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  margin: 0;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--gridline-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--gridline-major) 1px, transparent 1px),
+    linear-gradient(var(--gridline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; color: inherit; touch-action: manipulation; }
+body { overflow-x: clip; touch-action: manipulation; }
+.mj-wait { visibility: hidden; }
+mjx-container[display="true"] { display: block; max-width: 100%; overflow-x: auto; overflow-y: hidden; margin: 0.3em 0 !important; }
+main > *, .notes, .task, .lab, .ledger-card, .eq { min-width: 0; max-width: 100%; }
+.task-q, .feedback { overflow-x: auto; overflow-y: hidden; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* ---------- header ---------- */
+.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 1360px; margin: 0 auto; padding: 18px 24px 8px;
+  font-family: var(--sans);
+}
+.brand { display: flex; align-items: baseline; gap: 12px; }
+.brand b { font-family: var(--serif); font-weight: 650; font-size: 22px; letter-spacing: -0.01em; }
+.brand span { color: var(--muted); font-size: 14px; }
+.score { display: flex; align-items: center; gap: 14px; font-size: 14px; color: var(--muted); }
+.xp { font-weight: 700; color: var(--ink); font-size: 16px; font-variant-numeric: tabular-nums; }
+.xp-bump { animation: bump .5s ease; }
+@keyframes bump { 40% { transform: scale(1.25); color: var(--green); } }
+.linkbtn { background: none; border: 0; padding: 4px 2px; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
+.linkbtn:hover { color: var(--ink); }
+
+/* ---------- layout ---------- */
+.shell {
+  max-width: 1360px; margin: 0 auto; padding: 8px 24px 64px;
+  display: grid; gap: 28px;
+  grid-template-columns: 210px minmax(0, 1fr) 330px;
+  grid-template-areas: "rail main ledger";
+  align-items: start;
+}
+.rail { grid-area: rail; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+main { grid-area: main; min-width: 0; }
+.ledger { grid-area: ledger; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow-y: auto; }
+
+/* ---------- rail: the assembly line ---------- */
+.rail ol { list-style: none; margin: 0; padding: 0; position: relative; }
+.rail ol::before { content: ""; position: absolute; left: 13px; top: 14px; bottom: 14px; width: 2px; background: var(--line); }
+.rail li { position: relative; }
+.rail button {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  background: none; border: 0; padding: 7px 4px; cursor: pointer; font-family: var(--sans); font-size: 14.5px; line-height: 1.3;
+  color: var(--muted); border-radius: 6px;
+}
+.rail button:disabled { cursor: default; opacity: .55; }
+.rail .dot {
+  flex: 0 0 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--paper); border: 2px solid var(--line); font-size: 12.5px; font-weight: 700; position: relative; z-index: 1;
+}
+.rail li.done .dot { background: var(--green); border-color: var(--green); color: var(--paper); }
+.rail li.current .dot { border-color: var(--blue); color: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+.rail li.current button { color: var(--ink); font-weight: 600; }
+.rail li.done button { color: var(--ink); }
+.rail button:not(:disabled):hover { background: var(--blue-soft); }
+
+/* ---------- main station ---------- */
+.station-head { margin: 4px 0 20px; }
+.station-num { font-family: var(--sans); font-size: 14px; color: var(--blue); font-weight: 600; margin: 0 0 4px; }
+h1 { font-size: clamp(30px, 4vw, 42px); line-height: 1.1; margin: 0; font-weight: 650; letter-spacing: -0.015em; }
+.lede { font-size: 20px; color: var(--muted); margin: 10px 0 0; max-width: 62ch; font-style: italic; }
+.notes { max-width: 68ch; }
+.notes p { margin: 0 0 14px; }
+.notes h3 { font-family: var(--sans); font-size: 15px; font-weight: 700; margin: 26px 0 6px; color: var(--ink); }
+.eq {
+  background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--blue);
+  border-radius: 4px; padding: 10px 14px; margin: 12px 0 16px; overflow-x: auto;
+}
+.aside-note { font-size: 16px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 10px; }
+.kbd { font-family: var(--sans); font-size: 15px; background: var(--blue-soft); padding: 1px 6px; border-radius: 4px; }
+
+/* ---------- tasks ---------- */
+.tasks { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.task {
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px;
+}
+.task.solved { border-color: var(--green); }
+.task-top { display: flex; justify-content: space-between; gap: 12px; font-family: var(--sans); font-size: 13.5px; color: var(--muted); margin-bottom: 6px; }
+.task-top .ok { color: var(--green); font-weight: 700; }
+.task-q { font-size: 19px; margin: 0 0 14px; line-height: 1.45; }
+.opts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.opt-in { display: block; min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+.opt.check .opt-in { flex: 1 1 auto; }
+.opt {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 14px;
+  font-family: var(--serif); font-size: 17.5px; line-height: 1.4; overflow: hidden; min-width: 0; max-width: 100%;
+}
+.opt:hover:not(:disabled) { border-color: var(--blue); }
+.opt.wrong { border-color: var(--red); background: var(--red-soft); text-decoration: line-through; text-decoration-color: var(--red); opacity: .75; }
+.opt.right { border-color: var(--green); background: var(--green-soft); }
+.opt:disabled { cursor: default; }
+.opt.check { display: flex; gap: 12px; align-items: center; }
+.opt.check .box { flex: 0 0 20px; height: 20px; border: 2px solid var(--line); border-radius: 4px; display: grid; place-items: center; font-family: var(--sans); font-size: 13px; }
+.opt.check.on { border-color: var(--blue); }
+.opt.check.on .box { background: var(--blue); border-color: var(--blue); color: var(--paper); }
+.numrow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.numrow input {
+  width: 160px; padding: 9px 12px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--paper);
+  font-family: var(--sans); font-size: 17px; font-variant-numeric: tabular-nums;
+}
+.numrow input.bad { border-color: var(--red); }
+.btn {
+  font-family: var(--sans); font-weight: 600; font-size: 15px; cursor: pointer;
+  background: var(--blue); color: var(--paper); border: 0; border-radius: 8px; padding: 10px 18px;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--blue); border: 1.5px solid var(--blue); }
+.btn:disabled { opacity: .4; cursor: default; filter: none; }
+.feedback { margin-top: 12px; font-size: 16.5px; line-height: 1.5; padding: 10px 14px; border-radius: 8px; }
+.feedback.hint { background: var(--red-soft); color: var(--ink); border-left: 3px solid var(--red); }
+.feedback.why { background: var(--green-soft); border-left: 3px solid var(--green); }
+.feedback b { font-family: var(--sans); font-size: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font-family: var(--sans); font-size: 14.5px; cursor: pointer; background: var(--paper);
+  border: 1.5px solid var(--line); border-radius: 999px; padding: 7px 14px;
+}
+.chip:hover:not(:disabled) { border-color: var(--blue); }
+.chip:disabled { opacity: .3; cursor: default; }
+.seq { list-style: none; padding: 0; margin: 14px 0 0; counter-reset: s; display: grid; gap: 6px; min-height: 20px; }
+.seq li { counter-increment: s; font-family: var(--sans); font-size: 15px; display: flex; gap: 10px; align-items: center; }
+.seq li::before { content: counter(s); flex: 0 0 24px; height: 24px; border-radius: 50%; background: var(--blue); color: var(--paper); display: grid; place-items: center; font-size: 12.5px; font-weight: 700; }
+.row-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+
+.complete {
+  margin-top: 26px; padding: 20px 22px; border-radius: 10px; border: 2px solid var(--green);
+  background: var(--green-soft); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.complete p { margin: 0; font-size: 18px; }
+
+/* ---------- labs ---------- */
+.lab { margin-top: 30px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 18px 20px; }
+.lab h2 { font-size: 22px; margin: 0 0 4px; font-weight: 650; }
+.lab .sub { font-size: 16px; color: var(--muted); margin: 0 0 14px; }
+.sliders { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px 20px; font-family: var(--sans); font-size: 14px; }
+.sliders label { display: grid; gap: 2px; }
+.sliders .lab-l { display: flex; justify-content: space-between; color: var(--muted); }
+.sliders .lab-l output { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; accent-color: var(--blue); }
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 16px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--paper); }
+.stat .v { font-family: var(--sans); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stat .k { font-family: var(--sans); font-size: 13px; color: var(--muted); line-height: 1.3; }
+.tablewrap { overflow-x: auto; margin-top: 14px; }
+table { border-collapse: collapse; font-family: var(--sans); font-size: 14.5px; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 600; }
+.chart { width: 100%; height: auto; display: block; margin-top: 10px; }
+.toggles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.tog { font-family: var(--sans); font-size: 13.5px; cursor: pointer; border-radius: 999px; padding: 5px 12px; border: 1.5px solid var(--line); background: var(--paper); display: flex; gap: 7px; align-items: center; }
+.tog .sw { width: 12px; height: 3px; border-radius: 2px; }
+.tog[aria-pressed=false] { opacity: .45; }
+
+/* ---------- ledger ---------- */
+.ledger-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 16px 10px; }
+.ledger h2 { font-size: 20px; margin: 0; font-weight: 650; }
+.ledger .sub { font-family: var(--sans); font-size: 13px; color: var(--muted); margin: 2px 0 10px; }
+.ledger ul { list-style: none; margin: 0; padding: 0; }
+.ledger li { padding: 9px 0; border-top: 1px dashed var(--line); }
+.ledger li .lbl { font-family: var(--sans); font-size: 12.5px; color: var(--muted); display: block; margin-bottom: 2px; }
+.ledger li .m { overflow-x: auto; font-size: 15.5px; }
+.ledger li.fresh { animation: ink 1.6s ease; }
+@keyframes ink { 0% { background: color-mix(in srgb, var(--hi) 55%, transparent); } 100% { background: transparent; } }
+.ledger .empty { font-size: 16px; color: var(--muted); font-style: italic; padding: 8px 0 12px; }
+
+/* ---------- intro ---------- */
+.hero { padding: 10px 0 0; max-width: 70ch; }
+.hero h1 { font-size: clamp(38px, 6vw, 64px); line-height: 1.02; letter-spacing: -0.025em; }
+.hero p { font-size: 20px; }
+.track { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 24px 0 28px; }
+.track div { border-top: 3px solid var(--blue); padding: 8px 2px 0; font-family: var(--sans); font-size: 14px; line-height: 1.35; }
+.track div b { display: block; font-size: 13px; color: var(--blue); }
+
+@media (max-width: 1180px) {
+  .shell { grid-template-columns: 200px minmax(0, 1fr); grid-template-areas: "rail main" "rail ledger"; }
+  .ledger { position: static; max-height: none; }
+}
+@media (max-width: 780px) {
+  body { font-size: 17px; }
+  .top { padding: 14px 16px 4px; }
+  .brand span { display: none; }
+  .shell { grid-template-columns: minmax(0, 1fr); grid-template-areas: "rail" "main" "ledger"; padding: 4px 16px 48px; gap: 18px; }
+  .rail { position: static; overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
+  .rail ol { display: flex; gap: 4px; }
+  .rail ol::before { display: none; }
+  .rail button { flex-direction: column; gap: 4px; font-size: 12px; width: 78px; text-align: center; }
+  .rail .lbl-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .task { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><b>DSGE Workshop</b><span>Build a real business cycle model, one step at a time</span></div>
+  <div class="score"><span><span class="xp" id="xp">0</span> points</span><button class="linkbtn" id="reset">Start over</button></div>
+</header>
+<div class="shell">
+  <nav class="rail" aria-label="Workflow steps"><ol id="rail"></ol></nav>
+  <main id="main" tabindex="-1"></main>
+  <aside class="ledger" aria-live="polite"><div class="ledger-card" id="ledger"></div></aside>
+</div>
+
+<script>
+(function () {
+"use strict";
+const R = String.raw;
+
+/* =========================================================
+   Model solver: log-linear RBC, undetermined coefficients
+   ========================================================= */
+function solve(p) {
+  const { beta, alpha, delta, rho, phi } = p;
+  const yk = (1 / beta - 1 + delta) / alpha, iy = delta / yk, cy = 1 - iy;
+  const m = (1 + phi) / (phi + alpha);
+  const ga = m, gk = alpha * m, gc = -(1 - alpha) / (phi + alpha);
+  const fk = yk * alpha * m + 1 - delta, fc = yk * (gc - cy), fa = yk * m;
+  const th = beta * alpha * yk, D = 1 - th * gc, G = th * (gk - 1);
+  const a2 = D * fc, a1 = D * fk - G * fc - 1, a0 = -G * fk;
+  const disc = Math.sqrt(a1 * a1 - 4 * a2 * a0);
+  const roots = [(-a1 - disc) / (2 * a2), (-a1 + disc) / (2 * a2)].map(P => ({ P, K1: fk + fc * P }));
+  roots.sort((u, v) => Math.abs(u.K1) - Math.abs(v.K1));
+  const P = roots[0].P, K1 = roots[0].K1;
+  const Q = (th * ga * rho - (D * P - G) * fa) / ((D * P - G) * fc - 1 + D * rho);
+  const K2 = fa + fc * Q;
+  // eigenvalues of the deterministic 2x2 system in (k_{t-1}, c_t)
+  const A11 = fk, A12 = fc, A21 = G * fk / D, A22 = (1 + G * fc) / D;
+  const tr = A11 + A22, det = A11 * A22 - A12 * A21;
+  const ed = Math.sqrt(Math.max(tr * tr / 4 - det, 0));
+  const eig = [tr / 2 - ed, tr / 2 + ed];
+  // helper giving all variables given k_{t-1}, a_t
+  function vars(k, a) {
+    const c = P * k + Q * a;
+    const n = (a + alpha * k - c) / (phi + alpha);
+    const y = m * a + alpha * m * k + gc * c;
+    const i = (y - cy * c) / iy;
+    const kn = K1 * k + K2 * a;
+    return { y, c, i, n, k: kn, a };
+  }
+  const pol = {};
+  const v1 = vars(1, 0), v2 = vars(0, 1);
+  ["y", "c", "i", "n", "k"].forEach(x => pol[x] = [v1[x], v2[x]]);
+  return { yk, iy, cy, P, Q, K1, K2, roots, eig, vars, pol, th, alpha, beta, delta, rho, phi };
+}
+function irf(p, T) {
+  const s = solve(p); const out = { y: [], c: [], i: [], n: [], k: [], a: [] };
+  let k = 0, a = 1;
+  for (let t = 0; t < T; t++) {
+    const v = s.vars(k, a);
+    ["y", "c", "i", "n", "a"].forEach(x => out[x].push(v[x]));
+    out.k.push(v.k); k = v.k; a = p.rho * a;
+  }
+  return out;
+}
+function randn() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function stochSim(p, T) {
+  const s = solve(p); const out = { y: [], c: [], i: [], n: [] };
+  let k = 0, a = 0;
+  for (let t = 0; t < T + 100; t++) {
+    a = p.rho * a + p.sigma * randn();
+    const v = s.vars(k, a);
+    if (t >= 100) ["y", "c", "i", "n"].forEach(x => out[x].push(100 * v[x]));
+    k = v.k;
+  }
+  return out;
+}
+function sd(x) { const mu = x.reduce((a, b) => a + b, 0) / x.length; return Math.sqrt(x.reduce((a, b) => a + (b - mu) ** 2, 0) / (x.length - 1)); }
+const f = (x, d = 3) => (Math.abs(x) < 1e-12 ? 0 : x).toFixed(d);
+const sg = (x, d = 3) => (x < 0 ? "-" : "+") + f(Math.abs(x), d);
+
+const base = { beta: 0.99, alpha: 0.33, delta: 0.025, rho: 0.95, phi: 1, sigma: 0.01 };
+const S0 = solve(base);
+
+/* =========================================================
+   Stations
+   ========================================================= */
+const stations = [
+{
+  id: "setup", short: "Set up the problem",
+  title: "Set up the optimization problems",
+  lede: "Every DSGE model begins with people and firms who optimize. Write down who they are, what they want, and what constrains them.",
+  notes: R`
+<p>Our economy has one representative household, one representative firm, and random productivity. That is enough to generate business cycles.</p>
+<h3>The household</h3>
+<p>It chooses consumption \(C_t\), hours \(N_t\) and next period's capital \(K_t\) to maximize expected lifetime utility:</p>
+<div class="eq">\[\max_{\{C_t,\,N_t,\,K_t\}}\; E_0\sum_{t=0}^{\infty}\beta^t\left[\ln C_t-\chi\frac{N_t^{1+\varphi}}{1+\varphi}\right]\]</div>
+<p>subject to a budget constraint every period. Spending on consumption and new capital must equal wage income plus rental income plus the capital left after depreciation:</p>
+<div class="eq">\[C_t+K_t=W_tN_t+R_tK_{t-1}+(1-\delta)K_{t-1}\]</div>
+<h3>The firm</h3>
+<p>It rents capital and hires labor to produce with Cobb-Douglas technology:</p>
+<div class="eq">\[Y_t=A_t\,K_{t-1}^{\alpha}\,N_t^{1-\alpha}\]</div>
+<h3>The shock</h3>
+<p>Total factor productivity follows an AR(1) process in logs:</p>
+<div class="eq">\[\ln A_t=\rho\ln A_{t-1}+\varepsilon_t,\qquad \varepsilon_t\sim N(0,\sigma^2)\]</div>
+<p class="aside-note">Timing convention: \(K_t\) is chosen in period \(t\) and used in production in \(t+1\). Dynare uses exactly this convention, and mixing it up is the most common beginner bug.</p>`,
+  tasks: [
+    { type: "mcq", q: R`Which ingredient makes the model <em>stochastic</em>?`,
+      options: [R`The discount factor \(\beta^t\)`, R`The productivity innovation \(\varepsilon_t\)`, R`The capital stock \(K_{t-1}\)`, R`Log utility \(\ln C_t\)`],
+      answer: 1,
+      hint: "Look for the only term that is a random draw rather than a choice or a fixed parameter.",
+      why: R`Only \(\varepsilon_t\) is random. Everything else is either chosen by agents or fixed. Remove the shock and the model settles into its steady state forever.` },
+    { type: "mcq", q: R`With quarterly data we set \(\beta = 0.99\). What does that say?`,
+      options: ["Households save 99% of their income", "Next quarter's utility is worth 99% of the same utility today", "Capital depreciates 1% per quarter", "The interest rate is 99%"],
+      answer: 1,
+      hint: R`\(\beta\) multiplies future utility in the objective. It describes preferences, not budgets.`,
+      why: R`\(\beta\) is patience. In steady state it pins down the real interest rate: \(1/\beta - 1 \approx 1\%\) per quarter, about 4% a year.` },
+    { type: "mcq", q: R`Why does production use \(K_{t-1}\) rather than \(K_t\)?`,
+      options: ["It is a typo that Dynare tolerates", "Capital chosen last period is what is installed and usable today", "Firms prefer old capital", "Because capital depreciates"],
+      answer: 1,
+      hint: "Ask when the capital being used today was decided.",
+      why: R`Capital is <em>predetermined</em>: today's stock was fixed by yesterday's saving. This is what makes \(K\) a state variable later, and it drives how we solve the model.` }
+  ],
+  ledgerTitle: "Primitives", ledgerSub: "What the economy is made of",
+  ledger: [
+    { l: "Preferences", t: R`\ln C_t-\chi\tfrac{N_t^{1+\varphi}}{1+\varphi}` },
+    { l: "Budget constraint", t: R`C_t+K_t=W_tN_t+(R_t+1-\delta)K_{t-1}` },
+    { l: "Technology", t: R`Y_t=A_tK_{t-1}^{\alpha}N_t^{1-\alpha}` },
+    { l: "Shock", t: R`\ln A_t=\rho\ln A_{t-1}+\varepsilon_t` }
+  ]
+},
+{
+  id: "hfoc", short: "Household FOCs",
+  title: "Derive the household's first-order conditions",
+  lede: "Form the Lagrangian, differentiate with respect to every choice variable, and set each derivative to zero.",
+  notes: R`
+<p>Attach a multiplier \(\lambda_t\) to each period's budget constraint:</p>
+<div class="eq">\[\mathcal{L}=E_0\sum_{t=0}^{\infty}\beta^t\Big\{\ln C_t-\chi\tfrac{N_t^{1+\varphi}}{1+\varphi}+\lambda_t\big[W_tN_t+(R_t+1-\delta)K_{t-1}-C_t-K_t\big]\Big\}\]</div>
+<p>\(\lambda_t\) is the <em>shadow value</em> of one extra unit of goods in period \(t\), measured in utility.</p>
+<p>Differentiating with respect to \(C_t\) and \(N_t\) is straightforward because they appear only in period \(t\). Capital is trickier: \(K_t\) appears in <em>two</em> periods. It is a cost in today's constraint, and it pays off in tomorrow's constraint, which is discounted by \(\beta\) and uncertain, so it sits inside \(E_t\).</p>`,
+  tasks: [
+    { type: "mcq", q: R`Setting \(\partial\mathcal{L}/\partial C_t=0\) gives:`,
+      options: [R`\(\lambda_t=C_t\)`, R`\(\lambda_t=\beta/C_t\)`, R`\(\lambda_t=1/C_t\)`, R`\(\lambda_t=\ln C_t\)`],
+      answer: 2,
+      hint: R`The derivative of \(\ln C_t\) is \(1/C_t\), and \(C_t\) enters the constraint with coefficient \(-\lambda_t\). The common \(\beta^t\) cancels.`,
+      why: R`\(1/C_t-\lambda_t=0\). The shadow value of goods equals the marginal utility of consumption.` },
+    { type: "mcq", q: R`Setting \(\partial\mathcal{L}/\partial N_t=0\) gives:`,
+      options: [R`\(\chi N_t^{1+\varphi}=\lambda_tW_t\)`, R`\(\chi N_t^{\varphi}=\lambda_tW_t\)`, R`\(N_t^{\varphi}=W_t\)`, R`\(\chi N_t^{\varphi}=W_t/\lambda_t\)`],
+      answer: 1,
+      hint: R`Differentiate \(\chi N^{1+\varphi}/(1+\varphi)\): the exponent comes down and cancels the denominator.`,
+      why: R`The marginal disutility of an hour, \(\chi N_t^{\varphi}\), equals the wage valued in utility, \(\lambda_tW_t\).` },
+    { type: "mcq", q: R`Setting \(\partial\mathcal{L}/\partial K_t=0\) gives:`,
+      options: [R`\(\lambda_t=\lambda_{t+1}(R_t+1-\delta)\)`, R`\(\lambda_t=\beta E_t[\lambda_{t+1}]\)`, R`\(\lambda_t=\beta R_t\lambda_t\)`, R`\(\lambda_t=\beta E_t\big[\lambda_{t+1}(R_{t+1}+1-\delta)\big]\)`],
+      answer: 3,
+      hint: R`A unit of \(K_t\) costs \(\lambda_t\) today. Next period it returns \(R_{t+1}+1-\delta\) units of goods, each worth \(\lambda_{t+1}\), discounted by \(\beta\) and in expectation.`,
+      why: R`Marginal cost today equals expected discounted marginal benefit tomorrow. This is the heart of every dynamic model.` },
+    { type: "mcq", q: R`Now eliminate \(\lambda\) using the first condition. The result is the <strong>Euler equation</strong>:`,
+      options: [R`\(C_t=\beta E_t\big[C_{t+1}(R_{t+1}+1-\delta)\big]\)`, R`\(\dfrac{1}{C_t}=\beta E_t\Big[\dfrac{1}{C_{t+1}}(R_{t+1}+1-\delta)\Big]\)`, R`\(\dfrac{1}{C_t}=\beta\dfrac{1}{C_{t+1}}\)`, R`\(\dfrac{1}{C_t}=R_{t+1}+1-\delta\)`],
+      answer: 1,
+      hint: R`Replace every \(\lambda\) with \(1/C\), for both \(t\) and \(t+1\).`,
+      why: R`Giving up one unit of consumption today costs \(1/C_t\) in utility. Investing it yields the expected discounted utility on the right. At the optimum, the two are equal.` }
+  ],
+  ledgerTitle: "Household optimality", ledgerSub: "Two conditions from the household",
+  ledger: [
+    { l: "Euler equation", t: R`\tfrac{1}{C_t}=\beta E_t\!\left[\tfrac{1}{C_{t+1}}(R_{t+1}+1-\delta)\right]` },
+    { l: "Labor supply", t: R`\chi N_t^{\varphi}=W_t/C_t` },
+    { l: "Technology", t: R`Y_t=A_tK_{t-1}^{\alpha}N_t^{1-\alpha}` },
+    { l: "Shock", t: R`\ln A_t=\rho\ln A_{t-1}+\varepsilon_t` }
+  ]
+},
+{
+  id: "ffoc", short: "Firm FOCs",
+  title: "Derive the firm's first-order conditions",
+  lede: "The firm rents capital and hires labor each period, so its problem is static: maximize this period's profit.",
+  notes: R`
+<div class="eq">\[\max_{K_{t-1},\,N_t}\;A_tK_{t-1}^{\alpha}N_t^{1-\alpha}-W_tN_t-R_tK_{t-1}\]</div>
+<p>Under perfect competition, each input is paid its marginal product. For Cobb-Douglas, marginal products take a neat form: the exponent times output, divided by the input.</p>`,
+  tasks: [
+    { type: "mcq", q: R`Labor demand, \(\partial/\partial N_t=0\), gives:`,
+      options: [R`\(W_t=\alpha Y_t/N_t\)`, R`\(W_t=Y_t/N_t\)`, R`\(W_t=(1-\alpha)Y_t/N_t\)`, R`\(W_t=(1-\alpha)A_t\)`],
+      answer: 2,
+      hint: R`\(\partial Y/\partial N=(1-\alpha)A K^{\alpha}N^{-\alpha}\). Multiply and divide by \(N\).`,
+      why: R`The wage equals the marginal product of labor, \((1-\alpha)Y_t/N_t\).` },
+    { type: "mcq", q: R`Capital demand, \(\partial/\partial K_{t-1}=0\), gives:`,
+      options: [R`\(R_t=\alpha Y_t/K_{t-1}\)`, R`\(R_t=(1-\alpha)Y_t/K_{t-1}\)`, R`\(R_t=\alpha Y_t/K_t\)`, R`\(R_t=1/\beta\)`],
+      answer: 0,
+      hint: "Same logic as labor, using the capital exponent and capital installed at the start of the period.",
+      why: R`The rental rate equals the marginal product of capital, \(\alpha Y_t/K_{t-1}\).` },
+    { type: "num", q: R`With \(\alpha=0.33\), what share of output is paid to workers? Enter a number between 0 and 1.`,
+      answer: 0.67, tol: 0.01,
+      hint: R`Multiply the wage equation by \(N_t\): \(W_tN_t=\;?\times Y_t\).`,
+      why: R`\(W_tN_t=(1-\alpha)Y_t=0.67\,Y_t\). This is why \(\alpha\) is calibrated from the national accounts: labor's share is about two thirds.` }
+  ],
+  ledgerTitle: "Optimality conditions", ledgerSub: "Household and firm",
+  ledger: [
+    { l: "Euler equation", t: R`\tfrac{1}{C_t}=\beta E_t\!\left[\tfrac{1}{C_{t+1}}(R_{t+1}+1-\delta)\right]` },
+    { l: "Labor supply", t: R`\chi N_t^{\varphi}=W_t/C_t` },
+    { l: "Wage", t: R`W_t=(1-\alpha)Y_t/N_t` },
+    { l: "Rental rate", t: R`R_t=\alpha Y_t/K_{t-1}` },
+    { l: "Technology", t: R`Y_t=A_tK_{t-1}^{\alpha}N_t^{1-\alpha}` },
+    { l: "Shock", t: R`\ln A_t=\rho\ln A_{t-1}+\varepsilon_t` }
+  ]
+},
+{
+  id: "clear", short: "Clear markets",
+  title: "Impose market clearing and collect the equilibrium",
+  lede: "Equilibrium means every agent is optimizing and every market clears at the same prices. Combine the pieces into one system.",
+  notes: R`
+<p>Three markets must clear. In the <strong>labor market</strong>, hours supplied equal hours demanded at wage \(W_t\). In the <strong>capital rental market</strong>, the household's stock is what the firm rents. In the <strong>goods market</strong>, output is either consumed or invested.</p>
+<p>Substitute the factor prices into the household's budget constraint:</p>
+<div class="eq">\[W_tN_t+R_tK_{t-1}=(1-\alpha)Y_t+\alpha Y_t=Y_t\]</div>
+<p>So the budget constraint becomes the economy's resource constraint. Defining investment as \(I_t=K_t-(1-\delta)K_{t-1}\):</p>
+<div class="eq">\[Y_t=C_t+I_t\]</div>
+<p>Finally, substitute \(W_t\) and \(R_{t+1}\) into the household conditions so that prices disappear. What is left is a system in quantities only.</p>`,
+  tasks: [
+    { type: "mcq", q: R`Why do wage and rental payments add up to exactly \(Y_t\)?`,
+      options: ["Because households own the firms", "Because the production function has constant returns to scale", "Because capital depreciates", "Because the model has no government"],
+      answer: 1,
+      hint: R`Add the exponents: \(\alpha+(1-\alpha)\). What property is that?`,
+      why: R`With constant returns to scale, paying each factor its marginal product exhausts output (Euler's theorem). Profits are zero, so no separate profit term is needed.` },
+    { type: "multi", q: "Select every equation that belongs in the final equilibrium system, the one you would type into Dynare.",
+      options: [
+        R`\(\tfrac{1}{C_t}=\beta E_t\!\left[\tfrac{1}{C_{t+1}}\big(\alpha\tfrac{Y_{t+1}}{K_t}+1-\delta\big)\right]\)`,
+        R`\(\chi N_t^{\varphi}=\tfrac{1}{C_t}(1-\alpha)\tfrac{Y_t}{N_t}\)`,
+        R`\(Y_t=C_t\)`,
+        R`\(Y_t=A_tK_{t-1}^{\alpha}N_t^{1-\alpha}\)`,
+        R`\(K_t=I_t+(1-\delta)K_{t-1}\)`,
+        R`\(N_t=1/3\)`,
+        R`\(Y_t=C_t+I_t\)`,
+        R`\(\ln A_t=\rho\ln A_{t-1}+\varepsilon_t\)`
+      ],
+      answers: [0, 1, 3, 4, 6, 7],
+      hint: R`Six belong. \(N_t=1/3\) is a steady-state <em>target</em>, not a condition that holds every period, and \(Y_t=C_t\) forgets investment.`,
+      why: R`Euler, labor market, production, capital accumulation, resource constraint and the shock process. Prices have been substituted out.` },
+    { type: "num", q: R`How many endogenous variables does this system determine? (Count the unknowns, including \(A_t\).)`,
+      answer: 6, tol: 0,
+      hint: "List the variable names that appear: Y, C, I, K, N and one more.",
+      why: R`\(Y, C, I, K, N, A\): six equations, six unknowns. The system is <em>square</em>, which is the first thing Dynare checks.` }
+  ],
+  ledgerTitle: "Equilibrium system", ledgerSub: "6 equations, 6 unknowns: Y, C, I, K, N, A",
+  ledger: [
+    { l: "1. Euler equation", t: R`\tfrac{1}{C_t}=\beta E_t\!\left[\tfrac{1}{C_{t+1}}\big(\alpha\tfrac{Y_{t+1}}{K_t}+1-\delta\big)\right]` },
+    { l: "2. Labor market", t: R`\chi N_t^{\varphi}=\tfrac{(1-\alpha)Y_t}{N_tC_t}` },
+    { l: "3. Production", t: R`Y_t=A_tK_{t-1}^{\alpha}N_t^{1-\alpha}` },
+    { l: "4. Capital accumulation", t: R`K_t=I_t+(1-\delta)K_{t-1}` },
+    { l: "5. Resource constraint", t: R`Y_t=C_t+I_t` },
+    { l: "6. Shock", t: R`\ln A_t=\rho\ln A_{t-1}+\varepsilon_t` }
+  ]
+},
+{
+  id: "ss", short: "Steady state",
+  title: "Solve for the steady state",
+  lede: "Switch off the shocks and find the point where nothing changes. Everything later is measured as a deviation from here.",
+  notes: R`
+<p>In steady state, \(X_t=X_{t+1}=\bar X\) for every variable, \(A=1\), and expectations disappear. Use the calibration \(\beta=0.99\), \(\alpha=0.33\), \(\delta=0.025\).</p>
+<p>The trick is to work with <em>ratios</em> first. They do not depend on the unknown level of anything, so you can solve them one at a time.</p>`,
+  tasks: [
+    { type: "mcq", q: R`In steady state the Euler equation becomes \(1=\beta\big(\alpha\tfrac{\bar Y}{\bar K}+1-\delta\big)\). Solve for \(\bar Y/\bar K\):`,
+      options: [R`\(\tfrac{\bar Y}{\bar K}=\dfrac{\beta-1+\delta}{\alpha}\)`, R`\(\tfrac{\bar Y}{\bar K}=\dfrac{1/\beta-1+\delta}{\alpha}\)`, R`\(\tfrac{\bar Y}{\bar K}=\alpha(1/\beta-1+\delta)\)`, R`\(\tfrac{\bar Y}{\bar K}=\delta/\alpha\)`],
+      answer: 1,
+      hint: R`Divide both sides by \(\beta\), subtract \(1-\delta\), then divide by \(\alpha\).`,
+      why: R`The consumption terms cancel, so the Euler equation alone pins down the capital-output ratio. Patience and depreciation determine how capital-intensive the economy is.` },
+    { type: "num", q: R`Compute \(\bar Y/\bar K\). Use four decimals.`,
+      answer: S0.yk, tol: 0.015,
+      hint: R`\(1/0.99-1=0.0101\). Add 0.025, then divide by 0.33.`,
+      why: R`\(\bar Y/\bar K\approx 0.1064\), so \(\bar K/\bar Y\approx 9.4\) quarters, about 2.35 years of output. That is close to the data.` },
+    { type: "num", q: R`Capital accumulation in steady state gives \(\bar I=\delta\bar K\). Compute the investment share \(\bar I/\bar Y\).`,
+      answer: S0.iy, tol: 0.02,
+      hint: R`\(\bar I/\bar Y=\delta\,\bar K/\bar Y=0.025\times(1/0.1064)\).`,
+      why: R`About 23.5% of output is invested.` },
+    { type: "num", q: R`Compute the consumption share \(\bar C/\bar Y\).`,
+      answer: S0.cy, tol: 0.01,
+      hint: "Use the resource constraint: output is either consumed or invested.",
+      why: R`\(\bar C/\bar Y=1-0.235\approx 0.765\).` },
+    { type: "mcq", q: R`We still need \(\chi\), the weight on the disutility of work. How is it usually set?`,
+      options: ["Estimate it from consumption data", R`Set \(\chi=1\) by convention`, R`Target hours \(\bar N=1/3\) and back out the \(\chi\) that delivers it`, "It does not matter for the model"],
+      answer: 2,
+      hint: "People spend about a third of their available time working. Use that as a target.",
+      why: R`This is <em>calibration by targeting</em>: choose parameters so the steady state matches observed ratios. The labor condition gives \(\chi\bar N^{1+\varphi}=(1-\alpha)/(\bar C/\bar Y)\).` }
+  ],
+  lab: "ss", labAfter: 0,
+  ledgerTitle: "Steady state", ledgerSub: "Ratios under the baseline calibration",
+  ledger: [
+    { l: "Capital-output ratio", t: R`\bar K/\bar Y=${f(1 / S0.yk, 2)}\text{ quarters}` },
+    { l: "Investment share", t: R`\bar I/\bar Y=${f(S0.iy, 3)}` },
+    { l: "Consumption share", t: R`\bar C/\bar Y=${f(S0.cy, 3)}` },
+    { l: "Hours (target)", t: R`\bar N=1/3` },
+    { l: "Real interest rate", t: R`1/\beta-1\approx 1\%\text{ per quarter}` }
+  ]
+},
+{
+  id: "lin", short: "Linearize",
+  title: "Log-linearize around the steady state",
+  lede: "Replace the nonlinear system with a linear one in percentage deviations. Linear systems with expectations can be solved exactly.",
+  notes: R`
+<p>Define the log-deviation of any variable as</p>
+<div class="eq">\[\hat x_t=\ln X_t-\ln\bar X\approx\frac{X_t-\bar X}{\bar X}\]</div>
+<p>So \(\hat x_t=0.01\) means \(X\) is 1% above its steady state. Two rules do almost all the work.</p>
+<h3>Rule 1: products and powers become weighted sums</h3>
+<div class="eq">\[X_t=Y_t^{a}Z_t^{b}\;\Longrightarrow\;\hat x_t=a\,\hat y_t+b\,\hat z_t\]</div>
+<h3>Rule 2: sums get steady-state shares as weights</h3>
+<div class="eq">\[X_t=Y_t+Z_t\;\Longrightarrow\;\hat x_t=\frac{\bar Y}{\bar X}\hat y_t+\frac{\bar Z}{\bar X}\hat z_t\]</div>
+<p class="aside-note">Dynare does this for you. Writing each variable as <span class="kbd">exp(x)</span> in the model block makes its linearization automatically in log-deviations. Do it by hand a few times anyway, because that is how you learn what drives the model.</p>`,
+  tasks: [
+    { type: "mcq", q: R`Linearize the production function \(Y_t=A_tK_{t-1}^{\alpha}N_t^{1-\alpha}\):`,
+      options: [R`\(\hat y_t=\hat a_t+\hat k_{t-1}+\hat n_t\)`, R`\(\hat y_t=\alpha\hat k_{t-1}+(1-\alpha)\hat n_t\)`, R`\(\hat y_t=\hat a_t+\alpha\hat k_{t-1}+(1-\alpha)\hat n_t\)`, R`\(\hat y_t=\hat a_t\cdot\alpha\hat k_{t-1}\cdot(1-\alpha)\hat n_t\)`],
+      answer: 2,
+      hint: "Rule 1: each exponent becomes a coefficient, and A has exponent 1.",
+      why: "Taking logs turns the product into a sum, and the steady-state terms cancel. This one is exact, not just approximate." },
+    { type: "num", q: R`Linearize \(Y_t=C_t+I_t\) as \(\hat y_t=\omega\,\hat c_t+(1-\omega)\,\hat i_t\). What is \(\omega\)?`,
+      answer: S0.cy, tol: 0.015,
+      hint: R`Rule 2: the weight on \(\hat c_t\) is a steady-state share you computed in the last step.`,
+      why: R`\(\omega=\bar C/\bar Y\approx 0.765\). A 1% rise in investment moves output far less than a 1% rise in consumption, because investment is a smaller slice.` },
+    { type: "mcq", q: R`Linearize the labor condition \(\chi N_t^{\varphi}=(1-\alpha)Y_t/(N_tC_t)\):`,
+      options: [R`\(\varphi\hat n_t=\hat y_t-\hat c_t\)`, R`\(\varphi\hat n_t=\hat y_t-\hat n_t-\hat c_t\)`, R`\(\hat n_t=\hat y_t-\hat c_t\)`, R`\(\varphi\hat n_t=(1-\alpha)\hat y_t-\hat c_t\)`],
+      answer: 1,
+      hint: R`Rule 1 on both sides. Constants like \(\chi\) and \((1-\alpha)\) vanish. Do not forget the \(N_t\) in the denominator on the right.`,
+      why: R`Rearranged, \((1+\varphi)\hat n_t=\hat y_t-\hat c_t\). Hours rise when productivity (through \(\hat y\)) rises and fall when households feel richer (higher \(\hat c\)).` },
+    { type: "mcq", q: R`Which is the linearized Euler equation? (Here \(\bar R+1-\delta=1/\beta\).)`,
+      options: [
+        R`\(\hat c_t=E_t\hat c_{t+1}-\beta\alpha\tfrac{\bar Y}{\bar K}\big(E_t\hat y_{t+1}-\hat k_t\big)\)`,
+        R`\(\hat c_t=E_t\hat c_{t+1}+\beta\alpha\tfrac{\bar Y}{\bar K}\big(E_t\hat y_{t+1}-\hat k_t\big)\)`,
+        R`\(\hat c_t=\beta E_t\hat c_{t+1}\)`,
+        R`\(\hat c_t=E_t\hat c_{t+1}-\big(E_t\hat y_{t+1}+\hat k_t\big)\)`],
+      answer: 0,
+      hint: "A higher expected return on capital makes saving more attractive. Should that raise or lower consumption today relative to tomorrow?",
+      why: R`A higher expected return \((\hat y_{t+1}-\hat k_t)\) lowers \(\hat c_t\) relative to \(E_t\hat c_{t+1}\): households postpone consumption and invest. This is intertemporal substitution.` }
+  ],
+  ledgerTitle: "Linearized system", ledgerSub: "All variables in % deviations from steady state",
+  ledger: [
+    { l: "1. Euler", t: R`\hat c_t=E_t\hat c_{t+1}-\beta\alpha\tfrac{\bar Y}{\bar K}(E_t\hat y_{t+1}-\hat k_t)` },
+    { l: "2. Labor market", t: R`(1+\varphi)\hat n_t=\hat y_t-\hat c_t` },
+    { l: "3. Production", t: R`\hat y_t=\hat a_t+\alpha\hat k_{t-1}+(1-\alpha)\hat n_t` },
+    { l: "4. Capital accumulation", t: R`\hat k_t=\delta\hat\imath_t+(1-\delta)\hat k_{t-1}` },
+    { l: "5. Resource constraint", t: R`\hat y_t=${f(S0.cy, 3)}\,\hat c_t+${f(S0.iy, 3)}\,\hat\imath_t` },
+    { l: "6. Shock", t: R`\hat a_t=\rho\,\hat a_{t-1}+\varepsilon_t` }
+  ]
+},
+{
+  id: "solve", short: "Policy functions",
+  title: "Solve for the policy functions",
+  lede: "Find rules that give every variable as a function of the current state. Those rules are the solution of the model.",
+  notes: R`
+<p>The state of the economy at the start of period \(t\) is the capital stock carried in, \(\hat k_{t-1}\), and today's productivity, \(\hat a_t\). Every other variable must be a function of these two. So we <em>guess</em> a linear rule for consumption:</p>
+<div class="eq">\[\hat c_t=P\,\hat k_{t-1}+Q\,\hat a_t\]</div>
+<p>Plug the guess into the linearized system. Matching coefficients on \(\hat k_{t-1}\) gives a <em>quadratic</em> in \(P\), which has two roots. Each root implies a law of motion for capital, \(\hat k_t=K_1\hat k_{t-1}+K_2\hat a_t\). One root makes capital converge back to steady state. The other makes it explode.</p>
+<p>This is the <strong>method of undetermined coefficients</strong>. Dynare uses a more general matrix version (a QZ decomposition), but the logic is identical.</p>`,
+  tasks: [
+    { type: "mcq", q: "Which variable is a jump (forward-looking) variable, free to move the instant a shock hits?",
+      options: [R`Capital \(\hat k_{t-1}\)`, R`Consumption \(\hat c_t\)`, R`Productivity \(\hat a_t\)`],
+      answer: 1,
+      hint: "Which of these is chosen after seeing today's shock, rather than inherited from the past or given by nature?",
+      why: "Consumption responds immediately to news. Capital is predetermined and productivity is exogenous. Jump variables are what make the solution method necessary." },
+    { type: "mcq", dyn: true, q: () => R`Solving the quadratic gives two candidates. Which one do we keep?`,
+      options: () => {
+        const r = S0.roots;
+        return [
+          R`\(P=${f(r[1].P)}\), implying capital persistence \(K_1=${f(r[1].K1)}\)`,
+          R`\(P=${f(r[0].P)}\), implying capital persistence \(K_1=${f(r[0].K1)}\)`,
+          "Either one; they give the same dynamics"
+        ];
+      },
+      answer: 1,
+      hint: R`Iterate \(\hat k_t=K_1\hat k_{t-1}\). What happens over time if \(K_1>1\)?`,
+      why: R`With \(K_1>1\), capital would grow without bound after any shock, violating the transversality condition. Only the stable root is an equilibrium. That makes the solution unique.` },
+    { type: "num", q: "Blanchard-Kahn condition: this system has one jump variable. How many eigenvalues must lie outside the unit circle for a unique stable solution?",
+      answer: 1, tol: 0,
+      hint: "The rule is to match the count of unstable eigenvalues to the count of jump variables.",
+      why: R`One unstable eigenvalue for one jump variable. The eigenvalues here are \(${f(S0.eig[0])}\) and \(${f(S0.eig[1])}\). Too few unstable eigenvalues means indeterminacy (many solutions), too many means no stable solution. Dynare's <span class="kbd">check</span> command reports exactly this.` }
+  ],
+  lab: "policy", labAfter: 0,
+  ledgerTitle: "Policy functions", ledgerSub: "The solved model, baseline calibration",
+  ledger: [
+    { l: "Consumption", t: R`\hat c_t=${f(S0.pol.c[0])}\,\hat k_{t-1}${sg(S0.pol.c[1])}\,\hat a_t` },
+    { l: "Capital", t: R`\hat k_t=${f(S0.pol.k[0])}\,\hat k_{t-1}${sg(S0.pol.k[1])}\,\hat a_t` },
+    { l: "Output", t: R`\hat y_t=${f(S0.pol.y[0])}\,\hat k_{t-1}${sg(S0.pol.y[1])}\,\hat a_t` },
+    { l: "Hours", t: R`\hat n_t=${f(S0.pol.n[0])}\,\hat k_{t-1}${sg(S0.pol.n[1])}\,\hat a_t` },
+    { l: "Investment", t: R`\hat\imath_t=${f(S0.pol.i[0])}\,\hat k_{t-1}${sg(S0.pol.i[1])}\,\hat a_t` }
+  ]
+},
+{
+  id: "sim", short: "Simulate",
+  title: "Simulate: impulse responses and moments",
+  lede: "Feed shocks through the policy functions. This is where the model starts talking about business cycles.",
+  notes: R`
+<p>An <strong>impulse response</strong> shocks productivity once, by one standard deviation, then lets the policy functions run with no further shocks. A <strong>stochastic simulation</strong> draws a fresh shock every quarter and records the path, so you can compare volatilities and correlations with the data.</p>
+<p>Make a prediction first. The chart unlocks once you have committed to an answer.</p>`,
+  tasks: [
+    { type: "mcq", q: "Prediction: after a 1% productivity shock, which variable jumps the most, in percent?",
+      options: ["Output", "Consumption", "Investment", "Hours"],
+      answer: 2,
+      hint: "Households want smooth consumption. Where does the extra output go?",
+      why: "Investment jumps by about 4%. Households save most of the windfall as capital to spread the gain over many future quarters. This is consumption smoothing at work." },
+    { type: "mcq", q: R`Use the lab: set \(\rho=0.5\). What happens to consumption's response on impact?`,
+      options: ["It gets larger", "It gets smaller", "It does not change"],
+      answer: 1,
+      hint: R`Move the \(\rho\) slider and watch the consumption line at quarter 0.`,
+      why: "A short-lived shock barely raises permanent income, so households save even more of it and consumption hardly moves. Persistence of shocks is central to how much consumption responds." },
+    { type: "mcq", q: "Run a stochastic simulation. Relative to output, investment is:",
+      options: ["Less volatile", "About as volatile", "Much more volatile"],
+      answer: 2,
+      hint: "Press the simulate button and read the relative standard deviations in the table.",
+      why: "Investment is two to three times as volatile as output in these unfiltered simulations (about three times once HP-filtered), while consumption is less volatile than output. Those rankings match the business-cycle facts in the data, which is what made the RBC model influential." }
+  ],
+  lab: "irf", labAfter: 1,
+  ledgerTitle: "Policy functions", ledgerSub: "The solved model, baseline calibration",
+  ledger: null
+},
+{
+  id: "beyond", short: "To Dynare and beyond",
+  title: "Take it to Dynare, then go further",
+  lede: "You have now done by hand everything Dynare automates. One last check on the workflow, then the road ahead.",
+  notes: R`
+<h3>How each step maps to a Dynare block</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Workflow step</th><th>Dynare</th></tr></thead>
+<tbody>
+<tr><td>Variables, shocks, parameters</td><td>var, varexo, parameters</td></tr>
+<tr><td>Equilibrium system (FOCs and market clearing)</td><td>model; ... end;</td></tr>
+<tr><td>Steady state</td><td>steady_state_model or steady</td></tr>
+<tr><td>Blanchard-Kahn check</td><td>check</td></tr>
+<tr><td>Linearize, solve, simulate</td><td>stoch_simul(order=1)</td></tr>
+<tr><td>Estimation</td><td>estimated_params, estimation</td></tr>
+</tbody></table></div>
+<h3>Where to go next</h3>
+<p><strong>New Keynesian model.</strong> Add monopolistic competition, Calvo sticky prices and a Taylor rule. The same workflow gives the three-equation model: a dynamic IS curve, the New Keynesian Phillips curve and a policy rule. Money and monetary policy now matter.</p>
+<p><strong>Estimation.</strong> Replace calibration with Bayesian estimation. Priors plus the Kalman filter plus observed data give posterior distributions for parameters.</p>
+<p><strong>Richer models.</strong> Habits, investment adjustment costs and wage rigidity lead to Smets and Wouters (2007). Financial frictions, open-economy features and fiscal or environmental blocks extend it in different directions.</p>
+<p><strong>Link to empirics.</strong> Model impulse responses are theoretical counterparts to VAR and local-projection impulse responses. Choosing parameters to make the two match is called impulse response matching.</p>`,
+  tasks: [
+    { type: "order", q: "Final check: put the DSGE workflow in order.",
+      items: ["Set up optimization problems", "Derive first-order conditions", "Impose market clearing", "Solve for the steady state", "Linearize", "Solve for policy functions", "Simulate and compare with data"],
+      hint: "You cannot linearize before you know the point you linearize around, and you cannot solve for policy functions before the system is linear.",
+      why: "That is the whole pipeline. Every DSGE model, from this one to the ones central banks use, follows it." }
+  ],
+  ledgerTitle: "Policy functions", ledgerSub: "The solved model, baseline calibration",
+  ledger: null
+}
+];
+
+/* =========================================================
+   State
+   ========================================================= */
+const KEY = "dsge-workshop-v1";
+let st = { view: -1, unlocked: 0, xp: 0, solved: {}, misses: {} };
+try { const raw = localStorage.getItem(KEY); if (raw) st = Object.assign(st, JSON.parse(raw)); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+const tk = (s, i) => stations[s].id + ":" + i;
+function stationDone(s) { return stations[s].tasks.every((_, i) => st.solved[tk(s, i)]); }
+function solvedCount(s) { return stations[s].tasks.filter((_, i) => st.solved[tk(s, i)]).length; }
+
+/* =========================================================
+   Rendering helpers
+   ========================================================= */
+const $ = s => document.querySelector(s);
+function el(tag, attrs, html) {
+  const e = document.createElement(tag);
+  if (attrs) for (const k in attrs) { if (k === "class") e.className = attrs[k]; else e.setAttribute(k, attrs[k]); }
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+// MathJax must never run two typesets at once, and must forget math that
+// has been removed from the page; otherwise later typesets throw and the
+// page stops rendering equations. All typesetting goes through one queue.
+let mjChain = Promise.resolve();
+function clearMath(node) {
+  if (window.__mjReady && window.MathJax && MathJax.typesetClear) { try { MathJax.typesetClear([node]); } catch (e) {} }
+}
+function typeset(node) {
+  if (window.__mjFailed) return; // no connection: show the plain TeX immediately
+  node.classList.add("mj-wait");
+  const reveal = () => node.classList.remove("mj-wait");
+  const fallback = setTimeout(reveal, 1500); // offline: show raw TeX rather than nothing
+  const run = () => {
+    if (window.__mjFailed) { clearTimeout(fallback); reveal(); return; }
+    mjChain = mjChain
+      .then(() => (document.body.contains(node) ? MathJax.typesetPromise([node]) : null))
+      .catch(() => {})
+      .then(() => { clearTimeout(fallback); reveal(); });
+  };
+  if (window.__mjReady) run(); else (window.__mjPending = window.__mjPending || []).push(run);
+}
+const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function bringIntoView(node) {
+  requestAnimationFrame(() => node.scrollIntoView({ block: "nearest", behavior: reducedMotion ? "auto" : "smooth" }));
+}
+function addXP(n) {
+  st.xp += n; save();
+  const x = $("#xp"); x.textContent = st.xp; x.classList.remove("xp-bump"); void x.offsetWidth; x.classList.add("xp-bump");
+}
+
+/* ---------- rail ---------- */
+function renderRail() {
+  const ol = $("#rail"); ol.innerHTML = "";
+  stations.forEach((s, i) => {
+    const li = el("li");
+    const done = stationDone(i);
+    if (done) li.classList.add("done");
+    if (i === st.view) li.classList.add("current");
+    const b = el("button", { type: "button" }, `<span class="dot">${done ? "✓" : i + 1}</span><span class="lbl-text">${s.short}</span>`);
+    if (i > st.unlocked) { b.disabled = true; b.setAttribute("aria-label", s.short + " (locked)"); }
+    b.addEventListener("click", () => go(i));
+    li.appendChild(b); ol.appendChild(li);
+  });
+}
+
+/* ---------- ledger ---------- */
+let lastLedgerStation = null;
+function renderLedger() {
+  const box = $("#ledger");
+  // show the ledger of the latest completed station with a ledger
+  let src = -1;
+  for (let i = 0; i < stations.length; i++) if (stationDone(i) && stations[i].ledger) src = i;
+  if (src === lastLedgerStation) return;
+  clearMath(box);
+  if (src < 0) {
+    box.innerHTML = `<h2>Your model</h2><p class="sub">Builds up as you complete each step</p><p class="empty">Nothing here yet. Complete the first step to start writing down your economy.</p>`;
+    lastLedgerStation = -1; return;
+  }
+  const s = stations[src];
+  const fresh = lastLedgerStation !== null && lastLedgerStation !== src;
+  box.innerHTML = `<h2>${s.ledgerTitle}</h2><p class="sub">${s.ledgerSub}</p>`;
+  const ul = el("ul");
+  s.ledger.forEach(e => ul.appendChild(el("li", fresh ? { class: "fresh" } : null, `<span class="lbl">${e.l}</span><div class="m">\\(${e.t}\\)</div>`)));
+  box.appendChild(ul);
+  lastLedgerStation = src;
+  typeset(box);
+}
+
+/* ---------- intro ---------- */
+function renderIntro() {
+  const m = $("#main"); clearMath(m); m.innerHTML = "";
+  const h = el("section", { class: "hero" }, `
+    <h1>Build a DSGE model from first principles</h1>
+    <p>You will assemble a real business cycle model the way researchers do: set up the optimization problems, derive the first-order conditions, clear markets, find the steady state, linearize, solve for policy functions and simulate. Each step ends with a few checks. Get them right to unlock the next step.</p>
+    <p>On the right, your model grows as you go. By the end it is a solved, simulated economy that you can shock and explore.</p>`);
+  const tr = el("div", { class: "track" });
+  stations.slice(0, 8).forEach((s, i) => tr.appendChild(el("div", null, `<b>Step ${i + 1}</b>${s.short}`)));
+  h.appendChild(tr);
+  const b = el("button", { class: "btn", type: "button" }, st.unlocked > 0 || solvedCount(0) > 0 ? "Continue where you left off" : "Start step 1");
+  b.addEventListener("click", () => go(Math.min(st.unlocked, stations.length - 1)));
+  h.appendChild(b);
+  m.appendChild(h); typeset(h);
+}
+
+/* ---------- station ---------- */
+function go(i) {
+  st.view = i; save(); renderRail(); renderStation(); window.scrollTo({ top: 0 });
+  $("#main").focus({ preventScroll: true });
+}
+function renderStation() {
+  const i = st.view, s = stations[i], m = $("#main");
+  clearMath(m); m.innerHTML = "";
+  const head = el("div", { class: "station-head" }, `<p class="station-num">Step ${i + 1} of ${stations.length}</p><h1>${s.title}</h1><p class="lede">${s.lede}</p>`);
+  const notes = el("div", { class: "notes" }, s.notes);
+  const labSlot = el("div");
+  const tasksBox = el("div", { class: "tasks" });
+  const endSlot = el("div");
+  // a lab that unlocks mid-station goes below the checks so nothing jumps
+  if (s.lab && s.labAfter) m.append(head, notes, tasksBox, labSlot, endSlot);
+  else m.append(head, notes, labSlot, tasksBox, endSlot);
+  typeset(head); typeset(notes);
+
+  const boxes = [];
+  function drawLab() {
+    if (s.lab && solvedCount(i) >= s.labAfter && !labSlot.firstChild) {
+      labSlot.appendChild(labs[s.lab]()); typeset(labSlot);
+    }
+  }
+  function mount(j) {
+    const b = renderTask(i, j, s.tasks[j], () => onSolved(j));
+    boxes[j] = b; return b;
+  }
+  function onSolved(j) {
+    const old = boxes[j];
+    clearMath(old);
+    const nb = renderTask(i, j, s.tasks[j], () => {});
+    old.replaceWith(nb); boxes[j] = nb; typeset(nb);
+    drawLab();
+    const next = s.tasks.findIndex((_, k) => !st.solved[tk(i, k)]);
+    let target = null;
+    if (next !== -1 && !boxes[next]) { const b = mount(next); tasksBox.appendChild(b); typeset(b); target = b; }
+    drawEnd(); renderRail(); renderLedger();
+    if (!target && stationDone(i)) target = endSlot;
+    if (target) bringIntoView(target);
+  }
+  function drawEnd() {
+    endSlot.innerHTML = "";
+    if (!stationDone(i)) return;
+    if (i < stations.length - 1) {
+      if (st.unlocked < i + 1) { st.unlocked = i + 1; save(); renderRail(); }
+      const box = el("div", { class: "complete" }, `<p>Step ${i + 1} complete. ${stations[i].ledger ? "Your model has been updated." : ""}</p>`);
+      const b = el("button", { class: "btn", type: "button" }, `Go to step ${i + 2}: ${stations[i + 1].short}`);
+      b.addEventListener("click", () => go(i + 1));
+      box.appendChild(b); endSlot.appendChild(box);
+    } else {
+      const total = stations.reduce((a, s) => a + s.tasks.length, 0) * 10;
+      endSlot.appendChild(el("div", { class: "complete" }, `<p>Workshop complete: ${st.xp} of ${total} points. You have built, solved and simulated a DSGE model. The New Keynesian model is the natural next build.</p>`));
+    }
+  }
+  drawLab();
+  const cur = s.tasks.findIndex((_, j) => !st.solved[tk(i, j)]);
+  const upto = cur === -1 ? s.tasks.length - 1 : cur;
+  for (let j = 0; j <= upto; j++) tasksBox.appendChild(mount(j));
+  typeset(tasksBox);
+  drawEnd();
+}
+
+/* ---------- tasks ---------- */
+function renderTask(si, ti, t, onSolve) {
+  const key = tk(si, ti), solved = !!st.solved[key];
+  const box = el("div", { class: "task" + (solved ? " solved" : "") });
+  box.appendChild(el("div", { class: "task-top" }, `<span>Check ${ti + 1} of ${stations[si].tasks.length}</span>${solved ? '<span class="ok">Solved</span>' : ""}`));
+  const q = typeof t.q === "function" ? t.q() : t.q;
+  box.appendChild(el("p", { class: "task-q" }, q));
+  const fb = el("div");
+  const showWhy = () => { fb.innerHTML = `<div class="feedback why"><b>Why:</b> ${t.why}</div>`; };
+  const showHint = () => { clearMath(fb); fb.innerHTML = `<div class="feedback hint"><b>Not quite.</b> ${t.hint}</div>`; typeset(fb); };
+  const win = () => {
+    const miss = st.misses[key] || 0;
+    st.solved[key] = true; save(); addXP(miss === 0 ? 10 : miss === 1 ? 6 : 3);
+    onSolve();
+  };
+  const miss = () => { st.misses[key] = (st.misses[key] || 0) + 1; save(); showHint(); };
+
+  if (t.type === "mcq") {
+    const opts = el("div", { class: "opts" });
+    const list = typeof t.options === "function" ? t.options() : t.options;
+    list.forEach((o, k) => {
+      const b = el("button", { class: "opt", type: "button" }, `<span class="opt-in">${o}</span>`);
+      if (solved) { b.disabled = true; if (k === t.answer) b.classList.add("right"); }
+      b.addEventListener("click", () => {
+        if (k === t.answer) { win(); }
+        else { b.classList.add("wrong"); b.disabled = true; miss(); }
+      });
+      opts.appendChild(b);
+    });
+    box.appendChild(opts);
+  } else if (t.type === "num") {
+    const row = el("div", { class: "numrow" });
+    const inp = el("input", { type: "text", inputmode: "decimal", "aria-label": "Your answer", autocomplete: "off" });
+    const b = el("button", { class: "btn", type: "button" }, "Check answer");
+    row.append(inp, b); box.appendChild(row);
+    if (solved) { inp.value = t.tol === 0 ? t.answer : Number(t.answer).toFixed(4); inp.disabled = true; b.remove(); }
+    const check = () => {
+      const v = parseFloat(inp.value.replace(",", "."));
+      if (isNaN(v)) { inp.classList.add("bad"); clearMath(fb); fb.innerHTML = `<div class="feedback hint"><b>Enter a number.</b> Use a decimal point, for example 0.25.</div>`; return; }
+      const ok = t.tol === 0 ? Math.abs(v - t.answer) < 1e-9 : Math.abs(v - t.answer) <= t.tol * Math.abs(t.answer) + 1e-9;
+      if (ok) win(); else { inp.classList.add("bad"); miss(); }
+    };
+    b.addEventListener("click", check);
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+    inp.addEventListener("input", () => inp.classList.remove("bad"));
+  } else if (t.type === "multi") {
+    const opts = el("div", { class: "opts" });
+    const chosen = new Set(solved ? t.answers : []);
+    t.options.forEach((o, k) => {
+      const b = el("button", { class: "opt check" + (chosen.has(k) ? " on" : ""), type: "button", "aria-pressed": chosen.has(k) }, `<span class="box">${chosen.has(k) ? "✓" : ""}</span><span class="opt-in">${o}</span>`);
+      if (solved) b.disabled = true;
+      b.addEventListener("click", () => {
+        if (chosen.has(k)) chosen.delete(k); else chosen.add(k);
+        const on = chosen.has(k);
+        b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); b.querySelector(".box").textContent = on ? "✓" : "";
+      });
+      opts.appendChild(b);
+    });
+    box.appendChild(opts);
+    if (!solved) {
+      const b = el("button", { class: "btn", type: "button" }, "Check selection");
+      const ra = el("div", { class: "row-actions" }); ra.appendChild(b); box.appendChild(ra);
+      b.addEventListener("click", () => {
+        const want = new Set(t.answers);
+        const ok = chosen.size === want.size && [...chosen].every(x => want.has(x));
+        if (ok) win(); else miss();
+      });
+    }
+  } else if (t.type === "order") {
+    const shuffled = t.items.map((x, k) => k);
+    if (!solved) { for (let k = shuffled.length - 1; k > 0; k--) { const r = Math.floor(Math.random() * (k + 1)); [shuffled[k], shuffled[r]] = [shuffled[r], shuffled[k]]; } }
+    const chips = el("div", { class: "chips" });
+    const seq = el("ol", { class: "seq", "aria-label": "Your order" });
+    let picked = solved ? t.items.map((_, k) => k) : [];
+    const draw = () => {
+      chips.innerHTML = ""; seq.innerHTML = "";
+      if (!solved) shuffled.forEach(k => {
+        const c = el("button", { class: "chip", type: "button" }, t.items[k]);
+        c.disabled = picked.includes(k);
+        c.addEventListener("click", () => {
+          picked.push(k); draw();
+          if (picked.length === t.items.length) {
+            if (picked.every((x, n) => x === n)) win();
+            else { miss(); }
+          }
+        });
+        chips.appendChild(c);
+      });
+      picked.forEach(k => seq.appendChild(el("li", null, t.items[k])));
+    };
+    draw();
+    box.append(chips, seq);
+    if (!solved) {
+      const clr = el("button", { class: "btn ghost", type: "button" }, "Clear and try again");
+      clr.addEventListener("click", () => { picked = []; clearMath(fb); fb.innerHTML = ""; draw(); });
+      const ra = el("div", { class: "row-actions" }); ra.appendChild(clr); box.appendChild(ra);
+    }
+  }
+  box.appendChild(fb);
+  if (solved) showWhy();
+  return box;
+}
+
+/* =========================================================
+   Labs
+   ========================================================= */
+function slider(name, label, min, max, step, val, dec, onInput) {
+  const l = el("label");
+  l.innerHTML = `<span class="lab-l"><span>${label}</span><output>${Number(val).toFixed(dec)}</output></span>`;
+  const r = el("input", { type: "range", min, max, step, value: val, "aria-label": name });
+  r.addEventListener("input", () => { l.querySelector("output").textContent = Number(r.value).toFixed(dec); onInput(parseFloat(r.value)); });
+  l.appendChild(r); return l;
+}
+function stat(v, k) { return `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`; }
+
+const labs = {
+  ss() {
+    const p = Object.assign({}, base);
+    const box = el("section", { class: "lab" }, `<h2>Steady-state lab</h2><p class="sub">Change the deep parameters and watch the long-run ratios respond. Try making households more patient.</p>`);
+    const sl = el("div", { class: "sliders" }); const out = el("div", { class: "stats" });
+    const draw = () => {
+      const yk = (1 / p.beta - 1 + p.delta) / p.alpha, iy = p.delta / yk;
+      out.innerHTML = stat(f(1 / yk, 1), "capital-output ratio, K/Y (quarters)") + stat(f(iy * 100, 1) + "%", "investment share, I/Y") +
+        stat(f((1 - iy) * 100, 1) + "%", "consumption share, C/Y") + stat(f((Math.pow(1 / p.beta, 4) - 1) * 100, 1) + "%", "annual real interest rate");
+    };
+    sl.append(
+      slider("beta", "Patience β", 0.95, 0.999, 0.001, p.beta, 3, v => { p.beta = v; draw(); }),
+      slider("alpha", "Capital share α", 0.2, 0.5, 0.01, p.alpha, 2, v => { p.alpha = v; draw(); }),
+      slider("delta", "Depreciation δ", 0.01, 0.05, 0.001, p.delta, 3, v => { p.delta = v; draw(); })
+    );
+    box.append(sl, out); draw(); return box;
+  },
+  policy() {
+    const p = Object.assign({}, base);
+    const box = el("section", { class: "lab" }, `<h2>Solver lab</h2><p class="sub">The model solved live by undetermined coefficients. Change a parameter and the roots, eigenvalues and policy coefficients update.</p>`);
+    const sl = el("div", { class: "sliders" }); const out = el("div");
+    const draw = () => {
+      const s = solve(p);
+      const ok = Math.abs(s.eig[0]) < 1 && Math.abs(s.eig[1]) > 1;
+      out.innerHTML = `<div class="stats">${stat(f(s.roots[0].P), "stable root P")}${stat(f(s.roots[1].P), "explosive root P")}${stat(f(s.eig[0]) + " / " + f(s.eig[1]), "eigenvalues")}${stat(ok ? "Satisfied" : "Violated", "Blanchard-Kahn")}</div>
+      <div class="tablewrap"><table><thead><tr><th>Variable</th><th>on k̂(t−1)</th><th>on â(t)</th></tr></thead><tbody>
+      ${[["Consumption", "c"], ["Capital (end of t)", "k"], ["Output", "y"], ["Hours", "n"], ["Investment", "i"]].map(([n, x]) => `<tr><td>${n}</td><td>${f(s.pol[x][0])}</td><td>${f(s.pol[x][1])}</td></tr>`).join("")}
+      </tbody></table></div>`;
+    };
+    sl.append(
+      slider("rho", "Shock persistence ρ", 0, 0.99, 0.01, p.rho, 2, v => { p.rho = v; draw(); }),
+      slider("phi", "Inverse Frisch φ", 0.2, 5, 0.1, p.phi, 1, v => { p.phi = v; draw(); }),
+      slider("beta", "Patience β", 0.95, 0.999, 0.001, p.beta, 3, v => { p.beta = v; draw(); })
+    );
+    box.append(sl, out); draw(); return box;
+  },
+  irf() {
+    const p = Object.assign({}, base);
+    const series = [
+      { k: "y", n: "Output", c: "var(--s1)" }, { k: "c", n: "Consumption", c: "var(--s2)" }, { k: "i", n: "Investment", c: "var(--s3)" },
+      { k: "n", n: "Hours", c: "var(--s4)" }, { k: "k", n: "Capital", c: "var(--s5)" }, { k: "a", n: "Productivity", c: "var(--s6)" }
+    ];
+    const on = { y: true, c: true, i: true, n: true, k: true, a: false };
+    const box = el("section", { class: "lab" }, `<h2>Simulation lab</h2><p class="sub">Response to a one-standard-deviation (1%) productivity shock, in % deviation from steady state, over 40 quarters.</p>`);
+    const sl = el("div", { class: "sliders" });
+    const tg = el("div", { class: "toggles" });
+    const svgWrap = el("div");
+    const simBox = el("div");
+    const draw = () => {
+      const r = irf(p, 40);
+      svgWrap.innerHTML = lineChart(series.filter(s => on[s.k]).map(s => ({ name: s.n, color: s.c, data: r[s.k].map(x => x * 100) })), 40);
+    };
+    series.forEach(s => {
+      const b = el("button", { class: "tog", type: "button", "aria-pressed": on[s.k] }, `<span class="sw" style="background:${s.c}"></span>${s.n}`);
+      b.addEventListener("click", () => { on[s.k] = !on[s.k]; b.setAttribute("aria-pressed", on[s.k]); draw(); });
+      tg.appendChild(b);
+    });
+    sl.append(
+      slider("rho", "Shock persistence ρ", 0, 0.99, 0.01, p.rho, 2, v => { p.rho = v; draw(); }),
+      slider("phi", "Inverse Frisch φ", 0.2, 5, 0.1, p.phi, 1, v => { p.phi = v; draw(); }),
+      slider("alpha", "Capital share α", 0.2, 0.5, 0.01, p.alpha, 2, v => { p.alpha = v; draw(); }),
+      slider("delta", "Depreciation δ", 0.01, 0.05, 0.001, p.delta, 3, v => { p.delta = v; draw(); })
+    );
+    const simBtn = el("button", { class: "btn ghost", type: "button" }, "Simulate 200 quarters");
+    simBtn.addEventListener("click", () => {
+      const d = stochSim(p, 200), sy = sd(d.y);
+      simBox.innerHTML = `<div class="tablewrap"><table><thead><tr><th>Variable</th><th>Std. dev. (%)</th><th>Relative to output</th></tr></thead><tbody>
+        ${[["Output", "y"], ["Consumption", "c"], ["Investment", "i"], ["Hours", "n"]].map(([n, x]) => `<tr><td>${n}</td><td>${f(sd(d[x]), 2)}</td><td>${f(sd(d[x]) / sy, 2)}</td></tr>`).join("")}
+        </tbody></table></div><p class="aside-note">Unfiltered log deviations from one random draw of shocks. Press again for a new draw; in the data you would HP-filter first.</p>`;
+    });
+    const ra = el("div", { class: "row-actions" }); ra.appendChild(simBtn);
+    box.append(sl, tg, svgWrap, ra, simBox); draw(); return box;
+  }
+};
+
+function lineChart(ser, T) {
+  const W = 720, H = 340, ml = 46, mr = 104, mt = 14, mb = 36;
+  const iw = W - ml - mr, ih = H - mt - mb;
+  let lo = 0, hi = 0;
+  ser.forEach(s => s.data.forEach(v => { lo = Math.min(lo, v); hi = Math.max(hi, v); }));
+  if (hi - lo < 0.5) hi = lo + 0.5;
+  const pad = (hi - lo) * 0.06; lo -= lo < 0 ? pad : 0; hi += pad;
+  const stepRaw = (hi - lo) / 5, mag = Math.pow(10, Math.floor(Math.log10(stepRaw)));
+  const step = [1, 2, 2.5, 5, 10].map(x => x * mag).find(x => x >= stepRaw);
+  const X = t => ml + (t / (T - 1)) * iw, Y = v => mt + (1 - (v - lo) / (hi - lo)) * ih;
+  let g = "";
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) {
+    g += `<line x1="${ml}" x2="${ml + iw}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--line)" stroke-width="${Math.abs(v) < 1e-9 ? 1.5 : 0.7}" ${Math.abs(v) < 1e-9 ? "" : 'stroke-dasharray="3 4"'}/>`;
+    g += `<text x="${ml - 8}" y="${Y(v) + 4}" text-anchor="end" style="fill:var(--muted)" font-size="12">${+v.toFixed(2)}</text>`;
+  }
+  for (let t = 0; t < T; t += 10) g += `<text x="${X(t)}" y="${H - 14}" text-anchor="middle" style="fill:var(--muted)" font-size="12">${t}</text>`;
+  g += `<text x="${ml + iw / 2}" y="${H - 1}" text-anchor="middle" style="fill:var(--muted)" font-size="12">quarters after the shock</text>`;
+  // direct labels at right end, nudged apart
+  const ends = ser.map(s => ({ name: s.name, color: s.color, y: Y(s.data[s.data.length - 1]) })).sort((a, b) => a.y - b.y);
+  for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 15) ends[k].y = ends[k - 1].y + 15;
+  ser.forEach(s => {
+    const d = s.data.map((v, t) => `${t ? "L" : "M"}${X(t).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+    g += `<path d="${d}" fill="none" style="stroke:${s.color}" stroke-width="2.4" stroke-linejoin="round"/>`;
+  });
+  ends.forEach(e => g += `<text x="${ml + iw + 8}" y="${e.y + 4}" style="fill:${e.color}" font-size="13" font-weight="600">${e.name}</text>`);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Impulse responses to a productivity shock" font-family="Figtree, system-ui, sans-serif">${g}</svg>`;
+}
+
+/* =========================================================
+   Boot
+   ========================================================= */
+let resetArmed = null;
+$("#reset").addEventListener("click", () => {
+  const rb = $("#reset");
+  if (!resetArmed) {
+    rb.textContent = "Click again to clear progress";
+    resetArmed = setTimeout(() => { rb.textContent = "Start over"; resetArmed = null; }, 4000);
+    return;
+  }
+  clearTimeout(resetArmed); resetArmed = null; rb.textContent = "Start over";
+  st = { view: -1, unlocked: 0, xp: 0, solved: {}, misses: {} }; save();
+  lastLedgerStation = null; $("#xp").textContent = 0; renderRail(); renderLedger(); renderIntro();
+});
+$("#xp").textContent = st.xp;
+renderRail(); renderLedger();
+if (st.view >= 0 && st.view < stations.length) renderStation(); else renderIntro();
+})();
+</script>
+</body>
+</html>
