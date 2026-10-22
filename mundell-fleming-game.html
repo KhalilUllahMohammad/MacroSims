@@ -1,0 +1,1737 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mundell–Fleming Policy Game</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="An interactive Mundell–Fleming simulator and game: fiscal and monetary policy under floating and fixed exchange rates, with a student guide.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,600;1,6..96,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: an engraved banknote band on top, then an instrument panel: chart on the left, policy levers on the right, results ledger and causal chain below; everything stacks on phones */
+:root{
+  --paper:#EEF2EC;
+  --panel:#E1E8E0;
+  --card:#F9FBF7;
+  --ink:#122E28;
+  --ink-2:#4A5E58;
+  --ink-3:#71847D;
+  --rule:#C2CEC5;
+  --accent:#0D6654;
+  --accent-ink:#F2FAF6;
+  --accent-soft:#D4E7DF;
+  --is:#B0375C;
+  --lm:#2453A4;
+  --peg:#8F6206;
+  --good:#2A7A44;
+  --bad:#B3461E;
+  --good-soft:#DCEFE1;
+  --bad-soft:#F7E2D8;
+  --guilloche:rgba(13,102,84,.34);
+  --f-display:"Bodoni Moda","Bodoni 72",Didot,"Times New Roman",Georgia,serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D1715; --panel:#14211D; --card:#192824; --ink:#E1EBE5; --ink-2:#A2B4AD; --ink-3:#74877F; --rule:#2C3D37;
+    --accent:#4DC1A3; --accent-ink:#05201A; --accent-soft:#173A31;
+    --is:#EF809E; --lm:#82A8F2; --peg:#E3B650; --good:#6FCB8C; --bad:#F28C64; --good-soft:#163222; --bad-soft:#3A2017;
+    --guilloche:rgba(77,193,163,.24);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D1715; --panel:#14211D; --card:#192824; --ink:#E1EBE5; --ink-2:#A2B4AD; --ink-3:#74877F; --rule:#2C3D37;
+  --accent:#4DC1A3; --accent-ink:#05201A; --accent-soft:#173A31;
+  --is:#EF809E; --lm:#82A8F2; --peg:#E3B650; --good:#6FCB8C; --bad:#F28C64; --good-soft:#163222; --bad-soft:#3A2017;
+  --guilloche:rgba(77,193,163,.24);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1220px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{text-wrap:balance}
+.sym,i.sym{font-family:var(--f-display);font-style:italic;font-weight:500}
+
+/* ---------- header band ---------- */
+.band{position:relative;overflow:hidden;background:var(--panel);border-bottom:1px solid var(--rule)}
+#rosette{position:absolute;top:50%;right:max(-60px,calc((100% - 1220px)/2 + 10px));width:300px;height:300px;transform:translateY(-50%);pointer-events:none}
+.band-inner{position:relative;z-index:1;padding-block:28px 22px}
+.eyebrow{margin:0 0 10px;font:500 12px/1.4 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+h1{margin:0;font-family:var(--f-display);font-weight:500;font-size:clamp(2.2rem,5vw,3.6rem);line-height:1.04;letter-spacing:-.01em}
+h1 .nw{white-space:nowrap}
+h1 em{display:block;font-style:italic;color:var(--accent)}
+.lede{max-width:58ch;margin:12px 0 14px;font-size:16.5px;color:var(--ink-2)}
+.serial{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding-top:10px;border-top:1px dashed var(--rule);max-width:620px;font:500 11.5px/1.4 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+
+/* ---------- tabs ---------- */
+.tabs{border-bottom:1px solid var(--rule);background:var(--paper)}
+.tabs-inner{display:flex;gap:26px;overflow-x:auto;scrollbar-width:none}
+.tabs-inner::-webkit-scrollbar{display:none}
+.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;padding:14px 2px 12px;font-weight:500;font-size:15px;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .count{font:500 11px var(--f-mono);margin-left:6px;padding:1px 6px;border-radius:9px;background:var(--accent-soft);color:var(--accent)}
+
+main{padding-block:22px 48px}
+.view{display:flex;flex-direction:column;gap:20px}
+
+/* ---------- buttons ---------- */
+.btn{appearance:none;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--rule);border-radius:4px;background:var(--card);color:var(--ink);font-weight:500;font-size:14px;cursor:pointer;line-height:1.2}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.small{padding:5px 10px;font-size:13px}
+.link-btn{appearance:none;background:none;border:0;padding:0;color:var(--accent);font-weight:500;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- lab intro ---------- */
+.intro-strip{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.intro-strip p{margin:0;flex:1 1 380px;color:var(--ink-2);max-width:70ch}
+.try-row{display:flex;flex-wrap:wrap;gap:8px}
+.try-row .label{font:500 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);align-self:center}
+
+/* ---------- simulator grid ---------- */
+.sim-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:auto auto 1fr;grid-template-areas:"chart controls" "ledger controls" "story controls";gap:16px 22px}
+.sim-grid>.chart-card{grid-area:chart}
+.sim-grid>.controls{grid-area:controls;align-self:start}
+.sim-grid>.ledger{grid-area:ledger}
+.sim-grid>.story{grid-area:story;align-self:start}
+@media (max-width:900px){
+  .sim-grid{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-template-areas:"chart" "ledger" "controls" "story"}
+}
+.chart-card{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:12px 12px 6px;min-width:0}
+.chart-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 12px;padding:0 4px 4px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:22px;height:0;border-top:3px solid}
+.legend .k-is{border-color:var(--is)}
+.legend .k-lm{border-color:var(--lm)}
+.legend .k-peg{border-top:2px dashed var(--peg)}
+.chart-actions{display:flex;gap:6px}
+.chart-note{margin:2px 4px 6px;font-size:12.5px;color:var(--ink-3);min-height:1.5em}
+.chart-note.warn{color:var(--bad)}
+
+/* ---------- chart svg ---------- */
+.mf-chart{display:block;width:100%;height:auto;max-width:100%;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.mf-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.6}
+.mf-chart .axis{stroke:var(--ink);stroke-width:1.4;fill:none}
+.mf-chart .tick{fill:var(--ink-3);font:400 11px var(--f-mono)}
+.mf-chart .axis-title{fill:var(--ink-2);font:italic 400 13px var(--f-body)}
+.mf-chart .is{stroke:var(--is);stroke-width:3.2;fill:none;stroke-linecap:round}
+.mf-chart .lm{stroke:var(--lm);stroke-width:3.2;fill:none;stroke-linecap:round}
+.mf-chart .peg{stroke:var(--peg);stroke-width:2.2;stroke-dasharray:9 6;fill:none}
+.mf-chart .ghost{opacity:.4;stroke-dasharray:6 6;stroke-width:2}
+.mf-chart .peg.ghost{stroke-dasharray:3 6}
+.mf-chart .lab{font:italic 500 19px var(--f-display)}
+.mf-chart .lab.c-is{fill:var(--is)}
+.mf-chart .lab.c-lm{fill:var(--lm)}
+.mf-chart .lab.c-peg{fill:var(--peg);font-size:15px}
+.mf-chart .lab.faded{opacity:.55}
+.mf-chart .ptlab{fill:var(--ink);font:italic 500 17px var(--f-display)}
+.mf-chart .ptlab.faded{fill:var(--ink-2)}
+.mf-chart .guide{stroke:var(--ink-3);stroke-width:1;stroke-dasharray:3 4;fill:none}
+.mf-chart .pt{fill:var(--ink);stroke:var(--card);stroke-width:2}
+.mf-chart .pt-old{fill:var(--card);stroke:var(--ink-2);stroke-width:2}
+.mf-chart .pt-press{fill:var(--card);stroke:var(--peg);stroke-width:2.6}
+.mf-chart .press-line{stroke:var(--peg);stroke-width:1.6;stroke-dasharray:2 3;fill:none}
+.mf-chart .press-lab{fill:var(--peg);font:500 11.5px var(--f-mono)}
+.mf-chart .tagbg{fill:var(--card);stroke:var(--ink);stroke-width:1}
+.mf-chart .tag{fill:var(--ink);font:500 11px var(--f-mono)}
+.mf-chart .shift{stroke-width:1.7;fill:none}
+.mf-chart .shift.c-is{stroke:var(--is)}
+.mf-chart .shift.c-lm{stroke:var(--lm)}
+.mf-chart .shift.c-peg{stroke:var(--peg)}
+.mf-chart .ah-is{fill:var(--is)}
+.mf-chart .ah-lm{fill:var(--lm)}
+.mf-chart .ah-peg{fill:var(--peg)}
+.mf-chart .ah-ink{fill:var(--ink)}
+.mf-chart .hv-line{stroke:var(--accent);stroke-width:1.2;stroke-dasharray:2 3;fill:none}
+.mf-chart .hv-dot{fill:var(--accent);stroke:var(--card);stroke-width:2}
+.mf-chart .tip-bg{fill:var(--card);stroke:var(--accent);stroke-width:1}
+.mf-chart .tip{fill:var(--ink);font:400 12px var(--f-mono)}
+.mf-chart.mini .lab{font-size:17px}
+.mf-chart.mini .tick{font-size:10.5px}
+
+/* ---------- controls ---------- */
+.controls{display:flex;flex-direction:column;gap:14px}
+.ctrl-group{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:12px 14px 6px}
+.ctrl-title{margin:0 0 8px;font:500 11.5px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--rule);border-radius:5px;overflow:hidden;margin-bottom:8px}
+.seg button{appearance:none;border:0;background:var(--card);padding:9px 8px;font-weight:600;font-size:14px;color:var(--ink-2);cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--card)}
+.seg button:disabled{cursor:not-allowed}
+.seg button:disabled:not([aria-pressed="true"]){opacity:.45}
+.ctrl-note{margin:0 0 10px;font-size:13px;color:var(--ink-2)}
+.lever{padding:6px 0 8px}
+.lever+.lever{border-top:1px solid var(--rule)}
+.lever-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.lever-head label{font-weight:500;font-size:14px}
+.lever-head .sym{font-size:16px;margin-left:3px}
+.lever output{font:500 15px var(--f-mono);font-variant-numeric:tabular-nums}
+.lever-row{display:grid;grid-template-columns:30px minmax(0,1fr) 30px;align-items:center;gap:8px;margin-top:2px}
+.step{appearance:none;width:30px;height:30px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);font:500 16px var(--f-mono);cursor:pointer;line-height:1}
+.step:hover{border-color:var(--ink-3)}
+.step:disabled{opacity:.35;cursor:not-allowed}
+.lever-note{margin:2px 0 0;font-size:12.5px;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:2px 8px}
+.moves{font:500 10.5px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:3px;border:1px solid currentColor}
+.c-is .moves{color:var(--is)}
+.c-lm .moves{color:var(--lm)}
+.c-peg .moves{color:var(--peg)}
+.c-both .moves{color:var(--ink-2)}
+.lever.locked .lever-head label{color:var(--ink-3)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;margin:0;background:transparent;cursor:pointer}
+input[type=range]:disabled{cursor:not-allowed;opacity:.4}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--rule);border-radius:2px}
+input[type=range]::-moz-range-track{height:4px;background:var(--rule);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-8px;border-radius:50%;background:var(--card);border:3px solid var(--ink)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--card);border:3px solid var(--ink)}
+.c-is input[type=range]::-webkit-slider-thumb{border-color:var(--is)}
+.c-is input[type=range]::-moz-range-thumb{border-color:var(--is)}
+.c-lm input[type=range]::-webkit-slider-thumb{border-color:var(--lm)}
+.c-lm input[type=range]::-moz-range-thumb{border-color:var(--lm)}
+.c-peg input[type=range]::-webkit-slider-thumb{border-color:var(--peg)}
+.c-peg input[type=range]::-moz-range-thumb{border-color:var(--peg)}
+
+/* ---------- ledger ---------- */
+.ledger{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.cell{background:var(--card);padding:10px 12px 11px;min-width:0}
+.cell.big{grid-column:span 2;padding:12px 14px 13px}
+.cell .k{display:block;font:500 10.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);overflow-wrap:anywhere}
+.cell .v{display:block;font-family:var(--f-mono);font-weight:500;font-size:17px;font-variant-numeric:tabular-nums;margin-top:2px}
+.cell.big .v{font-family:var(--f-display);font-size:34px;line-height:1.1;font-weight:500;font-variant-numeric:lining-nums tabular-nums}
+.cell .d{display:block;font:400 12px var(--f-mono);color:var(--ink-3);margin-top:2px;min-height:1.4em}
+.cell .d.chg{color:var(--accent)}
+.nxbar{position:relative;height:6px;margin-top:8px;background:var(--paper);border-radius:3px;overflow:hidden}
+.nxbar::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink-3)}
+.nxbar span{position:absolute;top:0;bottom:0;border-radius:3px;transition:left .5s,width .5s}
+.nxbar .pos{background:var(--good)}
+.nxbar .neg{background:var(--bad)}
+@media (max-width:620px){
+  .ledger{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .cell.big{grid-column:span 1;padding:10px 10px 11px}
+  .cell.big .v{font-size:25px}
+  .cell{padding:9px 10px}
+}
+
+/* ---------- story ---------- */
+.story{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:14px 16px 12px}
+.story-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;margin-bottom:6px}
+.story h3{margin:0;font-family:var(--f-display);font-weight:500;font-size:21px}
+.story .ctx{font:500 11.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.steps{list-style:none;margin:8px 0 0;padding:0;counter-reset:st;display:flex;flex-direction:column;gap:8px}
+.steps li{counter-increment:st;display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;align-items:start;opacity:.32;transition:opacity .45s ease}
+.steps li.on{opacity:1}
+.steps li::before{content:counter(st);display:grid;place-items:center;width:24px;height:24px;border-radius:50%;border:1px solid var(--ink-3);font:500 12px var(--f-mono);color:var(--ink-2);margin-top:1px}
+.steps li.st2::before{border-color:var(--peg);color:var(--peg)}
+.steps .stg{display:inline-block;margin-right:6px;font:500 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.steps li.st2 .stg{color:var(--peg)}
+.result{margin:12px 0 0;padding-top:10px;border-top:1px dashed var(--rule);font:400 13px/1.6 var(--f-mono);color:var(--ink-2)}
+.result b{color:var(--ink);font-weight:500}
+.story .empty{margin:6px 0 0;color:var(--ink-2)}
+
+/* ---------- scorecard ---------- */
+.scorecard{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:16px}
+.sc-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 16px;margin-bottom:12px}
+.sc-head h2{margin:0;font-family:var(--f-display);font-weight:500;font-size:24px}
+.sc-head p{margin:0;color:var(--ink-2);font-size:14px;max-width:62ch}
+.sc-count{font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.sc-table-wrap{overflow-x:auto}
+.sc-table{width:100%;min-width:520px;border-collapse:collapse;font-size:14px}
+.sc-table th,.sc-table td{padding:10px;border-top:1px solid var(--rule);text-align:left;vertical-align:middle}
+.sc-table thead th{border-top:0;font:500 11.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.sc-table tbody th{font-weight:500;width:30%}
+.sc-table tbody th small{display:block;font-weight:400;color:var(--ink-3);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:3px;border:1px solid var(--rule);font:500 12.5px var(--f-mono);background:var(--paper);white-space:nowrap}
+.chip b{font-family:var(--f-display);font-style:italic;font-weight:500;font-size:14px}
+.chip.up,.chip.down{border-color:var(--ink-2)}
+.sc-unknown{display:inline-block;padding:4px 10px;border:1px dashed var(--ink-3);border-radius:3px;font:400 12.5px var(--f-mono);color:var(--ink-3)}
+
+/* ---------- missions ---------- */
+.sec-head h2{margin:0 0 4px;font-family:var(--f-display);font-weight:500;font-size:clamp(26px,3.4vw,34px)}
+.sec-head p{margin:0;color:var(--ink-2);max-width:66ch}
+.mission-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.mission-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.mission-grid{grid-template-columns:minmax(0,1fr)}}
+.mcard{appearance:none;text-align:left;display:flex;flex-direction:column;gap:6px;padding:16px;background:var(--card);border:1px solid var(--rule);border-radius:6px;cursor:pointer;min-width:0}
+.mcard:hover{border-color:var(--ink-3)}
+.mcard .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mcard .num{font:500 11.5px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.mcard h3{margin:0;font-family:var(--f-display);font-weight:500;font-size:21px;line-height:1.15}
+.mcard p{margin:0;color:var(--ink-2);font-size:14px}
+.stars{font-size:16px;letter-spacing:2px;color:var(--peg)}
+.stars .off{color:var(--rule)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font:500 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;border:1px solid currentColor}
+.pill.float{color:var(--accent)}
+.pill.fixed{color:var(--peg)}
+.brief{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.brief-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:center}
+.brief h2{margin:0;font-family:var(--f-display);font-weight:500;font-size:clamp(24px,3vw,30px)}
+.brief p{margin:0;max-width:72ch}
+.targets{display:flex;flex-wrap:wrap;gap:10px}
+.target{display:grid;grid-template-columns:auto auto;gap:0 14px;padding:8px 12px;border:1px solid var(--rule);border-radius:5px;background:var(--paper);min-width:200px}
+.target .tn{font:500 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);grid-column:1/-1}
+.target .now{font:500 22px var(--f-display);font-variant-numeric:lining-nums}
+.target .goal{font:400 12.5px var(--f-mono);color:var(--ink-2);align-self:center}
+.target .flag{grid-column:1/-1;font:500 11.5px var(--f-mono);color:var(--bad)}
+.target.ok{border-color:var(--good);background:var(--good-soft)}
+.target.ok .flag{color:var(--good)}
+.brief-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.used{font:400 12.5px var(--f-mono);color:var(--ink-2);margin-left:auto}
+.feedback{margin:0;font-size:14px;min-height:0}
+.feedback.bad{color:var(--bad)}
+.feedback.hint{color:var(--ink-2)}
+.debrief{border-top:1px dashed var(--rule);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.debrief h3{margin:0;font-family:var(--f-display);font-weight:500;font-size:22px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.debrief .note{color:var(--ink-2);font-size:14px}
+
+/* ---------- predict ---------- */
+.pred-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px 20px}
+.scorebox{display:flex;gap:18px;font:500 12.5px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.scorebox b{font:500 22px var(--f-display);color:var(--ink);letter-spacing:0;margin-left:4px;text-transform:none}
+.progress{height:4px;background:var(--rule);border-radius:2px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--accent);transition:width .4s}
+.pred-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:20px;align-items:start}
+@media (max-width:900px){.pred-grid{grid-template-columns:minmax(0,1fr)}}
+.pcard{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.pcard .scn{margin:0;font-family:var(--f-display);font-size:22px;line-height:1.3}
+.prow{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;padding-top:10px;border-top:1px solid var(--rule)}
+.prow .pl{display:flex;justify-content:space-between;gap:8px;font-weight:500}
+.prow .mark{font:500 12.5px var(--f-mono)}
+.prow .mark.ok{color:var(--good)}
+.prow .mark.no{color:var(--bad)}
+.popts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.popts button{appearance:none;padding:8px 6px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);font-size:13.5px;font-weight:500;cursor:pointer;color:var(--ink-2)}
+.popts button:hover:not(:disabled){border-color:var(--ink-3);color:var(--ink)}
+.popts button[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.popts button.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.popts button.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.popts button:disabled{cursor:default}
+.pactions{display:flex;flex-wrap:wrap;gap:8px}
+.final{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.final h3{margin:0;font-family:var(--f-display);font-weight:500;font-size:28px}
+.final ul{margin:0;padding-left:20px;color:var(--ink-2)}
+
+/* ---------- guide ---------- */
+.guide{display:grid;grid-template-columns:210px minmax(0,1fr);gap:40px;align-items:start}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);font-size:14px}
+.toc p{margin:0 0 8px;font:500 11px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.toc ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.toc a{display:block;padding:4px 0 4px 10px;border-left:1px solid var(--rule);color:var(--ink-2);text-decoration:none}
+.toc a:hover{color:var(--accent);border-left-color:var(--accent)}
+@media (max-width:900px){
+  .guide{grid-template-columns:minmax(0,1fr);gap:16px}
+  .toc{position:static}
+  .toc ul{flex-direction:row;flex-wrap:wrap;gap:6px}
+  .toc a{border:1px solid var(--rule);border-radius:3px;padding:3px 8px;font-size:13px}
+}
+.article{max-width:70ch;min-width:0}
+.article h2{font-family:var(--f-display);font-weight:500;font-size:clamp(25px,3vw,31px);line-height:1.15;margin:40px 0 10px;scroll-margin-top:16px}
+.article h2:first-child{margin-top:0}
+.article h3{font-size:16.5px;font-weight:600;margin:24px 0 6px}
+.article p,.article li{font-size:16px;line-height:1.68}
+.article p{margin:0 0 12px}
+.article ul,.article ol{margin:0 0 14px;padding-left:22px}
+.article li{margin-bottom:4px}
+.article .kicker{font:500 12px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
+.eq{margin:12px 0 16px;padding:12px 16px;background:var(--panel);border-radius:4px;font:italic 500 19px/1.5 var(--f-display);overflow-x:auto;white-space:nowrap}
+.eq sup,.eq sub{font-size:.68em}
+.eq-list{margin:12px 0 16px;padding:12px 16px;background:var(--panel);border-radius:4px;overflow-x:auto}
+.eq-list div{display:grid;grid-template-columns:150px auto;gap:12px;padding:3px 0;font-size:15px;min-width:420px}
+.eq-list span:first-child{color:var(--ink-2)}
+.eq-list span:last-child{font:italic 500 17px var(--f-display)}
+.callout{margin:16px 0 18px;padding:14px 16px;border:1px solid var(--peg);border-radius:5px;background:var(--card)}
+.callout .cl{margin:0 0 4px;font:500 11.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--peg)}
+.callout p:last-child{margin-bottom:0}
+.figs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0 18px}
+.figs.one{grid-template-columns:minmax(0,1fr);max-width:480px}
+@media (max-width:640px){.figs{grid-template-columns:minmax(0,1fr)}}
+figure{margin:0;background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:10px 10px 12px;min-width:0}
+figcaption{font-size:13.5px;line-height:1.5;color:var(--ink-2);padding:6px 4px 0}
+figcaption b{color:var(--ink);font-weight:600}
+figure .btn{margin:8px 4px 0}
+.table-wrap{overflow-x:auto;margin:12px 0 18px}
+.sum{border-collapse:collapse;width:100%;min-width:520px;font-size:14.5px}
+.sum th,.sum td{border:1px solid var(--rule);padding:8px 10px;text-align:center}
+.sum thead th{background:var(--panel);font-weight:600}
+.sum tbody th{text-align:left;font-weight:500;background:var(--card)}
+.sum td{font:500 14px var(--f-mono);background:var(--card)}
+.sum .grp{font:500 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase}
+details{border:1px solid var(--rule);border-radius:5px;background:var(--card);margin:0 0 8px}
+summary{cursor:pointer;padding:10px 14px;font-weight:500;font-size:15.5px;list-style-position:outside}
+details[open] summary{border-bottom:1px dashed var(--rule)}
+details .ans{padding:10px 14px 2px}
+details .ans p{font-size:15px}
+
+footer{border-top:1px solid var(--rule);background:var(--panel)}
+footer p{margin:0;padding-block:18px;font-size:13px;color:var(--ink-2);max-width:90ch}
+
+@media (max-width:560px){
+  #rosette{width:220px;height:220px;right:-80px;opacity:.55}
+  .band-inner{padding-block:22px 18px}
+  .lede{font-size:15.5px}
+  .tabs-inner{gap:18px}
+  .sc-table{min-width:0}
+  .sc-table tbody th{width:34%}
+  .sc-table th,.sc-table td{padding:10px 6px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="band">
+  <canvas id="rosette" aria-hidden="true"></canvas>
+  <div class="wrap band-inner">
+    <p class="eyebrow">Small open economy · perfect capital mobility · r = r*</p>
+    <h1><span class="nw">Mundell–Fleming</span> <em>Policy Game</em></h1>
+    <p class="lede">Run a small open economy. Move fiscal and monetary levers, switch between a floating and a fixed exchange rate, and find out which policies can actually move output.</p>
+    <p class="serial"><span>Fleming 1962</span><span>Mundell 1963</span><span id="serial-progress">Missions 0/6 · Scorecard 0/6</span></p>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Sections">
+  <div class="wrap tabs-inner" role="tablist">
+    <button class="tab" role="tab" id="tab-lab" data-tab="lab" aria-selected="true" aria-controls="view-sim">Lab</button>
+    <button class="tab" role="tab" id="tab-missions" data-tab="missions" aria-selected="false" aria-controls="view-sim">Missions<span class="count" id="tab-mcount">0/6</span></button>
+    <button class="tab" role="tab" id="tab-predict" data-tab="predict" aria-selected="false" aria-controls="view-predict">Predict</button>
+    <button class="tab" role="tab" id="tab-guide" data-tab="guide" aria-selected="false" aria-controls="view-guide">Student guide</button>
+  </div>
+</nav>
+
+<main>
+  <!-- ===== Lab + Missions share the simulator ===== -->
+  <section id="view-sim" class="wrap view" aria-label="Simulator">
+    <div class="intro-strip" id="lab-intro">
+      <p>Free play. Choose a regime, move one lever at a time and follow the chain of events under the chart. Hover over the chart (or tap it on a phone) to read how the exchange rate and output trade off along IS*.</p>
+      <div class="try-row">
+        <span class="label">Try</span>
+        <button class="btn small" data-run="float:G:240">Raise G, floating</button>
+        <button class="btn small" data-run="fixed:G:240">Raise G, fixed</button>
+        <button class="btn small" data-run="float:M:450">Raise M, floating</button>
+        <button class="btn small" data-run="fixed:M:450">Raise M, fixed</button>
+      </div>
+    </div>
+
+    <div id="mission-picker" hidden>
+      <div class="sec-head">
+        <h2>Missions</h2>
+        <p>Six policy problems. Each one gives you a regime, a target and a set of instruments. Hit the target with as few instruments as possible: using the right tool first earns three stars.</p>
+      </div>
+      <div class="mission-grid" id="mission-grid" style="margin-top:16px"></div>
+    </div>
+
+    <div class="brief" id="brief" hidden>
+      <div class="brief-top">
+        <button class="link-btn" id="brief-back" type="button">← All missions</button>
+        <span id="brief-tag"></span>
+      </div>
+      <h2 id="brief-title"></h2>
+      <p id="brief-text"></p>
+      <div class="targets" id="brief-targets" aria-live="polite"></div>
+      <div class="brief-actions">
+        <button class="btn primary" id="brief-submit" type="button">Submit policy</button>
+        <button class="btn" id="brief-hint" type="button">Hint</button>
+        <button class="btn" id="brief-restart" type="button">Restart mission</button>
+        <span class="used" id="brief-used"></span>
+      </div>
+      <p class="feedback" id="brief-feedback" aria-live="polite"></p>
+      <div class="debrief" id="brief-debrief" hidden></div>
+    </div>
+
+    <div class="sim-grid" id="sim-grid">
+      <div class="chart-card">
+        <div class="chart-head">
+          <div class="legend">
+            <span><i class="k-is"></i>IS* goods market</span>
+            <span><i class="k-lm"></i>LM* money market</span>
+            <span id="legend-peg"><i class="k-peg"></i>ē peg</span>
+          </div>
+          <div class="chart-actions">
+            <button class="btn small" id="btn-replay" type="button" disabled>Replay</button>
+            <button class="btn small" id="btn-reset" type="button">Reset</button>
+          </div>
+        </div>
+        <svg id="sim-chart" role="img" aria-label="Mundell–Fleming diagram"></svg>
+        <p class="chart-note" id="sim-note"></p>
+      </div>
+
+      <div class="ledger" id="ledger" aria-live="polite"></div>
+
+      <aside class="controls" id="controls" aria-label="Policy levers"></aside>
+
+      <div class="story" id="story">
+        <div class="story-head"><h3>What just happened</h3><span class="ctx" id="story-ctx"></span></div>
+        <div id="story-body"><p class="empty">Move a lever and the chain of events appears here, step by step. A good first experiment: raise government spending under a floating rate, then switch to a fixed rate and do it again.</p></div>
+      </div>
+    </div>
+
+    <section class="scorecard" id="scorecard" aria-label="Policy scorecard">
+      <div class="sc-head">
+        <div>
+          <h2>Policy scorecard</h2>
+          <p>Each cell opens the first time you try that policy under that regime, in the Lab, a mission or a prediction round. Fill all six and you have the model's main results.</p>
+        </div>
+        <span class="sc-count" id="sc-count">0 of 6 found</span>
+      </div>
+      <div class="sc-table-wrap"><table class="sc-table" id="sc-table"></table></div>
+    </section>
+  </section>
+
+  <!-- ===== Predict ===== -->
+  <section id="view-predict" class="wrap view" aria-label="Predict the outcome" hidden>
+    <div class="pred-top">
+      <div class="sec-head">
+        <h2>Predict the outcome</h2>
+        <p>Ten policy changes. For each one, say what happens to output, the exchange rate and net exports, then watch the model play it out.</p>
+      </div>
+      <div class="scorebox"><span>Round<b id="pr-round">1/10</b></span><span>Score<b id="pr-score">0/30</b></span></div>
+    </div>
+    <div class="progress" aria-hidden="true"><span id="pr-bar" style="width:0%"></span></div>
+    <div class="pred-grid" id="pr-grid">
+      <div class="pcard">
+        <div><span class="pill" id="pr-regime">Floating rate</span></div>
+        <p class="scn" id="pr-text"></p>
+        <div id="pr-rows"></div>
+        <div class="pactions">
+          <button class="btn primary" id="pr-check" type="button" disabled>Check prediction</button>
+          <button class="btn primary" id="pr-next" type="button" hidden>Next round</button>
+        </div>
+      </div>
+      <div class="chart-card">
+        <svg id="pred-chart" role="img" aria-label="Mundell–Fleming diagram for this round"></svg>
+        <div class="story" id="pr-story" style="border:0;padding:6px 6px 4px;background:none" hidden>
+          <div class="story-head"><h3>Why</h3><span class="ctx" id="pr-ctx"></span></div>
+          <div id="pr-story-body"></div>
+        </div>
+      </div>
+    </div>
+    <div class="final" id="pr-final" hidden></div>
+  </section>
+
+  <!-- ===== Guide ===== -->
+  <section id="view-guide" class="wrap view" aria-label="Student guide" hidden>
+    <div class="guide">
+      <nav class="toc" aria-label="Guide contents">
+        <p>Contents</p>
+        <ul>
+          <li><a href="#g-start">What the model is for</a></li>
+          <li><a href="#g-assume">Three assumptions</a></li>
+          <li><a href="#g-e">The exchange rate</a></li>
+          <li><a href="#g-is">IS*: goods market</a></li>
+          <li><a href="#g-lm">LM*: money market</a></li>
+          <li><a href="#g-eq">Equilibrium</a></li>
+          <li><a href="#g-float">Floating rates</a></li>
+          <li><a href="#g-fixed">Fixed rates</a></li>
+          <li><a href="#g-table">Summary table</a></li>
+          <li><a href="#g-trinity">Impossible trinity</a></li>
+          <li><a href="#g-limits">Limits of the model</a></li>
+          <li><a href="#g-exam">Drawing it in an exam</a></li>
+          <li><a href="#g-check">Check your understanding</a></li>
+          <li><a href="#g-eqs">The simulator's equations</a></li>
+        </ul>
+      </nav>
+
+      <article class="article">
+        <p class="kicker">Student guide</p>
+        <h2 id="g-start">What the model is for</h2>
+        <p>The Mundell–Fleming model is the IS–LM model rebuilt for a small economy that trades goods and financial assets with the rest of the world. Robert Mundell and J. Marcus Fleming developed it in the early 1960s, and Mundell's work on it was part of his 1999 Nobel Prize.</p>
+        <p>Its central lesson still drives policy debates: <strong>whether fiscal or monetary policy can move output depends on the exchange-rate regime.</strong> Under a floating exchange rate, monetary policy moves output and fiscal policy does not. Under a fixed exchange rate, the result flips. The rest of this guide explains why.</p>
+
+        <h2 id="g-assume">Three assumptions</h2>
+        <ul>
+          <li><strong>Small open economy.</strong> The country is too small to affect world interest rates. It takes the world rate r* as given.</li>
+          <li><strong>Perfect capital mobility.</strong> Investors move funds instantly to wherever returns are highest. If the domestic interest rate rose above r*, foreign money would pour in until it fell back. So the domestic rate is pinned: <em>r = r*</em>.</li>
+          <li><strong>Fixed prices in the short run.</strong> The price level P does not change, so a change in the nominal exchange rate is also a change in the real exchange rate.</li>
+        </ul>
+        <p>The second assumption does most of the work. In the closed-economy IS–LM model, the interest rate adjusts to clear the markets. Here it cannot move, so something else has to adjust: the exchange rate under a float, or the money supply under a peg.</p>
+
+        <h2 id="g-e">The exchange rate</h2>
+        <p>In this model <em>e</em> is the price of the domestic currency in foreign currency: how many units of foreign currency one unit of domestic currency buys.</p>
+        <ul>
+          <li>A <strong>rise in e is an appreciation</strong>: the domestic currency gets stronger.</li>
+          <li>A <strong>fall in e is a depreciation</strong>: the domestic currency gets weaker.</li>
+        </ul>
+        <p>When e rises, domestic goods become dearer for foreigners and foreign goods become cheaper at home. Exports fall and imports rise, so net exports fall. Net exports depend negatively on the exchange rate: NX = NX(e).</p>
+        <aside class="callout">
+          <p class="cl">Reading Pakistani headlines</p>
+          <p>Newspapers quote the rupee as rupees per US dollar, for example Rs 280 per dollar. That is the inverse of e. If the rate moves from Rs 280 to Rs 300 per dollar, each rupee buys fewer dollars: the rupee has depreciated, and e in this model has fallen. A "stronger dollar" in the news means a lower e on the graph.</p>
+        </aside>
+
+        <h2 id="g-is">IS*: the goods market</h2>
+        <div class="eq">IS*: &nbsp;Y = C(Y − T) + I(r*) + G + NX(e)</div>
+        <p>Output equals planned spending: consumption, investment, government purchases and net exports. Because r is fixed at r*, investment is fixed too. The only price left to clear the goods market is the exchange rate.</p>
+        <h3>Why IS* slopes downward</h3>
+        <p>A higher exchange rate lowers net exports. Lower spending means lower output, magnified by the multiplier. So a high e goes with a low Y, and the curve slopes down in a graph with e on the vertical axis and Y on the horizontal.</p>
+        <p>This is the core link between exchange rates and output. In the simulator, a rise of 10 in e cuts net exports by 25. With a marginal propensity to consume of 0.75 the multiplier is 4, so the output the goods market can support falls by 100. Hover over the chart in the Lab to read this trade-off at any exchange rate.</p>
+        <h3>What shifts IS*</h3>
+        <p><strong>Right:</strong> higher government spending, lower taxes, import restrictions, a lower world interest rate (which raises investment), or more confident households and firms. <strong>Left:</strong> the reverse.</p>
+
+        <h2 id="g-lm">LM*: the money market</h2>
+        <div class="eq">LM*: &nbsp;M/P = L(r*, Y)</div>
+        <p>Money demand depends on the interest rate and on income, not on the exchange rate. With r pinned at r* and the real money supply M/P given, only one level of income makes people willing to hold exactly that money. So LM* is a <strong>vertical line</strong>: it fixes output whatever the exchange rate.</p>
+        <h3>What shifts LM*</h3>
+        <p><strong>Right:</strong> a larger money supply, a lower price level, or a higher r* (which lowers money demand, so the same money supports more income). <strong>Left:</strong> the reverse.</p>
+
+        <h2 id="g-eq">Equilibrium</h2>
+        <p>The economy sits where IS* and LM* cross. LM* fixes output; IS* then tells you which exchange rate clears the goods market at that output.</p>
+        <div class="figs one">
+          <figure>
+            <svg data-fig="base" role="img" aria-label="IS* and LM* crossing at Y = 1000 and e = 100"></svg>
+            <figcaption><b>Figure 1.</b> Equilibrium at output 1000 and exchange rate 100, with the simulator's starting values.</figcaption>
+          </figure>
+        </div>
+
+        <h2 id="g-float">Policy under floating rates</h2>
+        <p>Under a floating rate the central bank chooses the money supply and the market sets the exchange rate.</p>
+        <h3>Fiscal policy: no effect on output</h3>
+        <p>Higher G shifts IS* to the right. LM* does not move, so output cannot change; the exchange rate rises instead. The chain runs: higher income would raise money demand → the domestic interest rate tends to rise above r* → foreign capital flows in → the currency appreciates → net exports fall by exactly the rise in G. The crowding out happens through the exchange rate, not through investment.</p>
+        <h3>Monetary policy: strong effect</h3>
+        <p>A larger money supply shifts LM* to the right. The domestic interest rate tends to fall below r*, capital flows out, the currency depreciates, net exports rise and output rises. Monetary policy works entirely through the exchange rate, because the interest rate cannot stay below r*.</p>
+        <div class="figs">
+          <figure>
+            <svg data-fig="float:G:240" role="img" aria-label="Floating rate, fiscal expansion: IS* shifts right, e rises, Y unchanged"></svg>
+            <figcaption><b>Figure 2.</b> Floating rate, G rises from 200 to 240. IS* shifts right; e rises from 100 to 116; output stays at 1000.</figcaption>
+            <button class="btn small" data-run="float:G:240" type="button">Run it in the Lab</button>
+          </figure>
+          <figure>
+            <svg data-fig="float:M:450" role="img" aria-label="Floating rate, monetary expansion: LM* shifts right, e falls, Y rises"></svg>
+            <figcaption><b>Figure 3.</b> Floating rate, M rises from 400 to 450. LM* shifts right; e falls from 100 to 90; output rises to 1100.</figcaption>
+            <button class="btn small" data-run="float:M:450" type="button">Run it in the Lab</button>
+          </figure>
+        </div>
+        <h3>Trade policy: no effect on output or the trade balance</h3>
+        <p>Import quotas or tariffs shift IS* to the right, so e rises. The stronger currency cuts exports and raises other imports by just enough to cancel the quota. Output and net exports end up unchanged. Protection changes the mix of trade, not its balance.</p>
+
+        <h2 id="g-fixed">Policy under fixed rates</h2>
+        <h3>How a peg works</h3>
+        <p>The central bank announces a rate ē and stands ready to buy or sell domestic currency at that price. Traders then keep the market rate in line:</p>
+        <ul>
+          <li>If the market rate drifts <strong>above</strong> ē, traders buy foreign currency cheaply in the market and sell it to the central bank for domestic currency. The money supply rises until the market rate is back at ē.</li>
+          <li>If the market rate drifts <strong>below</strong> ē, traders sell domestic currency to the central bank for foreign reserves. The money supply falls until the market rate is back at ē.</li>
+        </ul>
+        <p>So under a peg, <strong>the money supply is no longer the central bank's choice</strong>. It is whatever amount holds e at ē. That is why the simulator moves the money-supply slider for you under a fixed rate.</p>
+        <h3>Fiscal policy: strong effect</h3>
+        <p>Higher G shifts IS* right and puts upward pressure on e. To defend the peg the central bank supplies domestic currency, so LM* shifts right too. Output rises by the full multiplier: ΔY = ΔG / (1 − MPC). In the simulator, a rise of 25 in G raises output by 100.</p>
+        <h3>Monetary policy: no effect</h3>
+        <p>A larger money supply shifts LM* right and puts downward pressure on e. Traders sell the extra domestic currency back to the central bank, and LM* returns to where it started. The only lasting effect is a loss of foreign reserves.</p>
+        <div class="figs">
+          <figure>
+            <svg data-fig="fixed:G:240" role="img" aria-label="Fixed rate, fiscal expansion: IS* and LM* both shift right, Y rises, e stays at the peg"></svg>
+            <figcaption><b>Figure 4.</b> Fixed rate, G rises from 200 to 240. IS* shifts right; the central bank expands M to hold ē = 100, so LM* follows. Output rises to 1160.</figcaption>
+            <button class="btn small" data-run="fixed:G:240" type="button">Run it in the Lab</button>
+          </figure>
+          <figure>
+            <svg data-fig="fixed:M:450" role="img" aria-label="Fixed rate, monetary expansion: LM* shifts right then returns"></svg>
+            <figcaption><b>Figure 5.</b> Fixed rate, the central bank tries to raise M to 450. LM* moves out to LM*<sub>2</sub>, the market rate falls below the peg, and defending ē pulls LM* back to LM*<sub>1</sub>. Nothing changes.</figcaption>
+            <button class="btn small" data-run="fixed:M:450" type="button">Run it in the Lab</button>
+          </figure>
+        </div>
+        <h3>Trade policy: raises output and net exports</h3>
+        <p>Import restrictions shift IS* right. The central bank expands M to hold the peg, so output rises, and because e cannot rise, net exports stay higher.</p>
+        <h3>Devaluation</h3>
+        <p>A pegging country can still change the peg. A <strong>devaluation</strong> (a lower ē) makes its goods cheaper abroad, raises net exports and lifts output, with the central bank supplying the money needed at the new rate. A <strong>revaluation</strong> does the reverse. In practice a devaluation also raises import prices and the burden of any debt owed in foreign currency, costs the model leaves out.</p>
+
+        <h2 id="g-table">Summary table</h2>
+        <p>↑ rises, ↓ falls, 0 no change. This is the table the Policy scorecard in the Lab fills in as you experiment.</p>
+        <div class="table-wrap">
+          <table class="sum">
+            <thead>
+              <tr><th rowspan="2" style="text-align:left">Policy</th><th colspan="3" class="grp">Floating rate</th><th colspan="3" class="grp">Fixed rate</th></tr>
+              <tr><th>Y</th><th>e</th><th>NX</th><th>Y</th><th>e</th><th>NX</th></tr>
+            </thead>
+            <tbody>
+              <tr><th>Fiscal expansion</th><td>0</td><td>↑</td><td>↓</td><td>↑</td><td>0</td><td>0</td></tr>
+              <tr><th>Monetary expansion</th><td>↑</td><td>↓</td><td>↑</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><th>Import restrictions</th><td>0</td><td>↑</td><td>0</td><td>↑</td><td>0</td><td>↑</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="g-trinity">The impossible trinity</h2>
+        <p>A country can have at most two of these three:</p>
+        <ul>
+          <li><strong>Free movement of capital</strong></li>
+          <li><strong>A fixed exchange rate</strong></li>
+          <li><strong>An independent monetary policy</strong></li>
+        </ul>
+        <p>The Mundell–Fleming results follow from it. With free capital flows, a country that fixes its exchange rate gives up monetary policy, as in the fixed-rate case above. A country that wants its own monetary policy with free capital flows must let its currency float. The only way to keep both a peg and an independent monetary policy is to restrict capital flows.</p>
+        <p>Standard examples: the United States lets the dollar float; Hong Kong ties its dollar to the US dollar and gives up independent monetary policy; China has for long periods managed its exchange rate while restricting capital flows.</p>
+
+        <h2 id="g-limits">Where the model falls short</h2>
+        <ul>
+          <li><strong>Prices adjust over time.</strong> In the long run a monetary expansion under a float raises prices rather than output.</li>
+          <li><strong>Capital is not perfectly mobile, and risk matters.</strong> Investors demand a risk premium on emerging-market assets, so domestic interest rates in countries such as Pakistan can sit well above world rates and move with confidence.</li>
+          <li><strong>Most regimes sit in between.</strong> Many emerging economies run a managed float: the market sets the rate, but the central bank intervenes to smooth sharp moves. Pakistan describes its regime as market-based, while the State Bank of Pakistan can still step into the market.</li>
+          <li><strong>Large economies are not price-takers.</strong> The United States or the euro area can move world interest rates.</li>
+          <li><strong>Pegs can break.</strong> If markets doubt that the central bank has enough reserves, a speculative attack can force a devaluation.</li>
+        </ul>
+
+        <h2 id="g-exam">Drawing it in an exam</h2>
+        <ul>
+          <li>Put the exchange rate e on the vertical axis and output Y on the horizontal axis.</li>
+          <li>Draw IS* sloping down and LM* vertical. Under a peg, add ē as a horizontal line.</li>
+          <li>Label shifted curves IS*<sub>1</sub> → IS*<sub>2</sub> and mark the old and new equilibria.</li>
+          <li>Write the mechanism as a chain: policy → curve shift → pressure on the interest rate → capital flows → e → NX → Y.</li>
+          <li>Under a peg, show LM* moving to meet IS* at ē, and say who moved it: the central bank defending the peg.</li>
+        </ul>
+
+        <h2 id="g-check">Check your understanding</h2>
+        <details><summary>1. Why is LM* vertical?</summary><div class="ans"><p>Money demand depends on r and Y, not on e. With r fixed at r* and M/P given, only one level of income clears the money market, whatever the exchange rate.</p></div></details>
+        <details><summary>2. Under a floating rate the government cuts spending to reduce its budget deficit. What happens to Y, e and NX?</summary><div class="ans"><p>Output is unchanged, e falls (the currency depreciates) and net exports rise by the amount of the cut. A smaller budget deficit comes with a smaller trade deficit.</p></div></details>
+        <details><summary>3. Under a peg, why can't the central bank print money to fight a recession?</summary><div class="ans"><p>Any rise in M puts downward pressure on e. To defend ē the central bank has to buy back the extra currency with its reserves, so M returns to where it was and output does not change.</p></div></details>
+        <details><summary>4. A country with a peg is in recession and cannot raise spending. What can it do, and what does it cost?</summary><div class="ans"><p>It can devalue: a lower ē raises net exports and output. The costs are dearer imports, higher inflation, a heavier burden of foreign-currency debt and damage to the credibility of the peg.</p></div></details>
+        <details><summary>5. The rupee moves from Rs 280 to Rs 300 per dollar. Did e rise or fall, and what should happen to net exports?</summary><div class="ans"><p>e fell: each rupee buys fewer dollars, so the rupee depreciated. Other things equal, net exports rise.</p></div></details>
+        <details><summary>6. Why don't import quotas improve the trade balance under a floating rate?</summary><div class="ans"><p>They shift IS* right, but LM* fixes output, so e rises instead. The stronger currency cuts exports and raises other imports until net exports are back where they started.</p></div></details>
+
+        <h2 id="g-eqs">The simulator's equations</h2>
+        <p>The numbers are illustrative, chosen so that results come out round.</p>
+        <div class="eq-list">
+          <div><span>Consumption</span><span>C = 50 + 0.75(Y − T)</span></div>
+          <div><span>Investment</span><span>I = 200 − 10r*</span></div>
+          <div><span>Net exports</span><span>NX = 250 − 2.5e + Q</span></div>
+          <div><span>Money market</span><span>M/P = 0.5Y − 20r*, &nbsp;P = 1</span></div>
+          <div><span>Baseline</span><span>G = 200, T = 200, M = 400, r* = 5, Q = 0</span></div>
+          <div><span>Result</span><span>Y = 1000, e = 100, NX = 0</span></div>
+        </div>
+        <p>Q is the import-restriction lever: it raises net exports by Q at any exchange rate. The multiplier is 1 / (1 − 0.75) = 4.</p>
+        <p><strong>Floating rate:</strong> LM* gives Y = 2M + 40r*. IS* then gives the exchange rate, e = (A − 0.25Y) / 2.5, where A = 250 − 0.75T − 10r* + G + Q collects everything that does not depend on Y or e.</p>
+        <p><strong>Fixed rate:</strong> IS* at e = ē gives Y = 4(A − 2.5ē), and the money market then fixes the money supply the peg requires, M = 0.5Y − 20r*.</p>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Short-run Mundell–Fleming model with a fixed price level, a small open economy and perfect capital mobility. The exchange rate e is foreign currency per unit of domestic currency, so a rise is an appreciation. Parameters are illustrative.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= model ================= */
+const P = {c:0.75, c0:50, i0:200, b:10, n0:250, n:2.5, k:0.5, h:20, Pl:1};
+const BASE = Object.freeze({regime:'float', G:200, T:200, M:400, r:5, tariff:0, ebar:100});
+const YR = [600, 1400], ER = [40, 160];
+const REDUCED = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const MINUS = '−';
+
+const A_of  = s => P.c0 - P.c*s.T + P.i0 - P.b*s.r + s.G + P.n0 + s.tariff;
+const Ylm_of = (M, r) => (M/P.Pl + P.h*r)/P.k;
+const eIS   = (A, Y) => (A - (1-P.c)*Y)/P.n;
+const YIS   = (A, e) => (A - P.n*e)/(1-P.c);
+const Mfor  = (Y, r) => (P.k*Y - P.h*r)*P.Pl;
+
+function solve(s){
+  const A = A_of(s); let Y, e, M;
+  if (s.regime === 'float'){ M = s.M; Y = Ylm_of(M, s.r); e = eIS(A, Y); }
+  else { e = s.ebar; Y = YIS(A, e); M = Mfor(Y, s.r); }
+  return {A, Y, e, M, Ylm: Ylm_of(M, s.r), C: P.c0 + P.c*(Y - s.T), I: P.i0 - P.b*s.r, NX: P.n0 + s.tariff - P.n*e, G: s.G, T: s.T, r: s.r};
+}
+const clone = s => Object.assign({}, s);
+function normalize(s){ if (s.regime === 'fixed') s.M = solve(s).M; return s; }
+const freshState = (over) => normalize(Object.assign(clone(BASE), over || {}));
+
+/* ================= helpers ================= */
+const $ = (q, r) => (r || document).querySelector(q);
+const $$ = (q, r) => Array.from((r || document).querySelectorAll(q));
+function fmt(v, d){ d = d || 0; const r = Number(v.toFixed(d)); return (r < 0 ? MINUS : '') + Math.abs(r).toFixed(d); }
+function fmtE(v){ return Math.abs(v - Math.round(v)) < 0.05 ? fmt(v, 0) : fmt(v, 1); }
+function fmtD(d, dec){ if (Math.abs(d) < 0.05) return 'no change'; return (d > 0 ? '▲ ' : '▼ ') + (dec ? fmt(Math.abs(d), 1) : fmtE(Math.abs(d))); }
+const sgn = (d, eps) => Math.abs(d) < (eps || 0.01) ? 0 : (d > 0 ? 1 : -1);
+const clampv = (v, a, b) => Math.max(a, Math.min(b, v));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ================= storage (per-viewer convenience) ================= */
+const KEY = 'mf-policy-game-v1';
+let progress = {stars:{}, disc:{}, bestPredict:null};
+try { const raw = localStorage.getItem(KEY); if (raw){ const o = JSON.parse(raw); if (o && typeof o === 'object') progress = Object.assign(progress, o); } } catch (e) {}
+function saveProgress(){ try { localStorage.setItem(KEY, JSON.stringify(progress)); } catch (e) {} }
+
+/* ================= levers ================= */
+const LEVERS = {
+  ebar:  {label:'Peg level', sym:'ē', min:85, max:115, step:1, nudge:5, moves:'Sets the peg', cls:'c-peg', name:'the peg'},
+  G:     {label:'Government spending', sym:'G', min:150, max:250, step:5, nudge:5, moves:'Moves IS*', cls:'c-is', name:'government spending'},
+  T:     {label:'Taxes', sym:'T', min:150, max:250, step:5, nudge:5, moves:'Moves IS*', cls:'c-is', name:'taxes'},
+  M:     {label:'Money supply', sym:'M', min:250, max:550, step:5, nudge:10, moves:'Moves LM*', cls:'c-lm', name:'the money supply'},
+  tariff:{label:'Import restrictions', sym:'Q', min:0, max:40, step:5, nudge:5, moves:'Moves IS*', cls:'c-is', name:'import restrictions', note:'Raises net exports by Q at any e.'},
+  r:     {label:'World interest rate', sym:'r*', min:3, max:7, step:0.5, nudge:0.5, moves:'Moves IS* and LM*', cls:'c-both', name:'the world interest rate'}
+};
+const fmtLever = (k, v) => k === 'r' ? v.toFixed(1) + '%' : fmtE(v);
+
+/* ================= chart ================= */
+let chartSeq = 0;
+function sym(name, sub){
+  let s = esc(name) + '<tspan dy="-0.45em" font-size="68%">*</tspan>';
+  if (sub) s += '<tspan dy="0.8em" font-size="60%">' + sub + '</tspan>';
+  return s;
+}
+class MFChart {
+  constructor(svg, opts){
+    opts = opts || {};
+    this.svg = svg; this.id = 'mf' + (++chartSeq);
+    this.mini = !!opts.mini;
+    svg.classList.add('mf-chart'); if (this.mini) svg.classList.add('mini');
+    this.view = null; this.hoverE = null; this.animating = false; this.skip = null;
+    this.setGeom();
+    if (opts.interactive) this.bindHover();
+  }
+  setGeom(){
+    const compact = !this.mini && window.innerWidth < 600;
+    if (this.geomKey === (this.mini ? 'mini' : compact ? 'compact' : 'full')) return false;
+    this.geomKey = this.mini ? 'mini' : compact ? 'compact' : 'full';
+    this.compact = compact;
+    if (this.mini){ this.W = 440; this.H = 330; this.m = {l:64, r:16, t:30, b:42}; this.titleX = 11; }
+    else if (compact){ this.W = 420; this.H = 410; this.m = {l:70, r:22, t:36, b:50}; this.titleX = 13; }
+    else { this.W = 640; this.H = 452; this.m = {l:76, r:22, t:36, b:52}; this.titleX = 16; }
+    this.pw = this.W - this.m.l - this.m.r; this.ph = this.H - this.m.t - this.m.b;
+    this.svg.setAttribute('viewBox', '0 0 ' + this.W + ' ' + this.H);
+    return true;
+  }
+  x(Y){ return this.m.l + (Y - YR[0])/(YR[1] - YR[0])*this.pw; }
+  y(e){ return this.m.t + (ER[1] - e)/(ER[1] - ER[0])*this.ph; }
+  invE(py){ return ER[1] - (py - this.m.t)/this.ph*(ER[1] - ER[0]); }
+  isPath(A){ return 'M' + this.x(YR[0]) + ',' + this.y(eIS(A, YR[0])) + ' L' + this.x(YR[1]) + ',' + this.y(eIS(A, YR[1])); }
+  lmPath(Ylm){ return 'M' + this.x(Ylm) + ',' + (this.m.t - 2) + ' L' + this.x(Ylm) + ',' + (this.m.t + this.ph); }
+  pegPath(eb){ return 'M' + this.m.l + ',' + this.y(eb) + ' L' + (this.m.l + this.pw) + ',' + this.y(eb); }
+  arrow(o, Y1, e1, Y2, e2, c){
+    let x1 = this.x(Y1), y1 = this.y(e1), x2 = this.x(Y2), y2 = this.y(e2);
+    const L = Math.hypot(x2 - x1, y2 - y1); if (L < 18) return;
+    const ux = (x2 - x1)/L, uy = (y2 - y1)/L;
+    x1 += ux*6; y1 += uy*6; x2 -= ux*7; y2 -= uy*7;
+    o.push('<line class="shift c-' + c + '" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" marker-end="url(#' + this.id + '-ah-' + c + ')"/>');
+  }
+  isLabel(A, sub, above, faded){
+    let Yl = YR[1] - 6, el = eIS(A, Yl), clamped = false;
+    if (el < ER[0] + 2){ el = ER[0] + 2; Yl = YIS(A, el); clamped = true; }
+    if (el > ER[1] - 2 || Yl < YR[0] + 60) return '';
+    const px = this.x(Yl), py = this.y(el);
+    let tx = px, ty, anchor = 'end';
+    if (above){
+      const Yl2 = Yl - 50*(YR[1] - YR[0])/this.pw;
+      ty = this.y(eIS(A, Yl2)) - 8;
+    } else if (clamped){ tx = px + 6; ty = py - 4; anchor = 'start'; }
+    else { tx = px - 2; ty = py + 22; }
+    return '<text class="lab c-is' + (faded ? ' faded' : '') + '" x="' + tx + '" y="' + ty + '" text-anchor="' + anchor + '">' + sym('IS', sub) + '</text>';
+  }
+  lmLabel(Ylm, sub, side, faded){
+    if (Ylm < YR[0] || Ylm > YR[1]) return '';
+    const anchor = side === 'left' ? 'end' : side === 'right' ? 'start' : 'middle';
+    const dx = side === 'left' ? -3 : side === 'right' ? 3 : 0;
+    return '<text class="lab c-lm' + (faded ? ' faded' : '') + '" x="' + (this.x(Ylm) + dx) + '" y="' + (this.m.t - 11) + '" text-anchor="' + anchor + '">' + sym('LM', sub) + '</text>';
+  }
+  pegLabel(eb, sub, below, faded){
+    if (eb < ER[0] || eb > ER[1]) return '';
+    const y = this.y(eb) + (below ? 17 : -7);
+    let t = 'ē' + (sub ? '<tspan dy="0.35em" font-size="62%">' + sub + '</tspan><tspan dy="-0.35em"> = ' + fmtE(eb) + '</tspan>' : ' = ' + fmtE(eb));
+    return '<text class="lab c-peg' + (faded ? ' faded' : '') + '" x="' + (this.m.l + 8) + '" y="' + y + '">' + t + '</text>';
+  }
+  ptLabel(Y, e, sub, faded){
+    const t = 'E' + (sub ? '<tspan dy="0.35em" font-size="62%">' + sub + '</tspan>' : '');
+    return '<text class="ptlab' + (faded ? ' faded' : '') + '" x="' + (this.x(Y) + 9) + '" y="' + (this.y(e) - 9) + '">' + t + '</text>';
+  }
+  inRange(Y, e){ return Y >= YR[0] && Y <= YR[1] && e >= ER[0] && e <= ER[1]; }
+  draw(v){
+    this.view = v;
+    const m = this.m, X0 = m.l, X1 = m.l + this.pw, T0 = m.t, B0 = m.t + this.ph, id = this.id;
+    const o = [];
+    o.push('<defs><clipPath id="' + id + '-clip"><rect x="' + X0 + '" y="' + T0 + '" width="' + this.pw + '" height="' + this.ph + '"/></clipPath>');
+    ['is','lm','peg','ink'].forEach(c => o.push('<marker id="' + id + '-ah-' + c + '" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah-' + c + '"/></marker>'));
+    o.push('</defs>');
+    const yStep = (this.mini || this.compact) ? 200 : 100, eStep = this.mini ? 40 : 20;
+    for (let Y = YR[0]; Y <= YR[1]; Y += yStep){
+      if (Y > YR[0]) o.push('<line class="grid" x1="' + this.x(Y) + '" y1="' + T0 + '" x2="' + this.x(Y) + '" y2="' + B0 + '"/>');
+      o.push('<text class="tick" x="' + this.x(Y) + '" y="' + (B0 + 17) + '" text-anchor="middle">' + Y + '</text>');
+    }
+    for (let e = ER[0]; e <= ER[1]; e += eStep){
+      if (e > ER[0]) o.push('<line class="grid" x1="' + X0 + '" y1="' + this.y(e) + '" x2="' + X1 + '" y2="' + this.y(e) + '"/>');
+      o.push('<text class="tick" x="' + (X0 - 8) + '" y="' + (this.y(e) + 4) + '" text-anchor="end">' + e + '</text>');
+    }
+    o.push('<line class="axis" x1="' + X0 + '" y1="' + B0 + '" x2="' + (X1 + 10) + '" y2="' + B0 + '" marker-end="url(#' + id + '-ah-ink)"/>');
+    o.push('<line class="axis" x1="' + X0 + '" y1="' + B0 + '" x2="' + X0 + '" y2="' + (T0 - 16) + '" marker-end="url(#' + id + '-ah-ink)"/>');
+    o.push('<text class="axis-title" x="' + (X1 + 8) + '" y="' + (B0 + (this.mini ? 35 : 40)) + '" text-anchor="end">Output, Y</text>');
+    o.push('<text class="axis-title" transform="translate(' + this.titleX + ',' + (T0 + this.ph/2) + ') rotate(-90)" text-anchor="middle">Exchange rate, e</text>');
+
+    const g = v.ghost || null, fixed = v.regime === 'fixed';
+    const gIS = !!(g && Math.abs(g.A - v.A) > 0.01);
+    const gLM = !!(g && Math.abs(g.Ylm - v.Ylm) > 0.05);
+    const gPeg = !!(g && g.regime === 'fixed' && (!fixed || Math.abs(g.ebar - v.ebar) > 0.01));
+    const temp = v.temp || null;
+
+    o.push('<g clip-path="url(#' + id + '-clip)">');
+    if (gIS) o.push('<path class="is ghost" d="' + this.isPath(g.A) + '"/>');
+    if (gLM) o.push('<path class="lm ghost" d="' + this.lmPath(g.Ylm) + '"/>');
+    if (temp) o.push('<path class="lm ghost" d="' + this.lmPath(temp.Ylm) + '"/>');
+    if (gPeg) o.push('<path class="peg ghost" d="' + this.pegPath(g.ebar) + '"/>');
+    if (fixed) o.push('<path class="peg" d="' + this.pegPath(v.ebar) + '"/>');
+
+    // equilibrium
+    const Ye = v.Ylm, ee = eIS(v.A, Ye);
+    const pressure = fixed && Math.abs(ee - v.ebar) > 0.4;
+    const show = this.inRange(Ye, ee);
+    if (show && !pressure){
+      o.push('<path class="guide" d="M' + X0 + ',' + this.y(ee) + ' H' + this.x(Ye) + ' V' + B0 + '"/>');
+    }
+    if (show && pressure){
+      o.push('<path class="press-line" d="M' + this.x(Ye) + ',' + this.y(ee) + ' V' + this.y(v.ebar) + '"/>');
+    }
+    o.push('<path class="is" d="' + this.isPath(v.A) + '"/>');
+    o.push('<path class="lm" d="' + this.lmPath(v.Ylm) + '"/>');
+    // shift arrows
+    if (gIS){
+      const lo = Math.min(g.A, v.A);
+      const eR = clampv(eIS(lo, 730), ER[0] + 10, ER[1] - 10);
+      this.arrow(o, YIS(g.A, eR), eR, YIS(v.A, eR), eR, 'is');
+    }
+    if (gLM){ const eR = ER[1] - 9; this.arrow(o, g.Ylm, eR, v.Ylm, eR, 'lm'); }
+    if (temp){ this.arrow(o, v.Ylm, ER[1] - 7, temp.Ylm, ER[1] - 7, 'lm'); this.arrow(o, temp.Ylm, ER[1] - 15, v.Ylm, ER[1] - 15, 'lm'); }
+    if (gPeg && fixed){ const Yr = YR[1] - 40; this.arrow(o, Yr, g.ebar, Yr, v.ebar, 'peg'); }
+    o.push('</g>');
+
+    // labels
+    if (gIS){
+      const curAbove = v.A > g.A;
+      o.push(this.isLabel(g.A, '1', !curAbove, true));
+      o.push(this.isLabel(v.A, '2', curAbove, false));
+    } else o.push(this.isLabel(v.A, '', false, false));
+    if (gLM){
+      const curRight = v.Ylm > g.Ylm;
+      o.push(this.lmLabel(g.Ylm, '1', curRight ? 'left' : 'right', true));
+      o.push(this.lmLabel(v.Ylm, '2', curRight ? 'right' : 'left', false));
+    } else if (temp){
+      const tRight = temp.Ylm > v.Ylm;
+      o.push(this.lmLabel(v.Ylm, '1', tRight ? 'left' : 'right', false));
+      o.push(this.lmLabel(temp.Ylm, '2', tRight ? 'right' : 'left', true));
+    } else o.push(this.lmLabel(v.Ylm, '', 'mid', false));
+    if (gPeg && fixed){
+      const close = Math.abs(this.y(g.ebar) - this.y(v.ebar)) < 22;
+      o.push(this.pegLabel(g.ebar, '1', close && g.ebar < v.ebar, true));
+      o.push(this.pegLabel(v.ebar, '2', false, false));
+    } else if (gPeg && !fixed){
+      o.push(this.pegLabel(g.ebar, '', false, true));
+    } else if (fixed) o.push(this.pegLabel(v.ebar, '', false, false));
+
+    // points
+    let gPt = null;
+    if (g){
+      const gY = g.Ylm, ge = eIS(g.A, gY);
+      if (this.inRange(gY, ge) && Math.hypot(this.x(gY) - this.x(Ye), this.y(ge) - this.y(ee)) > 4) gPt = {Y: gY, e: ge};
+    }
+    if (gPt){
+      o.push('<circle class="pt-old" cx="' + this.x(gPt.Y) + '" cy="' + this.y(gPt.e) + '" r="5.5"/>');
+      if (!(show && pressure)) o.push(this.ptLabel(gPt.Y, gPt.e, '1', true));
+    }
+    if (temp){
+      const tY = temp.Ylm, te = eIS(v.A, tY);
+      if (this.inRange(tY, te)){
+        o.push('<path class="press-line" d="M' + this.x(tY) + ',' + this.y(te) + ' V' + this.y(v.ebar) + '"/>');
+        o.push('<circle class="pt-press" cx="' + this.x(tY) + '" cy="' + this.y(te) + '" r="6"/>');
+      }
+    }
+    if (show){
+      if (pressure){
+        o.push('<circle class="pt-press" cx="' + this.x(Ye) + '" cy="' + this.y(ee) + '" r="7"/>');
+        const above = ee > v.ebar;
+        const lx = this.x(Ye) + 11, anchor = lx > X1 - 150 ? 'end' : 'start';
+        const tx = anchor === 'end' ? this.x(Ye) - 11 : lx;
+        o.push('<text class="press-lab" x="' + tx + '" y="' + (this.y(ee) + (above ? -10 : 20)) + '" text-anchor="' + anchor + '">' + (above ? 'market rate above peg' : 'market rate below peg') + '</text>');
+      } else {
+        o.push('<circle class="pt" cx="' + this.x(Ye) + '" cy="' + this.y(ee) + '" r="6.5"/>');
+        o.push(this.ptLabel(Ye, ee, gPt ? '2' : '', false));
+        // value tags
+        const ty = this.y(ee), tx = this.x(Ye);
+        o.push('<rect class="tagbg" x="' + (X0 - 46) + '" y="' + (ty - 10) + '" width="40" height="20" rx="3"/>');
+        o.push('<text class="tag" x="' + (X0 - 26) + '" y="' + (ty + 4) + '" text-anchor="middle">' + fmtE(ee) + '</text>');
+        o.push('<rect class="tagbg" x="' + (tx - 25) + '" y="' + (B0 + 5) + '" width="50" height="19" rx="3"/>');
+        o.push('<text class="tag" x="' + tx + '" y="' + (B0 + 18) + '" text-anchor="middle">' + fmt(Ye) + '</text>');
+      }
+    }
+
+    // hover read-out of the IS* trade-off
+    if (this.hoverE != null && !this.animating && v.showHover){
+      const eh = this.hoverE, Yh = YIS(v.A, eh), NXh = P.n0 + v.tariff - P.n*eh;
+      const yh = this.y(eh), xh = this.x(clampv(Yh, YR[0], YR[1]));
+      o.push('<path class="hv-line" d="M' + X0 + ',' + yh + ' H' + xh + '"/>');
+      if (Yh >= YR[0] && Yh <= YR[1]) o.push('<circle class="hv-dot" cx="' + xh + '" cy="' + yh + '" r="5"/>');
+      const l1 = 'e = ' + fmt(eh) + ' → NX = ' + fmt(NXh);
+      const l2 = 'IS* output: Y = ' + (Yh < YR[0] ? '< ' + YR[0] : Yh > YR[1] ? '> ' + YR[1] : fmt(Yh));
+      const bw = 200, bh = 44;
+      let bx = xh + 12; if (bx + bw > X1) bx = xh - 12 - bw; bx = clampv(bx, X0 + 4, X1 - bw);
+      let by = yh - bh - 10; if (by < T0) by = yh + 10;
+      o.push('<rect class="tip-bg" x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="4"/>');
+      o.push('<text class="tip" x="' + (bx + 10) + '" y="' + (by + 18) + '">' + l1 + '</text>');
+      o.push('<text class="tip" x="' + (bx + 10) + '" y="' + (by + 35) + '">' + l2 + '</text>');
+    }
+    this.svg.innerHTML = o.join('');
+    this.offChart = !show;
+    this.svg.setAttribute('aria-label', 'Mundell–Fleming diagram. ' + (fixed ? 'Fixed exchange rate at ' + fmtE(v.ebar) + '. ' : 'Floating exchange rate. ') + 'Equilibrium output ' + fmt(Ye) + ', exchange rate ' + fmtE(ee) + '.');
+  }
+  redraw(){ if (this.view && !this.animating) this.draw(this.view); }
+  bindHover(){
+    const svg = this.svg;
+    const toSvg = ev => { const r = svg.getBoundingClientRect(); return {sx:(ev.clientX - r.left)*this.W/r.width, sy:(ev.clientY - r.top)*this.H/r.height}; };
+    const setFrom = ev => {
+      const p = toSvg(ev);
+      const inside = p.sx >= this.m.l && p.sx <= this.m.l + this.pw && p.sy >= this.m.t && p.sy <= this.m.t + this.ph;
+      const nv = inside ? Math.round(this.invE(p.sy)) : null;
+      if (nv !== this.hoverE){ this.hoverE = nv; this.redraw(); }
+    };
+    svg.addEventListener('pointermove', ev => { if (ev.pointerType === 'mouse') setFrom(ev); });
+    svg.addEventListener('pointerleave', ev => { if (ev.pointerType === 'mouse' && this.hoverE != null){ this.hoverE = null; this.redraw(); } });
+    let down = null;
+    svg.addEventListener('pointerdown', ev => { if (ev.pointerType !== 'mouse') down = {x:ev.clientX, y:ev.clientY}; });
+    svg.addEventListener('pointerup', ev => {
+      if (!down) return; const d = Math.hypot(ev.clientX - down.x, ev.clientY - down.y); down = null;
+      if (d < 10) setFrom(ev);
+    });
+  }
+}
+
+/* ================= animation ================= */
+function buildFrames(prev, next, attempted){
+  const a = solve(prev), b = solve(next);
+  const f0 = {A:a.A, Ylm:a.Ylm, ebar:prev.ebar};
+  if (next.regime === 'float') return [f0, {A:b.A, Ylm:b.Ylm, ebar:next.ebar}];
+  const Mtry = attempted != null ? attempted : prev.M;
+  const f1 = {A:b.A, Ylm:Ylm_of(Mtry, next.r), ebar:next.ebar};
+  const f2 = {A:b.A, Ylm:b.Ylm, ebar:next.ebar};
+  const same = (p, q) => Math.abs(p.A - q.A) < 1e-6 && Math.abs(p.Ylm - q.Ylm) < 1e-6 && Math.abs(p.ebar - q.ebar) < 1e-6;
+  const fr = [f0];
+  if (!same(f0, f1)) fr.push(f1);
+  if (!same(fr[fr.length - 1], f2)) fr.push(f2);
+  return fr;
+}
+function animate(chart, frames, base, hooks){
+  hooks = hooks || {};
+  if (chart.skip) chart.skip();
+  const segs = frames.length - 1;
+  const D = REDUCED ? 0 : 950, PAUSE = REDUCED ? 0 : 550;
+  const finalView = Object.assign({}, base, frames[segs]);
+  let done = false, raf = 0;
+  const finish = () => {
+    if (done) return; done = true; cancelAnimationFrame(raf);
+    chart.animating = false; chart.skip = null; chart.draw(finalView);
+    if (hooks.onDone) hooks.onDone();
+  };
+  chart.skip = finish;
+  if (segs < 1 || D === 0){ finish(); return; }
+  chart.animating = true;
+  const ease = p => p < .5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3)/2;
+  let t0 = null, cur = 0;
+  const step = now => {
+    if (done) return;
+    if (t0 === null) t0 = now;
+    const t = now - t0, segLen = D + PAUSE;
+    const s = Math.floor(t/segLen);
+    if (s >= segs || (s === segs - 1 && t - s*segLen >= D)){ finish(); return; }
+    if (s + 1 !== cur){ cur = s + 1; if (hooks.onStage) hooks.onStage(cur); }
+    const p = Math.min(1, (t - s*segLen)/D), q = ease(p), a = frames[s], b = frames[s + 1];
+    chart.draw(Object.assign({}, base, {A:a.A + (b.A - a.A)*q, Ylm:a.Ylm + (b.Ylm - a.Ylm)*q, ebar:a.ebar + (b.ebar - a.ebar)*q}));
+    raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+}
+
+/* ================= narration ================= */
+const N = {
+  float: {
+    G: d => d > 0 ? [
+      'Government spending rises, so demand for goods is higher at every exchange rate: IS* shifts right.',
+      'Higher income would raise money demand. With the money supply unchanged, the domestic interest rate starts to rise above r*.',
+      'Foreign capital flows in to earn the higher return and buys the domestic currency, so e rises: the currency appreciates.',
+      'The stronger currency cuts net exports by exactly the rise in G. LM* has not moved, so output is unchanged.'
+    ] : [
+      'Government spending falls, so demand for goods is lower at every exchange rate: IS* shifts left.',
+      'Lower income would reduce money demand, so the domestic interest rate starts to fall below r*.',
+      'Capital flows out and sells the domestic currency, so e falls: the currency depreciates.',
+      'The weaker currency raises net exports by exactly the cut in G. LM* has not moved, so output is unchanged.'
+    ],
+    T: d => d > 0 ? [
+      'Higher taxes cut disposable income and consumption: IS* shifts left.',
+      'The domestic interest rate starts to fall below r*, and capital flows out.',
+      'The currency depreciates: e falls.',
+      'Net exports rise by as much as consumption fell. Output is unchanged.'
+    ] : [
+      'Lower taxes raise disposable income and consumption: IS* shifts right.',
+      'The domestic interest rate starts to rise above r*, and capital flows in.',
+      'The currency appreciates: e rises.',
+      'Net exports fall by as much as consumption rose. Output is unchanged.'
+    ],
+    M: d => d > 0 ? [
+      'The central bank raises the money supply: LM* shifts right.',
+      'The extra money pushes the domestic interest rate below r*, so capital flows out.',
+      'Selling the domestic currency drives e down: the currency depreciates.',
+      'Cheaper domestic goods raise net exports, and output rises along IS*.'
+    ] : [
+      'The central bank cuts the money supply: LM* shifts left.',
+      'Tighter money pushes the domestic interest rate above r*, so capital flows in.',
+      'Buying the domestic currency drives e up: the currency appreciates.',
+      'Dearer domestic goods cut net exports, and output falls along IS*.'
+    ],
+    tariff: d => d > 0 ? [
+      'Import restrictions cut imports, so net exports are higher at every exchange rate: IS* shifts right.',
+      'LM* has not moved, so output cannot rise. The pressure shows up in the currency instead: e rises.',
+      'The stronger currency cuts exports and raises other imports. Net exports end where they started, and output is unchanged.'
+    ] : [
+      'Removing import restrictions lowers net exports at every exchange rate: IS* shifts left.',
+      'LM* has not moved, so output cannot fall. The currency depreciates instead: e falls.',
+      'The weaker currency restores net exports to where they were. Output is unchanged.'
+    ],
+    r: d => d > 0 ? [
+      'A higher world interest rate r* raises the domestic rate with it, so investment falls: IS* shifts left.',
+      'A higher interest rate also lowers money demand, so the same money supply supports more income: LM* shifts right.',
+      'The currency depreciates: e falls and net exports rise.',
+      'In this model output rises. In practice central banks often resist the depreciation, and a jump in r* caused by a risk premium can hurt confidence, so output may fall instead.'
+    ] : [
+      'A lower world interest rate raises investment, so demand is higher at every exchange rate: IS* shifts right.',
+      'Money demand rises, so the same money supply supports less income: LM* shifts left.',
+      'The currency appreciates: e rises and net exports fall.',
+      'In this model output falls.'
+    ]
+  },
+  fixed: {
+    G: d => d > 0 ? [
+      [1,'Government spending rises: IS* shifts right. At the old income the market rate would rise above the peg.'],
+      [2,'Traders sell foreign currency to the central bank for domestic currency at the fixed rate. To hold e at ē the central bank must supply that currency, so M rises.'],
+      [2,'LM* follows IS* to the right until they meet at the peg. Output rises by the full multiplier; e and net exports are unchanged.']
+    ] : [
+      [1,'Government spending falls: IS* shifts left. The market rate would fall below the peg.'],
+      [2,'Traders sell domestic currency to the central bank for foreign reserves, so M falls.'],
+      [2,'LM* follows IS* to the left until they meet at the peg. Output falls by the full multiplier.']
+    ],
+    T: d => d > 0 ? [
+      [1,'Higher taxes cut consumption: IS* shifts left. The market rate would fall below the peg.'],
+      [2,'The central bank buys back domestic currency with reserves to defend ē, so M falls.'],
+      [2,'LM* moves left to meet IS* at the peg. Output falls.']
+    ] : [
+      [1,'Lower taxes raise consumption: IS* shifts right. The market rate would rise above the peg.'],
+      [2,'The central bank supplies domestic currency to defend ē, so M rises.'],
+      [2,'LM* moves right to meet IS* at the peg. Output rises.']
+    ],
+    M: d => d > 0 ? [
+      [1,'The central bank tries to raise the money supply: LM* shifts right, and the market rate would fall below the peg.'],
+      [2,'Traders sell the extra domestic currency back to the central bank for foreign reserves at the fixed rate, so M shrinks again.'],
+      [2,'LM* returns to where it started. Under a peg the money supply is not a free choice, so monetary policy cannot move output. The attempt only cost reserves.']
+    ] : [
+      [1,'The central bank tries to cut the money supply: LM* shifts left, and the market rate would rise above the peg.'],
+      [2,'Traders sell foreign currency to the central bank for domestic currency, so M rises back.'],
+      [2,'LM* returns to where it started. Output is unchanged; the central bank has gained reserves.']
+    ],
+    tariff: d => d > 0 ? [
+      [1,'Import restrictions raise net exports at every e: IS* shifts right. The market rate would rise above the peg.'],
+      [2,'The central bank supplies domestic currency to hold ē, so M rises.'],
+      [2,'LM* moves right to meet IS* at the peg. Because e cannot rise, net exports stay higher and output rises.']
+    ] : [
+      [1,'Removing import restrictions lowers net exports: IS* shifts left. The market rate would fall below the peg.'],
+      [2,'The central bank buys back domestic currency, so M falls.'],
+      [2,'LM* moves left to meet IS* at the peg. Net exports and output fall.']
+    ],
+    r: d => d > 0 ? [
+      [1,'A higher r* lowers investment (IS* shifts left) and money demand (LM* shifts right). The market rate would fall below the peg.'],
+      [2,'To defend ē the central bank buys back domestic currency with reserves, so M falls.'],
+      [2,'LM* moves left until it meets IS* at the peg. Output falls: the peg removes the exchange-rate cushion.']
+    ] : [
+      [1,'A lower r* raises investment (IS* shifts right) and money demand (LM* shifts left). The market rate would rise above the peg.'],
+      [2,'The central bank supplies domestic currency, so M rises.'],
+      [2,'LM* moves right to meet IS* at the peg. Output rises.']
+    ],
+    ebar: d => d < 0 ? [
+      [1,'The central bank devalues: it lowers the peg ē. The market rate is now above the new peg.'],
+      [2,'Traders sell foreign currency to the central bank for domestic currency at the new rate, so M rises and LM* shifts right.'],
+      [2,'The cheaper currency raises net exports, and output rises along IS* to the new peg.']
+    ] : [
+      [1,'The central bank revalues: it raises the peg ē. The market rate is now below the new peg.'],
+      [2,'Traders sell domestic currency to the central bank for reserves, so M falls and LM* shifts left.'],
+      [2,'The dearer currency lowers net exports, and output falls along IS* to the new peg.']
+    ]
+  }
+};
+function explain(lever, prev, next, attempted){
+  const a = solve(prev), b = solve(next), reg = next.regime;
+  const from = lever === 'M' && attempted != null ? prev.M : prev[lever];
+  const to = attempted != null ? attempted : next[lever];
+  const d = sgn(to - from, 1e-9);
+  const raw = (N[reg][lever] || (() => []))(d);
+  const steps = raw.map(x => Array.isArray(x) ? {s:x[0], t:x[1]} : {s:1, t:x});
+  const L = LEVERS[lever];
+  const title = (reg === 'fixed' ? 'Fixed rate' : 'Floating rate') + ' · ' + L.label + ' ' + fmtLever(lever, from) + ' → ' + fmtLever(lever, to);
+  return {title, steps, fixed: reg === 'fixed', a, b};
+}
+function resultLine(a, b, fixed){
+  const eW = sgn(b.e - a.e) > 0 ? ' (appreciation)' : sgn(b.e - a.e) < 0 ? ' (depreciation)' : '';
+  let s = '<b>Output</b> ' + fmt(a.Y) + ' → ' + fmt(b.Y) + ' · <b>e</b> ' + fmtE(a.e) + ' → ' + fmtE(b.e) + eW + ' · <b>NX</b> ' + fmt(a.NX) + ' → ' + fmt(b.NX);
+  if (fixed) s += ' · <b>M</b> ' + fmtE(a.M) + ' → ' + fmtE(b.M);
+  return s;
+}
+function renderStory(bodyEl, ctxEl, narr){
+  ctxEl.textContent = narr.title;
+  const lis = narr.steps.map(st => '<li class="st' + st.s + '" data-stage="' + st.s + '">' + (narr.fixed ? '<span class="stg">' + (st.s === 1 ? 'Shock' : 'Peg defence') + '</span>' : '') + esc(st.t) + '</li>').join('');
+  bodyEl.innerHTML = '<ol class="steps">' + lis + '</ol><p class="result">' + resultLine(narr.a, narr.b, narr.fixed) + '</p>';
+  bodyEl._timers && bodyEl._timers.forEach(clearTimeout);
+  bodyEl._timers = [];
+}
+function revealStage(bodyEl, s, segDur){
+  const items = $$('li[data-stage="' + s + '"]', bodyEl).filter(li => !li.classList.contains('on'));
+  const gap = Math.min(380, (segDur || 950)/Math.max(1, items.length));
+  items.forEach((li, i) => { bodyEl._timers.push(setTimeout(() => li.classList.add('on'), i*gap)); });
+}
+function revealAll(bodyEl){ (bodyEl._timers || []).forEach(clearTimeout); $$('li', bodyEl).forEach(li => li.classList.add('on')); }
+
+function playTransition(chart, prev, next, attempted, narr, opts){
+  const a = solve(prev);
+  const ghost = {A:a.A, Ylm:a.Ylm, ebar:prev.ebar, regime:prev.regime};
+  const frames = buildFrames(prev, next, attempted);
+  const base = {regime:next.regime, tariff:next.tariff, ghost, showHover:true};
+  if (opts.body){ renderStory(opts.body, opts.ctx, narr); }
+  const floatSingle = next.regime === 'float';
+  animate(chart, frames, base, {
+    onStage: s => { if (opts.body) revealStage(opts.body, floatSingle ? 1 : s, floatSingle ? 900 : 700); },
+    onDone: () => { if (opts.body) revealAll(opts.body); if (opts.onDone) opts.onDone(); }
+  });
+  return ghost;
+}
+
+/* ================= simulator (Lab + Missions) ================= */
+const Sim = {chart:null, state:freshState(), ghost:null, last:null, ctx:'lab', locked:new Set(), regimeLocked:false};
+
+function simView(){ const s = solve(Sim.state); return {A:s.A, Ylm:s.Ylm, ebar:Sim.state.ebar, regime:Sim.state.regime, tariff:Sim.state.tariff, ghost:Sim.ghost, showHover:true}; }
+function simDraw(){ Sim.chart.draw(simView()); simNote(); }
+function simNote(){
+  const el = $('#sim-note'), s = solve(Sim.state);
+  if (Sim.chart.offChart){ el.textContent = 'The equilibrium is off the chart: output ' + fmt(s.Y) + ', exchange rate ' + fmtE(s.e) + '. Move a lever back toward the middle of its range.'; el.className = 'chart-note warn'; }
+  else { el.textContent = Sim.state.regime === 'fixed' ? 'Fixed rate: the central bank adjusts M to keep e at ē. A hollow dot shows where the market rate would go before it steps in.' : 'Floating rate: the central bank sets M; the market sets e. Hover or tap the chart to read the IS* trade-off.'; el.className = 'chart-note'; }
+  $('#legend-peg').hidden = Sim.state.regime !== 'fixed';
+}
+
+function buildControls(){
+  const host = $('#controls');
+  const lever = k => {
+    const L = LEVERS[k];
+    return '<div class="lever ' + L.cls + '" data-lever="' + k + '">' +
+      '<div class="lever-head"><label for="sl-' + k + '">' + L.label + ' <span class="sym">' + L.sym + '</span></label><output id="out-' + k + '" for="sl-' + k + '"></output></div>' +
+      '<div class="lever-row"><button type="button" class="step" data-dir="-1" aria-label="Lower ' + L.label.toLowerCase() + '">' + MINUS + '</button>' +
+      '<input type="range" id="sl-' + k + '" min="' + L.min + '" max="' + L.max + '" step="' + L.step + '">' +
+      '<button type="button" class="step" data-dir="1" aria-label="Raise ' + L.label.toLowerCase() + '">+</button></div>' +
+      '<p class="lever-note"><span class="moves">' + L.moves + '</span><span id="note-' + k + '">' + (L.note || '') + '</span></p></div>';
+  };
+  host.innerHTML =
+    '<div class="ctrl-group"><h3 class="ctrl-title">Exchange-rate regime</h3>' +
+      '<div class="seg" role="group" aria-label="Exchange-rate regime"><button type="button" id="reg-float" data-regime="float">Floating</button><button type="button" id="reg-fixed" data-regime="fixed">Fixed</button></div>' +
+      '<p class="ctrl-note" id="regime-note"></p>' + lever('ebar') + '</div>' +
+    '<div class="ctrl-group"><h3 class="ctrl-title">Fiscal policy</h3>' + lever('G') + lever('T') + '</div>' +
+    '<div class="ctrl-group"><h3 class="ctrl-title">Monetary policy</h3>' + lever('M') + '</div>' +
+    '<div class="ctrl-group"><h3 class="ctrl-title">Trade and the world</h3>' + lever('tariff') + lever('r') + '</div>';
+  Object.keys(LEVERS).forEach(k => {
+    const sl = $('#sl-' + k), out = $('#out-' + k), L = LEVERS[k];
+    sl.addEventListener('input', () => { out.textContent = fmtLever(k, +sl.value); });
+    sl.addEventListener('change', () => commit(k, +sl.value));
+    $$('.lever[data-lever="' + k + '"] .step').forEach(btn => btn.addEventListener('click', () => {
+      const curr = (k === 'M' && Sim.state.regime === 'fixed') ? Sim.state.M : Sim.state[k];
+      const target = clampv(Math.round((curr + (+btn.dataset.dir)*L.nudge)/L.step)*L.step, L.min, L.max);
+      commit(k, +target.toFixed(2));
+    }));
+  });
+  $$('.seg button').forEach(b => b.addEventListener('click', () => setRegime(b.dataset.regime)));
+}
+function syncControls(){
+  const st = Sim.state, fixed = st.regime === 'fixed';
+  Object.keys(LEVERS).forEach(k => {
+    const L = LEVERS[k], sl = $('#sl-' + k), out = $('#out-' + k), wrap = sl.closest('.lever');
+    const locked = Sim.locked.has(k);
+    const off = locked || (k === 'ebar' && !fixed);
+    sl.value = st[k]; out.textContent = fmtLever(k, st[k]);
+    sl.disabled = off; wrap.classList.toggle('locked', off);
+    $$('.step', wrap).forEach(b => { const dir = +b.dataset.dir; b.disabled = off || (dir < 0 ? st[k] <= L.min + 1e-9 : st[k] >= L.max - 1e-9); });
+    const note = $('#note-' + k);
+    if (locked) note.textContent = 'Locked in this mission.';
+    else if (k === 'M' && fixed) note.textContent = 'Under a peg M adjusts by itself to hold ē. Try moving it anyway.';
+    else if (k === 'ebar' && !fixed) note.textContent = 'Used only under a fixed rate.';
+    else note.textContent = L.note || '';
+  });
+  $('#reg-float').setAttribute('aria-pressed', String(!fixed));
+  $('#reg-fixed').setAttribute('aria-pressed', String(fixed));
+  $('#reg-float').disabled = $('#reg-fixed').disabled = Sim.regimeLocked;
+  $('#regime-note').textContent = Sim.regimeLocked ? 'The regime is set by this mission.' :
+    (fixed ? 'The central bank defends the peg ē. Lower ē to devalue, raise it to revalue.' : 'The market sets e. The central bank controls the money supply.');
+  $('#btn-replay').disabled = !Sim.last;
+}
+
+function renderLedger(prev, next){
+  const a = prev ? solve(prev) : null, b = solve(next), fixed = next.regime === 'fixed';
+  const dl = (k, dec) => a ? fmtD(b[k] - a[k], dec) : '';
+  const eWord = a ? (sgn(b.e - a.e) > 0 ? ' appreciation' : sgn(b.e - a.e) < 0 ? ' depreciation' : '') : '';
+  const nx = b.NX, w = Math.min(50, Math.abs(nx)/100*50);
+  const nxBar = '<div class="nxbar" aria-hidden="true"><span class="' + (nx >= 0 ? 'pos' : 'neg') + '" style="left:' + (nx >= 0 ? 50 : 50 - w) + '%;width:' + w + '%"></span></div>';
+  const cell = (cls, k, v, d) => '<div class="cell ' + cls + '"><span class="k">' + k + '</span><span class="v">' + v + '</span><span class="d' + (d && d !== 'no change' ? ' chg' : '') + '">' + (d || '&nbsp;') + '</span></div>';
+  $('#ledger').innerHTML =
+    cell('big', 'Output · Y', fmt(b.Y), dl('Y')) +
+    cell('big', 'Exchange rate · e', fmtE(b.e), a ? dl('e') + eWord : '') +
+    '<div class="cell big"><span class="k">Net exports · NX</span><span class="v">' + fmt(nx) + '</span><span class="d' + (a && sgn(b.NX - a.NX) ? ' chg' : '') + '">' + (a ? dl('NX') : (nx > 0.05 ? 'surplus' : nx < -0.05 ? 'deficit' : 'balanced')) + '</span>' + nxBar + '</div>' +
+    cell('', 'Consumption C', fmt(b.C), dl('C')) +
+    cell('', 'Investment I', fmt(b.I), dl('I')) +
+    cell('', 'Govt G', fmt(b.G), dl('G')) +
+    cell('', 'Taxes T', fmt(b.T), dl('T')) +
+    cell('', fixed ? 'Money M · peg' : 'Money M', fmtE(b.M), dl('M')) +
+    cell('', 'r = r*', b.r.toFixed(1) + '%', a ? fmtD(b.r - a.r, true) : '');
+}
+
+function storyEmpty(text){
+  $('#story-ctx').textContent = '';
+  $('#story-body').innerHTML = '<p class="empty">' + text + '</p>';
+}
+
+function commit(lever, value, opts){
+  opts = opts || {};
+  if (Sim.chart.skip) Sim.chart.skip();
+  const prev = clone(Sim.state);
+  let next = clone(prev), attempted = null;
+  if (lever === 'M' && prev.regime === 'fixed'){
+    if (Math.abs(value - prev.M) < 1e-6){ syncControls(); return; }
+    attempted = value;
+  } else {
+    if (Math.abs(prev[lever] - value) < 1e-9){ syncControls(); return; }
+    next[lever] = value; normalize(next);
+  }
+  Sim.state = next;
+  const narr = explain(lever, prev, next, attempted);
+  Sim.last = {prev, next, attempted, narr, lever};
+  if (!opts.system && Sim.ctx === 'mission') Missions.used.add(lever);
+  if (attempted != null){ $('#out-M').textContent = fmtLever('M', attempted); }
+  Sim.ghost = playTransition(Sim.chart, prev, next, attempted, narr, {
+    body: $('#story-body'), ctx: $('#story-ctx'),
+    onDone: () => {
+      renderLedger(prev, next); syncControls(); simNote();
+      if (!opts.system) recordDiscovery(lever, next.regime);
+      if (Sim.ctx === 'mission') Missions.refresh();
+    }
+  });
+  $('#btn-replay').disabled = false;
+}
+function replay(){
+  const L = Sim.last; if (!L) return;
+  if (Sim.chart.skip) Sim.chart.skip();
+  Sim.ghost = playTransition(Sim.chart, L.prev, L.next, L.attempted, L.narr, {body: $('#story-body'), ctx: $('#story-ctx'), onDone: () => { renderLedger(L.prev, L.next); simNote(); }});
+}
+function setRegime(reg){
+  if (Sim.regimeLocked || Sim.state.regime === reg) return;
+  if (Sim.chart.skip) Sim.chart.skip();
+  const prev = clone(Sim.state), sol = solve(prev), next = clone(prev);
+  next.regime = reg;
+  if (reg === 'fixed') next.ebar = sol.e; else next.M = sol.M;
+  normalize(next);
+  Sim.state = next; Sim.ghost = null; Sim.last = null;
+  simDraw(); renderLedger(null, next); syncControls();
+  $('#story-ctx').textContent = reg === 'fixed' ? 'Switched to a fixed rate' : 'Switched to a floating rate';
+  $('#story-body').innerHTML = '<ol class="steps"><li class="on">' + (reg === 'fixed'
+    ? 'The central bank fixes the exchange rate at today’s market rate, ē = ' + fmtE(next.ebar) + '. Nothing else changes yet. From now on the money supply will adjust by itself to defend the peg.'
+    : 'The central bank stops defending the peg. The money supply stays at M = ' + fmtE(next.M) + ', and from now on the market sets the exchange rate.') + '</li></ol>';
+}
+function resetSim(){
+  if (Sim.ctx === 'mission'){ Missions.restart(); return; }
+  if (Sim.chart.skip) Sim.chart.skip();
+  Sim.state = freshState(); Sim.ghost = null; Sim.last = null;
+  simDraw(); renderLedger(null, Sim.state); syncControls();
+  storyEmpty('Back to the starting point: output 1000, exchange rate 100, balanced trade. Move a lever to see what happens.');
+}
+function runScenario(spec){
+  const [reg, lever, to] = spec.split(':');
+  showTab('lab');
+  if (Sim.chart.skip) Sim.chart.skip();
+  Sim.state = freshState({regime: reg}); Sim.ghost = null; Sim.last = null;
+  simDraw(); renderLedger(null, Sim.state); syncControls();
+  storyEmpty('Starting from output 1000 and e = 100 under a ' + (reg === 'fixed' ? 'fixed' : 'floating') + ' rate…');
+  const top = $('#sim-grid').getBoundingClientRect().top + window.scrollY - 12;
+  if (window.scrollY > top + 40 || window.scrollY + window.innerHeight < top + 200) window.scrollTo({top, behavior: REDUCED ? 'auto' : 'smooth'});
+  setTimeout(() => commit(lever, +to), REDUCED ? 0 : 450);
+}
+
+/* ================= scorecard ================= */
+const DISC = [
+  {k:'fiscal', label:'Fiscal expansion', sub:'G up or T down', lever:'G', to:240},
+  {k:'monetary', label:'Monetary expansion', sub:'M up', lever:'M', to:450},
+  {k:'trade', label:'Import restrictions', sub:'Q up', lever:'tariff', to:30}
+];
+const CAT = {G:'fiscal', T:'fiscal', M:'monetary', tariff:'trade'};
+function outcome(reg, lever, to){
+  const s0 = freshState({regime:reg}), s1 = clone(s0);
+  if (!(lever === 'M' && reg === 'fixed')){ s1[lever] = to; normalize(s1); }
+  const a = solve(s0), b = solve(s1);
+  return {Y: sgn(b.Y - a.Y), e: sgn(b.e - a.e), NX: sgn(b.NX - a.NX)};
+}
+function chipsFor(o){
+  const one = (k, v) => '<span class="chip ' + (v > 0 ? 'up' : v < 0 ? 'down' : 'same') + '"><b>' + k + '</b>' + (v > 0 ? '▲ up' : v < 0 ? '▼ down' : '— same') + '</span>';
+  return '<div class="chips">' + one('Y', o.Y) + one('e', o.e) + one('NX', o.NX) + '</div>';
+}
+function renderScorecard(){
+  let found = 0;
+  const rows = DISC.map(r => {
+    const cell = reg => { const key = r.k + '-' + reg; if (progress.disc[key]){ found++; return '<td>' + chipsFor(outcome(reg, r.lever, r.to)) + '</td>'; } return '<td><span class="sc-unknown">Not tried</span></td>'; };
+    return '<tr><th scope="row">' + r.label + '<small>' + r.sub + '</small></th>' + cell('float') + cell('fixed') + '</tr>';
+  }).join('');
+  $('#sc-table').innerHTML = '<thead><tr><th>Policy</th><th>Floating rate</th><th>Fixed rate</th></tr></thead><tbody>' + rows + '</tbody>';
+  $('#sc-count').textContent = found + ' of 6 found';
+  updateCounts();
+}
+function recordDiscovery(lever, reg){
+  const c = CAT[lever]; if (!c) return;
+  const key = c + '-' + reg; if (progress.disc[key]) return;
+  progress.disc[key] = true; saveProgress(); renderScorecard();
+}
+function updateCounts(){
+  const ms = MISSIONS.filter(m => progress.stars[m.id] > 0).length;
+  const sc = Object.keys(progress.disc).filter(k => progress.disc[k]).length;
+  $('#tab-mcount').textContent = ms + '/6';
+  $('#serial-progress').textContent = 'Missions ' + ms + '/6 · Scorecard ' + Math.min(6, sc) + '/6';
+}
+
+/* ================= missions ================= */
+const NOTE_FISCAL_FLOAT = 'Your fiscal moves shifted IS*, but under a float that only moved the exchange rate, not output.';
+const NOTE_M_PEG = 'Your change to the money supply was reversed by the central bank’s defence of the peg.';
+const MISSIONS = [
+  {id:1, regime:'float', title:'Lift a slump', short:'Output is 900. Get it back to 1000.', start:{M:350}, locked:['tariff','r','ebar'], par:1,
+   targets:[{v:'Y', val:1000, tol:10}],
+   brief:'Demand has slumped and output has fallen to 900. The currency floats and capital moves freely across the border. Bring output back to 1000.',
+   hint:'Try a fiscal lever first and watch which number moves: output or the exchange rate.',
+   debrief:'Under a floating rate only monetary policy moves output. A larger money supply pushed the domestic interest rate below r*, capital flowed out, the currency depreciated and higher net exports lifted output to 1000.',
+   notes:{G:NOTE_FISCAL_FLOAT, T:NOTE_FISCAL_FLOAT}},
+  {id:2, regime:'fixed', title:'Slump under a peg', short:'Same slump, but the currency is pegged.', start:{G:175}, locked:['tariff','r','ebar'], par:1,
+   targets:[{v:'Y', val:1000, tol:10}],
+   brief:'The same slump, with output at 900, but the currency is now pegged at ē = 100. Bring output back to 1000.',
+   hint:'Move the money supply and watch its slider afterwards. Who really decides M under a peg?',
+   debrief:'Under a peg, fiscal policy works at full strength. The fiscal expansion put upward pressure on the currency, so the central bank had to supply more money to hold ē, and LM* moved right with IS*. Output rose by the full multiplier.',
+   notes:{M:NOTE_M_PEG}},
+  {id:3, regime:'float', title:'Exporters want a weaker rupee', short:'Weaken the currency without a recession.', start:{G:250}, locked:['tariff','r','ebar'], par:1,
+   targets:[{v:'e', val:100, tol:2}, {v:'Y', val:1000, tol:10}],
+   brief:'Years of large budget deficits have pushed the exchange rate up to 120, and exporters are losing orders. Output is at its normal level of 1000 and must stay there. Bring e down to 100.',
+   hint:'Under a float, which lever moves e but leaves Y alone?',
+   debrief:'Cutting the deficit lowered e with no loss of output: under a float, fiscal tightening shows up entirely in the exchange rate and net exports. Economists call this link between budget and trade deficits the twin deficits.',
+   notes:{M:'You also tried the money supply. Under a float it weakens the currency, but it moves output too, which this mission could not afford.'}},
+  {id:4, regime:'float', title:'Growth at a steady rate', short:'Raise output and hold the exchange rate.', start:{}, locked:['tariff','r','ebar'], par:2,
+   targets:[{v:'Y', val:1100, tol:10}, {v:'e', val:100, tol:2}],
+   brief:'The government wants output 10% higher, at 1100, while the exchange rate stays at 100 to keep import prices stable. You will need two instruments.',
+   hint:'Use one lever to set Y. Then use a second lever that moves e without moving Y.',
+   debrief:'This is a policy mix. Monetary expansion set output at 1100 and weakened the currency; fiscal expansion then pushed e back up to 100 without changing output. Under a float, M decides the level of output and fiscal policy decides how it splits between domestic demand and net exports.',
+   notes:{}},
+  {id:5, regime:'fixed', title:'No fiscal space', short:'Recovery with fiscal policy off the table.', start:{G:175}, locked:['G','T','tariff','r'], par:1,
+   targets:[{v:'Y', val:1000, tol:10}],
+   brief:'Output has fallen to 900 under a peg at ē = 100. An IMF programme rules out any rise in spending or cut in taxes. Find another way back to 1000.',
+   hint:'Under a peg, the central bank still chooses one thing: the peg itself.',
+   debrief:'Devaluing to 90 made exports cheaper, raised net exports and lifted output to 1000, with the central bank supplying the extra money the new peg required. The model leaves out the costs: dearer imports, higher inflation and a heavier burden of foreign-currency debt.',
+   notes:{M:NOTE_M_PEG}},
+  {id:6, regime:'fixed', title:'Rates rise abroad', short:'A shock from abroad hits a pegged economy.', start:{}, shock:{r:7}, locked:['r','tariff','ebar'], par:1,
+   targets:[{v:'Y', val:1000, tol:10}],
+   brief:'Interest rates abroad jump from 5% to 7%. Investment falls and, to hold the peg, the central bank drains money from the economy. Output drops to 920. Restore output to 1000 without changing the peg.',
+   hint:'Which kind of policy still works under a fixed exchange rate?',
+   debrief:'Fiscal expansion restored output. Under a floating rate the same shock would have depreciated the currency to about 84 and, in this model, raised output to 1080. A floating rate absorbs shocks from abroad; a peg passes them straight to output.',
+   notes:{M:NOTE_M_PEG}}
+];
+const starStr = n => '<span class="stars" aria-label="' + n + ' of 3 stars">' + '★★★'.slice(0, n) + '<span class="off">' + '★★★'.slice(0, 3 - n) + '</span></span>';
+const Missions = {
+  active:null, used:new Set(), solved:false, labSaved:null,
+  renderPicker(){
+    $('#mission-grid').innerHTML = MISSIONS.map(m => {
+      const st = progress.stars[m.id] || 0;
+      return '<button class="mcard" type="button" data-mission="' + m.id + '"><span class="top"><span class="num">Mission ' + m.id + '</span><span class="pill ' + m.regime + '">' + (m.regime === 'fixed' ? 'Fixed rate' : 'Floating rate') + '</span></span><h3>' + esc(m.title) + '</h3><p>' + esc(m.short) + '</p>' + starStr(st) + '</button>';
+    }).join('');
+    $$('.mcard').forEach(b => b.addEventListener('click', () => this.start(+b.dataset.mission)));
+  },
+  start(id){
+    const m = MISSIONS.find(x => x.id === id); if (!m) return;
+    if (Sim.chart.skip) Sim.chart.skip();
+    if (Sim.ctx === 'lab') this.labSaved = {state: clone(Sim.state)};
+    Sim.ctx = 'mission'; this.active = m; this.used = new Set(); this.solved = false;
+    Sim.locked = new Set(m.locked); Sim.regimeLocked = true;
+    Sim.state = freshState(Object.assign({regime: m.regime}, m.start)); Sim.ghost = null; Sim.last = null;
+    $('#brief-tag').innerHTML = '<span class="pill ' + m.regime + '">Mission ' + m.id + ' · ' + (m.regime === 'fixed' ? 'Fixed rate' : 'Floating rate') + '</span>';
+    $('#brief-title').textContent = m.title;
+    $('#brief-text').textContent = m.brief;
+    $('#brief-feedback').textContent = ''; $('#brief-feedback').className = 'feedback';
+    $('#brief-debrief').hidden = true; $('#brief-submit').disabled = false;
+    this.layout();
+    simDraw(); renderLedger(null, Sim.state); syncControls(); this.refresh();
+    storyEmpty('Your moves will be explained here, step by step.');
+    if (m.shock){
+      Object.keys(m.shock).forEach(k => setTimeout(() => commit(k, m.shock[k], {system:true}), REDUCED ? 0 : 500));
+    }
+    const top = $('#brief').getBoundingClientRect().top + window.scrollY - 12;
+    if (window.scrollY > top) window.scrollTo({top, behavior: REDUCED ? 'auto' : 'smooth'});
+  },
+  layout(){
+    const on = !!this.active;
+    $('#mission-picker').hidden = on; $('#brief').hidden = !on; $('#sim-grid').hidden = !on;
+  },
+  leave(){
+    if (Sim.ctx !== 'mission') return;
+    if (Sim.chart.skip) Sim.chart.skip();
+    Sim.ctx = 'lab'; this.active = null;
+    Sim.locked = new Set(); Sim.regimeLocked = false;
+    Sim.state = this.labSaved ? this.labSaved.state : freshState(); Sim.ghost = null; Sim.last = null;
+    simDraw(); renderLedger(null, Sim.state); syncControls();
+    storyEmpty('Back in the Lab. Move a lever to see the chain of events.');
+  },
+  restart(){ if (this.active) this.start(this.active.id); },
+  refresh(){
+    const m = this.active; if (!m) return;
+    const s = solve(Sim.state);
+    $('#brief-targets').innerHTML = m.targets.map(t => {
+      const val = t.v === 'Y' ? s.Y : s.e, ok = Math.abs(val - t.val) <= t.tol + 1e-9;
+      return '<div class="target' + (ok ? ' ok' : '') + '"><span class="tn">' + (t.v === 'Y' ? 'Output Y' : 'Exchange rate e') + '</span><span class="now">' + fmtE(val) + '</span><span class="goal">target ' + t.val + ' ± ' + t.tol + '</span><span class="flag">' + (ok ? '✓ on target' : 'off target') + '</span></div>';
+    }).join('');
+    const n = this.used.size;
+    $('#brief-used').textContent = 'Instruments used: ' + n + ' · Par ' + m.par;
+  },
+  hint(){ const m = this.active; if (!m) return; const f = $('#brief-feedback'); f.textContent = 'Hint: ' + m.hint; f.className = 'feedback hint'; },
+  submit(){
+    const m = this.active; if (!m || this.solved) return;
+    if (Sim.chart.skip) Sim.chart.skip();
+    const s = solve(Sim.state);
+    const misses = m.targets.filter(t => Math.abs((t.v === 'Y' ? s.Y : s.e) - t.val) > t.tol + 1e-9);
+    const f = $('#brief-feedback');
+    if (misses.length){
+      f.className = 'feedback bad';
+      f.textContent = 'Not yet. ' + misses.map(t => (t.v === 'Y' ? 'Output' : 'The exchange rate') + ' is ' + fmtE(t.v === 'Y' ? s.Y : s.e) + '; it needs to be between ' + (t.val - t.tol) + ' and ' + (t.val + t.tol) + '.').join(' ');
+      return;
+    }
+    this.solved = true;
+    const n = this.used.size, stars = n <= m.par ? 3 : n === m.par + 1 ? 2 : 1;
+    progress.stars[m.id] = Math.max(progress.stars[m.id] || 0, stars); saveProgress();
+    f.textContent = ''; f.className = 'feedback';
+    const notes = []; this.used.forEach(k => { const t = m.notes && m.notes[k]; if (t && notes.indexOf(t) < 0) notes.push(t); });
+    const next = MISSIONS.find(x => x.id === m.id + 1);
+    const d = $('#brief-debrief');
+    d.innerHTML = '<h3>Mission complete ' + starStr(stars) + '</h3>' +
+      '<p class="note">You used ' + n + ' instrument' + (n === 1 ? '' : 's') + ' (par ' + m.par + ').' + (stars < 3 ? ' Three stars go to solutions that use only the instruments that matter.' : '') + '</p>' +
+      '<p>' + esc(m.debrief) + '</p>' + notes.map(t => '<p class="note">' + esc(t) + '</p>').join('') +
+      '<div class="brief-actions">' + (next ? '<button class="btn primary" type="button" id="db-next">Next mission</button>' : '<button class="btn primary" type="button" id="db-predict">Try the Predict round</button>') + '<button class="btn" type="button" id="db-all">All missions</button></div>';
+    d.hidden = false; $('#brief-submit').disabled = true;
+    if (next) $('#db-next').addEventListener('click', () => this.start(next.id));
+    else $('#db-predict').addEventListener('click', () => showTab('predict'));
+    $('#db-all').addEventListener('click', () => this.back());
+    this.renderPicker(); updateCounts();
+  },
+  back(){ this.leave(); this.layout(); window.scrollTo({top: 0, behavior: REDUCED ? 'auto' : 'smooth'}); }
+};
+
+/* ================= predict ================= */
+const ROUNDS = [
+  {reg:'float', lever:'G', to:240, text:'The government raises development spending: G rises from 200 to 240.'},
+  {reg:'fixed', lever:'G', to:240, text:'The same rise in spending, G from 200 to 240, but the currency is pegged at ē = 100.'},
+  {reg:'float', lever:'M', to:450, text:'The central bank expands the money supply from 400 to 450.'},
+  {reg:'fixed', lever:'M', to:450, text:'With the currency pegged, the central bank tries to expand the money supply from 400 to 450.'},
+  {reg:'float', lever:'T', to:240, text:'A new budget raises taxes from 200 to 240.'},
+  {reg:'fixed', lever:'T', to:240, text:'The same tax rise, T from 200 to 240, under the peg.'},
+  {reg:'float', lever:'tariff', to:30, text:'The government imposes import quotas that cut imports by 30 at any exchange rate.'},
+  {reg:'fixed', lever:'tariff', to:30, text:'The same import quotas, under the peg.'},
+  {reg:'fixed', lever:'ebar', to:90, text:'The central bank devalues: the peg moves from 100 to 90.'},
+  {reg:'float', lever:'r', to:6, text:'Interest rates abroad rise: r* goes from 5% to 6%.'}
+];
+const PVARS = [{k:'Y', label:'Output', sym:'Y'}, {k:'e', label:'Exchange rate', sym:'e'}, {k:'NX', label:'Net exports', sym:'NX'}];
+const WORD = {1:'rises', 0:'no change', '-1':'falls'};
+const Predict = {
+  chart:null, order:ROUNDS.map((_, i) => i), idx:0, score:0, picks:{}, checked:false, missed:[],
+  init(){
+    this.chart = new MFChart($('#pred-chart'));
+    $('#pr-rows').innerHTML = PVARS.map(v => '<div class="prow" data-var="' + v.k + '"><div class="pl"><span>' + v.label + ' <span class="sym">' + v.sym + '</span></span><span class="mark" aria-live="polite"></span></div><div class="popts" role="group" aria-label="Prediction for ' + v.label.toLowerCase() + '"><button type="button" data-v="1" aria-pressed="false">▲ Rises</button><button type="button" data-v="0" aria-pressed="false">— No change</button><button type="button" data-v="-1" aria-pressed="false">▼ Falls</button></div></div>').join('');
+    $$('#pr-rows .popts button').forEach(b => b.addEventListener('click', () => {
+      if (this.checked) return;
+      const row = b.closest('.prow'), k = row.dataset.var;
+      this.picks[k] = +b.dataset.v;
+      $$('button', row).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      $('#pr-check').disabled = PVARS.some(v => this.picks[v.k] === undefined);
+    }));
+    $('#pr-check').addEventListener('click', () => this.check());
+    $('#pr-next').addEventListener('click', () => this.next());
+    this.load();
+  },
+  round(){ return ROUNDS[this.order[this.idx]]; },
+  load(){
+    const R = this.round();
+    this.picks = {}; this.checked = false;
+    const s = freshState({regime: R.reg}), sol = solve(s);
+    if (this.chart.skip) this.chart.skip();
+    this.chart.draw({A:sol.A, Ylm:sol.Ylm, ebar:s.ebar, regime:s.regime, tariff:s.tariff, ghost:null});
+    const pill = $('#pr-regime'); pill.className = 'pill ' + R.reg; pill.textContent = R.reg === 'fixed' ? 'Fixed rate' : 'Floating rate';
+    $('#pr-text').textContent = R.text;
+    $$('#pr-rows .popts button').forEach(b => { b.setAttribute('aria-pressed', 'false'); b.classList.remove('right', 'wrong'); b.disabled = false; });
+    $$('#pr-rows .mark').forEach(m => { m.textContent = ''; m.className = 'mark'; });
+    $('#pr-check').disabled = true; $('#pr-check').hidden = false; $('#pr-next').hidden = true;
+    $('#pr-story').hidden = true;
+    $('#pr-round').textContent = (this.idx + 1) + '/' + ROUNDS.length;
+    $('#pr-score').textContent = this.score + '/' + ROUNDS.length*3;
+    $('#pr-bar').style.width = (this.idx/ROUNDS.length*100) + '%';
+  },
+  check(){
+    if (this.checked) return; this.checked = true;
+    const R = this.round();
+    const prev = freshState({regime: R.reg}), next = clone(prev);
+    let attempted = null;
+    if (R.lever === 'M' && R.reg === 'fixed') attempted = R.to; else { next[R.lever] = R.to; normalize(next); }
+    const a = solve(prev), b = solve(next);
+    let got = 0; const wrong = [];
+    PVARS.forEach(v => {
+      const truth = sgn(b[v.k] - a[v.k]), pick = this.picks[v.k], row = $('#pr-rows .prow[data-var="' + v.k + '"]');
+      $$('button', row).forEach(btn => { btn.disabled = true; const val = +btn.dataset.v; if (val === truth) btn.classList.add('right'); else if (val === pick) btn.classList.add('wrong'); });
+      const mk = $('.mark', row);
+      if (pick === truth){ got++; mk.textContent = '✓ correct'; mk.className = 'mark ok'; }
+      else { mk.textContent = '✗ it ' + (truth === 0 ? 'does not change' : WORD[truth]); mk.className = 'mark no'; wrong.push(v.label.toLowerCase()); }
+    });
+    this.score += got;
+    if (wrong.length) this.missed.push({R, wrong, truth: PVARS.map(v => v.sym + ' ' + (sgn(b[v.k] - a[v.k]) > 0 ? '▲' : sgn(b[v.k] - a[v.k]) < 0 ? '▼' : '—')).join('  ')});
+    const narr = explain(R.lever, prev, next, attempted);
+    $('#pr-story').hidden = false;
+    playTransition(this.chart, prev, next, attempted, narr, {body: $('#pr-story-body'), ctx: $('#pr-ctx')});
+    recordDiscovery(R.lever, R.reg);
+    $('#pr-score').textContent = this.score + '/' + ROUNDS.length*3;
+    $('#pr-check').hidden = true; $('#pr-next').hidden = false;
+    $('#pr-next').textContent = this.idx + 1 < ROUNDS.length ? 'Next round' : 'See your score';
+    $('#pr-bar').style.width = ((this.idx + 1)/ROUNDS.length*100) + '%';
+  },
+  next(){
+    if (this.idx + 1 < ROUNDS.length){ this.idx++; this.load(); return; }
+    this.finish();
+  },
+  finish(){
+    const max = ROUNDS.length*3, sc = this.score;
+    if (progress.bestPredict == null || sc > progress.bestPredict){ progress.bestPredict = sc; saveProgress(); }
+    const msg = sc >= 27 ? 'Exam-ready. You can read the model in both regimes.' : sc >= 20 ? 'Solid. Review the rounds below, then play again.' : 'Worth another pass. Read the guide sections on floating and fixed rates, then play again.';
+    const f = $('#pr-final');
+    f.innerHTML = '<h3>' + sc + ' out of ' + max + '</h3><p>' + msg + ' Best so far: ' + progress.bestPredict + '/' + max + '.</p>' +
+      (this.missed.length ? '<p><strong>Rounds to review</strong></p><ul>' + this.missed.map(x => '<li>' + esc(x.R.text) + ' <span style="font-family:var(--f-mono);font-size:13px">(' + x.truth + ')</span></li>').join('') + '</ul>' : '<p>No mistakes at all.</p>') +
+      '<div class="pactions"><button class="btn primary" type="button" id="pr-again">Play again in a new order</button><button class="btn" type="button" id="pr-guide">Open the student guide</button></div>';
+    f.hidden = false; $('#pr-grid').hidden = true;
+    $('#pr-again').addEventListener('click', () => this.restart(true));
+    $('#pr-guide').addEventListener('click', () => showTab('guide'));
+  },
+  restart(shuffle){
+    this.order = ROUNDS.map((_, i) => i);
+    if (shuffle) for (let i = this.order.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i + 1)); [this.order[i], this.order[j]] = [this.order[j], this.order[i]]; }
+    this.idx = 0; this.score = 0; this.missed = [];
+    $('#pr-final').hidden = true; $('#pr-grid').hidden = false;
+    this.load();
+  }
+};
+
+/* ================= guide figures ================= */
+function drawFigures(){
+  $$('svg[data-fig]').forEach(svg => {
+    const ch = new MFChart(svg, {mini:true}), spec = svg.dataset.fig;
+    if (spec === 'base'){ const s = freshState(), so = solve(s); ch.draw({A:so.A, Ylm:so.Ylm, ebar:s.ebar, regime:'float', tariff:0, ghost:null}); return; }
+    const [reg, lever, to] = spec.split(':');
+    const prev = freshState({regime:reg}), a = solve(prev);
+    if (lever === 'M' && reg === 'fixed'){
+      ch.draw({A:a.A, Ylm:a.Ylm, ebar:prev.ebar, regime:reg, tariff:0, ghost:null, temp:{Ylm:Ylm_of(+to, prev.r)}});
+      return;
+    }
+    const next = clone(prev); next[lever] = +to; normalize(next); const b = solve(next);
+    ch.draw({A:b.A, Ylm:b.Ylm, ebar:next.ebar, regime:reg, tariff:next.tariff, ghost:{A:a.A, Ylm:a.Ylm, ebar:prev.ebar, regime:reg}});
+  });
+}
+
+/* ================= banknote rosette ================= */
+function drawRosette(){
+  const cv = $('#rosette'); if (!cv) return;
+  const r = cv.getBoundingClientRect(); if (!r.width) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(r.width*dpr); cv.height = Math.round(r.height*dpr);
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, r.width, r.height);
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--guilloche').trim() || 'rgba(13,102,84,.3)';
+  ctx.lineWidth = 0.7;
+  const cx = r.width/2, cy = r.height/2, R = Math.min(r.width, r.height)/2 - 4;
+  const band = (a, b, m, copies) => {
+    for (let j = 0; j < copies; j++){
+      const ph = j*2*Math.PI/copies;
+      ctx.beginPath();
+      for (let i = 0; i <= 900; i++){
+        const t = i/900*2*Math.PI, rr = a + b*Math.sin(m*t + ph);
+        const x = cx + rr*Math.cos(t), y = cy + rr*Math.sin(t);
+        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      ctx.stroke();
+    }
+  };
+  band(R*0.84, R*0.13, 22, 12);
+  band(R*0.55, R*0.17, 14, 10);
+  band(R*0.26, R*0.12, 8, 7);
+  ctx.beginPath(); ctx.arc(cx, cy, R*0.99, 0, 2*Math.PI); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, R*0.69, 0, 2*Math.PI); ctx.stroke();
+}
+
+/* ================= tabs ================= */
+let currentTab = 'lab';
+function showTab(t){
+  if (['lab','missions','predict','guide'].indexOf(t) < 0) t = 'lab';
+  currentTab = t;
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  const sim = t === 'lab' || t === 'missions';
+  $('#view-sim').hidden = !sim; $('#view-predict').hidden = t !== 'predict'; $('#view-guide').hidden = t !== 'guide';
+  if (t === 'lab'){
+    Missions.leave();
+    $('#lab-intro').hidden = false; $('#mission-picker').hidden = true; $('#brief').hidden = true; $('#sim-grid').hidden = false; $('#scorecard').hidden = false;
+  } else if (t === 'missions'){
+    $('#lab-intro').hidden = true; $('#scorecard').hidden = true;
+    Missions.layout();
+  }
+}
+
+/* ================= boot ================= */
+function start(data){
+  data = data || {};
+  Sim.chart = new MFChart($('#sim-chart'), {interactive:true});
+  buildControls();
+  if (data.lab && data.lab.regime) Sim.state = normalize(Object.assign(clone(BASE), data.lab));
+  simDraw(); renderLedger(null, Sim.state); syncControls();
+  Missions.renderPicker();
+  renderScorecard();
+  Predict.init();
+  drawFigures();
+  drawRosette();
+
+  $$('.tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+  $$('[data-run]').forEach(b => b.addEventListener('click', () => runScenario(b.dataset.run)));
+  $('#btn-replay').addEventListener('click', replay);
+  $('#btn-reset').addEventListener('click', resetSim);
+  $('#brief-back').addEventListener('click', () => Missions.back());
+  $('#brief-submit').addEventListener('click', () => Missions.submit());
+  $('#brief-hint').addEventListener('click', () => Missions.hint());
+  $('#brief-restart').addEventListener('click', () => Missions.restart());
+  $$('.toc a').forEach(a => a.addEventListener('click', ev => {
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if (el){ ev.preventDefault(); el.scrollIntoView({behavior: REDUCED ? 'auto' : 'smooth', block:'start'}); }
+  }));
+
+  let rt = 0;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => {
+    drawRosette();
+    [Sim.chart, Predict.chart].forEach(c => { if (c && c.setGeom()){ if (c.skip) c.skip(); else if (c.view) c.draw(c.view); } });
+  }, 150); });
+  if (window.matchMedia){ const mq = matchMedia('(prefers-color-scheme: dark)'); (mq.addEventListener ? mq.addEventListener('change', drawRosette) : mq.addListener && mq.addListener(drawRosette)); }
+  try { new MutationObserver(drawRosette).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme','class']}); } catch (e) {}
+
+  const h = (location.hash || '').slice(1);
+  showTab(data.tab || (['lab','missions','predict','guide'].indexOf(h) >= 0 ? h : 'lab'));
+
+  try {
+    if (window.claude && window.claude.hot && window.claude.hot.snapshot){
+      window.claude.hot.snapshot(() => ({tab: currentTab, lab: Sim.ctx === 'lab' ? clone(Sim.state) : (Missions.labSaved ? Missions.labSaved.state : null)}));
+    }
+  } catch (e) {}
+}
+const hot = window.claude && window.claude.hot;
+if (hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
+})();
+</script>
+</body>
+</html>
