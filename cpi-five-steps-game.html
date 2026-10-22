@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Basket Watch</title>
+<meta name="description" content="A step-by-step game for measuring inflation with the consumer price index (CPI) in five steps.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ECF0F3;--panel:#FFFFFF;--ink:#1A2430;--muted:#5C6976;--faint:#8D99A5;--rule:#D3DBE2;--soft:#F4F6F8;
+  --bask:#1E7A57;--price:#B07812;--cost:#2D5BA6;--cpi:#6A4C9C;--infl:#A8364A;--ok:#1E7A57;--bad:#A8364A;
+  --bask-t:#E2F1E9;--price-t:#F7EDDA;--cost-t:#E4EBF7;--cpi-t:#EEE8F6;--infl-t:#F6E3E6;
+  --sans:"Public Sans","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+h1,h2,h3,h4{margin:0}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
+[hidden]{display:none !important}
+
+.top{background:var(--panel);border-bottom:1px solid var(--rule)}
+.top-inner{max-width:1320px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px 20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.mark{width:40px;height:40px;flex:none;display:block}
+.brand h1{font-size:22px;font-weight:800;letter-spacing:-.015em;line-height:1.1}
+.brand p{margin:3px 0 0;color:var(--muted);font-size:13.5px}
+.hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hud .box{display:flex;flex-direction:column;line-height:1.15;padding:5px 12px;border:1px solid var(--rule);border-radius:9px;background:var(--soft);min-width:84px}
+.hud .lab{font-size:11px;color:var(--muted)}
+.hud b{font-size:17px;font-weight:800}
+.hud .of{font-size:12px;color:var(--muted);font-weight:600}
+.btn{border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:8px;padding:9px 15px;font-weight:600;cursor:pointer;font-size:13.5px}
+.btn:hover{background:#2A3644}
+.btn.ghost{background:var(--panel);color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--ink);background:var(--panel)}
+.btn.sm{padding:7px 12px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+.wrap{max-width:1320px;margin:0 auto;padding:16px 20px 40px}
+.steps{list-style:none;margin:0 0 14px;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.steps button{width:100%;display:flex;align-items:center;gap:10px;border:1px solid var(--rule);background:var(--panel);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;font-weight:600;font-size:13.5px;color:var(--muted);line-height:1.2}
+.steps .n{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--rule);font-size:12.5px;font-weight:800;background:var(--panel)}
+.steps li.cur button{border-color:var(--c);color:var(--ink);box-shadow:inset 0 -3px 0 var(--c)}
+.steps li.cur .n{background:var(--c);border-color:var(--c);color:#fff}
+.steps li.done button{color:var(--ink)}
+.steps li.done .n{background:var(--ct);border-color:var(--c);color:var(--c)}
+.steps li.locked button{cursor:not-allowed;opacity:.5}
+@media (max-width:860px){.steps .lab{display:none}.steps button{justify-content:center;padding:8px}}
+
+.grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:14px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:12px}
+.book{position:sticky;top:12px;padding:16px}
+@media (max-width:1000px){.grid{grid-template-columns:minmax(0,1fr)}.book{position:static}}
+.book h2{font-size:16px;font-weight:800}
+.book .sub{color:var(--muted);font-size:13px;margin:3px 0 10px}
+.book h3{font-size:13.5px;font-weight:700;margin:14px 0 4px;display:flex;align-items:center;gap:8px}
+.book h3 .sw{width:10px;height:10px;border-radius:3px;background:var(--c);flex:none}
+.pending{font-size:13px;color:var(--faint);margin:0}
+.tscroll{overflow-x:auto;margin:0 -4px;padding:0 4px}
+table{border-collapse:collapse;font-variant-numeric:tabular-nums}
+table.t{width:100%;font-size:13px}
+.t th,.t td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+.t th:first-child,.t td:first-child{text-align:left}
+.t thead th{font-size:11.5px;color:var(--muted);font-weight:600}
+.t td.pend{color:var(--faint)}
+.t tr:last-child td{border-bottom:0}
+.t .base{background:var(--bask-t)}
+
+.stage{padding:20px 22px 22px;min-width:0}
+.stepno{font-size:12.5px;color:var(--muted);font-weight:600}
+.stage h2{font-size:24px;font-weight:800;letter-spacing:-.015em;margin:2px 0 10px;line-height:1.2}
+.lede{font-size:15.5px;max-width:64ch;margin:0 0 12px}
+.formula{display:inline-block;background:var(--soft);border:1px solid var(--rule);border-left:4px solid var(--c);border-radius:8px;padding:10px 14px;margin:4px 0 16px;font-size:15px;font-weight:600}
+.formula .note{display:block;font-size:12.5px;color:var(--muted);font-weight:500;margin-top:2px}
+.sec{font-size:14px;font-weight:700;margin:4px 0 6px}
+table.diary{font-size:14px;margin:0 0 16px;min-width:100%}
+.diary th,.diary td{padding:7px 10px;border-bottom:1px solid var(--rule);text-align:right}
+.diary th:first-child,.diary td:first-child{text-align:left}
+.diary thead th{font-size:12.5px;color:var(--muted);font-weight:600}
+.diary thead th.base{color:var(--bask)}
+.diary td.base{background:var(--bask-t);font-weight:700}
+.reports{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 16px}
+@media (max-width:760px){.reports{grid-template-columns:minmax(0,1fr)}}
+.report{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;background:var(--soft)}
+.report h4{font-size:13.5px;margin-bottom:6px}
+.report ul{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.ptag{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--price);border-radius:6px;padding:5px 8px;font-size:13px}
+.ptag span{line-height:1.25}
+.ptag small{display:block;color:var(--muted);font-size:11.5px}
+.ptag b{color:var(--price);font-weight:800;white-space:nowrap}
+table.work{font-size:14px;margin:0 0 6px;min-width:100%}
+.work th,.work td{padding:7px 8px;border-bottom:1px solid var(--rule);text-align:right;vertical-align:top}
+.work thead th{font-size:12.5px;color:var(--muted);font-weight:600;text-align:center}
+.work thead th.base{color:var(--bask)}
+.work tbody th{text-align:left;font-weight:600;white-space:nowrap;padding-top:13px}
+.work tbody th small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
+.work tr.total th,.work tr.total td{border-top:2px solid var(--ink);border-bottom:0}
+.work td.given{padding-top:13px;font-weight:600;color:var(--muted)}
+.work td.na{padding-top:13px;color:var(--faint);text-align:center;min-width:112px}
+.cellwrap{display:flex;flex-direction:column;align-items:stretch;min-width:112px}
+input.cell{width:100%;text-align:right;font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;padding:7px 9px;border:1.5px solid var(--rule);border-radius:7px;background:var(--panel)}
+input.cell:focus{border-color:var(--c);outline:none;box-shadow:0 0 0 3px rgba(45,91,166,.15)}
+input.cell.bad{border-color:var(--bad);background:#FDF5F6}
+input.cell.ok{border-color:var(--ok);background:var(--bask-t);color:var(--ok)}
+input.cell.rev{border-style:dashed;border-color:var(--faint);background:var(--soft);color:var(--muted)}
+input.cell[readonly]{cursor:default}
+.how{font-size:11.5px;color:var(--muted);margin-top:3px;text-align:right}
+.rev-btn{border:0;background:none;color:var(--cost);font-size:11.5px;font-weight:600;cursor:pointer;padding:2px 0 0;text-align:right}
+.fb{min-height:24px;margin:12px 0 4px;padding:9px 12px;border-radius:8px;font-size:14px;background:var(--soft);color:var(--muted)}
+.fb.ok{background:var(--bask-t);color:#14563D}
+.fb.bad{background:var(--infl-t);color:#7D2333}
+.fb.info{background:var(--cost-t);color:#1F4280}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.worked{background:var(--soft);border:1px solid var(--rule);border-radius:10px;padding:12px 14px;margin:12px 0 0;font-size:14px}
+.worked h4{font-size:13.5px;margin-bottom:4px}
+.worked p{margin:3px 0}
+.takeaway{margin-top:16px;border:1.5px solid var(--ok);background:#F3FAF6;border-radius:12px;padding:14px 16px}
+.takeaway h3{font-size:15.5px;font-weight:800;color:var(--ok);margin-bottom:4px}
+.takeaway p{margin:0 0 10px;max-width:66ch}
+.mc{border:1px solid var(--rule);border-radius:10px;padding:13px 14px;margin:0 0 12px}
+.mc .q{font-weight:700;margin:0 0 8px;font-size:14.5px}
+.mc .opts{display:grid;gap:6px}
+.mc .opts button{text-align:left;border:1.5px solid var(--rule);background:var(--panel);border-radius:8px;padding:8px 11px;cursor:pointer;font-size:14px}
+.mc .opts button:hover:not(:disabled){border-color:var(--ink)}
+.mc .opts button.wrong{border-color:var(--bad);color:var(--bad);background:#FDF5F6}
+.mc .opts button.right{border-color:var(--ok);color:var(--ok);background:var(--bask-t);font-weight:600}
+.mc .opts button:disabled{cursor:default}
+.mc-fb{font-size:13.5px;margin-top:8px}
+.mc-fb.ok{color:#14563D}.mc-fb.bad{color:#7D2333}
+.mc.solved{border-color:var(--ok)}
+.note-box{font-size:13.5px;background:var(--price-t);border-radius:8px;padding:8px 12px;margin:0 0 14px;max-width:70ch}
+
+.summary .big{display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 16px}
+.summary .stat{border:1px solid var(--rule);border-radius:10px;padding:10px 14px;min-width:130px}
+.summary .stat b{display:block;font-size:22px;font-weight:800}
+.summary .stat span{font-size:12px;color:var(--muted)}
+.summary table.t{max-width:640px;font-size:14px}
+.summary h3{font-size:15px;margin:18px 0 6px}
+.summary p{max-width:66ch}
+.summary ol{margin:4px 0 10px;padding-left:1.3em;max-width:66ch}
+.summary li{margin:0 0 5px}
+.cert{border:2px solid var(--ink);border-radius:12px;padding:14px 16px;margin-top:18px;max-width:640px}
+.cert label{font-size:13px;font-weight:600;display:block;margin-bottom:4px}
+.cert input{width:100%;max-width:340px;padding:8px 10px;border:1.5px solid var(--rule);border-radius:7px}
+.cert .line{font-size:14px;margin-top:10px}
+.chart{max-width:640px;margin:6px 0 4px}
+.chart svg{display:block;width:100%;height:auto}
+.legend-row{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.legend-row span{display:inline-flex;gap:6px;align-items:center}
+.legend-row i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+details.key{margin-top:22px;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:12px 16px}
+details.key summary{cursor:pointer;font-weight:600;font-size:13.5px;color:var(--muted)}
+details.key table{font-size:13px;margin-top:10px}
+details.key th,details.key td{padding:4px 8px;border-bottom:1px solid var(--rule);text-align:right}
+details.key th:first-child,details.key td:first-child{text-align:left}
+dialog{border:1px solid var(--rule);border-radius:12px;padding:18px 20px;max-width:360px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(26,36,48,.45)}
+dialog h3{font-size:16px;margin-bottom:6px}
+dialog p{margin:0 0 10px;color:var(--muted);font-size:13.5px}
+dialog input{width:100%;padding:9px 11px;border:1.5px solid var(--rule);border-radius:8px;font-size:16px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.foot{color:var(--muted);font-size:12px;margin-top:14px}
+@media (max-width:600px){
+  .wrap{padding:12px 12px 32px}
+  .stage{padding:16px 14px 18px}
+  .stage h2{font-size:21px}
+  .book{padding:14px 12px}
+  .work th,.work td{padding:6px 3px}
+  .work tbody th{white-space:normal;font-size:13px}
+  .work tbody th small{font-size:10.5px}
+  .cellwrap{min-width:72px}
+  input.cell{font-size:14px;padding:6px 6px}
+  .how{font-size:10.5px}
+  .work td.na{min-width:72px;font-size:12px}
+  .diary th,.diary td{padding:6px 5px}
+}
+@media print{
+  body{background:#fff}
+  .top .hud,.steps,.book,details.key,.no-print,.foot{display:none !important}
+  .grid{display:block}
+  .panel{border:0}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="9" fill="#1A2430"/><path d="M13 16 Q20 6 27 16" stroke="#C9D3DC" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M8 16 H32 L29 31 H11 Z" fill="#47B98B"/><path d="M14 20 V27 M20 20 V27 M26 20 V27" stroke="#1A2430" stroke-width="2" stroke-linecap="round"/></svg>
+      <div>
+        <h1>Basket Watch</h1>
+        <p>Measure inflation with the consumer price index, in five steps</p>
+      </div>
+    </div>
+    <div class="hud">
+      <div class="box"><span class="lab">Score</span><span><b id="score" class="num">0</b> <span class="of num" id="scoreMax">/ 0</span></span></div>
+      <div class="box"><span class="lab">Basket code</span><b id="codeTxt" class="num">-----</b></div>
+      <button class="btn ghost sm" type="button" id="btnNew">New basket</button>
+      <button class="btn ghost sm" type="button" id="btnCode">Enter a code</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <ol class="steps" id="steps" aria-label="The five steps"></ol>
+  <div class="grid">
+    <aside class="panel book" id="book" aria-label="Your workbook"></aside>
+    <section class="panel stage" id="stage"></section>
+  </div>
+  <details class="key">
+    <summary>Instructor answer key for this basket</summary>
+    <div id="keyBody"></div>
+  </details>
+  <p class="foot">Tip for instructors: give the class one basket code so everyone works with the same numbers. Calculators are allowed; round the CPI and inflation rates to one decimal place.</p>
+</main>
+
+<dialog id="codeDlg">
+  <form method="dialog">
+    <h3>Enter a basket code</h3>
+    <p>Everyone who enters the same code gets the same household and prices.</p>
+    <input id="codeIn" maxlength="8" autocomplete="off" aria-label="Basket code">
+    <div class="row"><button class="btn ghost sm" value="cancel" type="submit">Cancel</button><button class="btn sm" value="ok" type="submit">Load basket</button></div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
+
+/* ---------- helpers ---------- */
+const MINUS = '−';
+function fmt(v, dp){ dp = dp || 0; const a = Math.abs(v), z = Number(a.toFixed(dp)) === 0;
+  return (v < 0 && !z ? MINUS : '') + a.toLocaleString('en-US', {minimumFractionDigits:dp, maximumFractionDigits:dp}); }
+const isWhole = v => Math.abs(v - Math.round(v)) < 1e-9;
+const fmtM = v => fmt(v, 2);
+const money = v => (v < 0 ? MINUS : '') + '$' + fmtM(Math.abs(v));
+const pct = v => fmt(v, 1) + '%';
+const close = (a, b, t) => Math.abs(a - b) <= t;
+const sum = a => a.reduce((x, y) => x + y, 0);
+const r2 = v => Math.round(v*100)/100;
+function parseNum(raw){ const s = String(raw).replace(/[−–]/g, '-').replace(/[$,%\s]/g, ''); if (s === '' || s === '-' || s === '.') return NaN; return Number(s); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- seeded random ---------- */
+function seedFrom(str){ let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++){ h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return (h ^= h >>> 16) >>> 0; }
+function mulberry32(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const CODE_CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function newCode(){ let s = ''; for (let i = 0; i < 5; i++) s += CODE_CH[Math.floor(Math.random()*CODE_CH.length)]; return s; }
+function shuffled(arr, key){ const R = mulberry32(seedFrom(key)); const a = arr.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(R()*(i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* ---------- households ---------- */
+const HOUSEHOLDS = [
+  {who:'a city household', title:'City household', goods:[
+    {n:'Bread', u:'loaf', us:'loaves', p:[2,4], step:0.5, q:[16,30], qs:1, pack:{k:2, label:'2-loaf pack'}},
+    {n:'Milk', u:'litre', us:'litres', p:[1,2.5], step:0.5, q:[20,40], qs:1, pack:{k:4, label:'4-litre jug'}},
+    {n:'Bus fares', u:'trip', us:'trips', p:[1.5,3], step:0.5, q:[30,50], qs:1, pack:{k:10, label:'10-trip card'}}],
+   extras:[{n:'Gold necklace', u:'necklace', p:[300,450]}, {n:'Concert ticket', u:'ticket', p:[60,90]}, {n:'Designer handbag', u:'bag', p:[400,700]}]},
+  {who:'a university student', title:'University student', goods:[
+    {n:'Coffee', u:'cup', us:'cups', p:[2,4], step:0.5, q:[20,40], qs:1, pack:{k:5, label:'5-cup card'}},
+    {n:'Notebooks', u:'notebook', us:'notebooks', p:[1.5,3.5], step:0.5, q:[4,10], qs:1, pack:{k:3, label:'3-pack'}},
+    {n:'Mobile data', u:'GB', us:'GB', p:[1,3], step:0.5, q:[10,24], qs:2, pack:{k:5, label:'5 GB bundle'}}],
+   extras:[{n:'Games console', u:'console', p:[350,500]}, {n:'Annual gym pass', u:'pass', p:[200,300]}, {n:'Weekend car rental', u:'weekend', p:[150,250]}]},
+  {who:'a family of four', title:'Family of four', goods:[
+    {n:'Rice', u:'kg', us:'kg', p:[1.5,3], step:0.5, q:[15,30], qs:1, pack:{k:5, label:'5 kg bag'}},
+    {n:'Cooking oil', u:'litre', us:'litres', p:[2,4], step:0.5, q:[4,8], qs:1, pack:{k:3, label:'3-litre tin'}},
+    {n:'Electricity', u:'kWh', us:'kWh', p:[0.15,0.3], step:0.01, q:[200,300], qs:10, pack:null}],
+   extras:[{n:'Diamond ring', u:'ring', p:[800,1200]}, {n:'Holiday cruise', u:'trip', p:[900,1500]}, {n:'Piano lessons (term)', u:'term', p:[150,250]}]},
+  {who:'a retired couple', title:'Retired couple', goods:[
+    {n:'Tea', u:'box', us:'boxes', p:[2,4], step:0.5, q:[4,8], qs:1, pack:{k:2, label:'twin pack'}},
+    {n:'Vegetables', u:'kg', us:'kg', p:[1.5,3], step:0.5, q:[12,24], qs:1, pack:{k:3, label:'3 kg box'}},
+    {n:'Medicines', u:'pack', us:'packs', p:[4,8], step:0.5, q:[2,6], qs:1, pack:null}],
+   extras:[{n:'Motorboat', u:'boat', p:[9000,14000]}, {n:'Opera season ticket', u:'season', p:[300,500]}, {n:'Smartwatch', u:'watch', p:[200,350]}]}
+];
+function roundTo(x, step){ return Math.round(Math.round(x/step)*step*100)/100; }
+function generate(code){
+  const R = mulberry32(seedFrom('cpi-' + code));
+  const ri = (a, b) => a + Math.floor(R()*(b - a + 1));
+  const hh = HOUSEHOLDS[Math.floor(R()*HOUSEHOLDS.length)];
+  const y0 = ri(2020, 2023), years = [y0, y0 + 1, y0 + 2];
+  const base = R() < 0.7 ? 0 : 1;
+  const shock = Math.floor(R()*3);
+  const goods = hh.goods.map((g, i) => {
+    const P = [roundTo(g.p[0] + R()*(g.p[1] - g.p[0]), g.step)];
+    for (let t = 1; t < 3; t++){
+      const gr = (t === 2 && i === shock) ? 0.35 + R()*0.25 : 0.03 + R()*0.12;
+      let np = roundTo(P[t-1]*(1 + gr), g.step);
+      if (np <= P[t-1] && R() < 0.7) np = r2(P[t-1] + g.step);
+      P.push(np);
+    }
+    // household diary: quantities actually bought each year
+    const Q = [], q0 = ri(g.q[0]/g.qs, g.q[1]/g.qs)*g.qs; Q.push(q0);
+    for (let t = 1; t < 3; t++){
+      let f;
+      if (t === 2) f = i === shock ? -(0.2 + R()*0.15) : 0.05 + R()*0.12;
+      else f = -0.08 + R()*0.16;
+      Q.push(Math.max(g.qs, Math.round(Q[t-1]*(1 + f)/g.qs)*g.qs));
+    }
+    if (Q[2] >= Q[base] && i === shock) Q[2] = Math.max(g.qs, Q[base] - 2*g.qs);
+    return {n:g.n, u:g.u, us:g.us, P, Q, pack:g.pack};
+  });
+  // market reports: one pack-priced tag per year where possible, plus two items outside the basket
+  const reports = years.map((y, t) => {
+    const packable = goods.map((g, i) => i).filter(i => goods[i].pack);
+    const packIdx = packable.length ? packable[Math.floor(R()*packable.length)] : -1;
+    const tags = goods.map((g, i) => i === packIdx
+      ? {n:g.n, unit:g.pack.label, price:r2(g.P[t]*g.pack.k), good:i, pack:g.pack.k}
+      : {n:g.n, unit:'per ' + g.u, price:g.P[t], good:i, pack:1});
+    const ex = shuffled(hh.extras, code + 'ex' + t).slice(0, 2);
+    ex.forEach(e => tags.push({n:e.n, unit:'per ' + e.u, price:Math.round(e.p[0] + R()*(e.p[1] - e.p[0])), good:-1, pack:1}));
+    return shuffled(tags, code + 'tags' + t);
+  });
+  return {code, who:hh.who, title:hh.title, years, base, shock, goods, reports};
+}
+function solve(d){
+  const G = d.goods, b = d.base;
+  const Qb = G.map(g => g.Q[b]);
+  const cost = G.map((g, i) => g.P.map(p => r2(p*Qb[i])));
+  const C = [0,1,2].map(t => r2(sum(cost.map(r => r[t]))));
+  const actual = [0,1,2].map(t => r2(sum(G.map(g => g.P[t]*g.Q[t]))));
+  const CPI = C.map(c => c/C[b]*100);
+  const CPIr = CPI.map(v => Math.round(v*10)/10);
+  const I = [null, (CPI[1]/CPI[0] - 1)*100, (CPI[2]/CPI[1] - 1)*100];
+  const Ir = [null, (CPIr[1]/CPIr[0] - 1)*100, (CPIr[2]/CPIr[1] - 1)*100];
+  const lasp = (C[2]/C[1] - 1)*100;
+  const paas = (sum(G.map(g => g.P[2]*g.Q[2]))/sum(G.map(g => g.P[1]*g.Q[2])) - 1)*100;
+  return {Qb, cost, C, actual, CPI, CPIr, I, Ir, lasp, paas};
+}
+
+/* ---------- state ---------- */
+let DATA = null, X = null;
+const S = {items:{}, points:0, max:0, firstTry:0, stage:0, unlocked:0, view:'stage', shown:{}};
+function addItem(id, o){
+  if (o.kind === 'mc' && o.shuffle !== false) o.opts = shuffled(o.opts, DATA.code + id);
+  S.items[id] = Object.assign({status:'open', tries:0, last:''}, o); S.max += 10;
+}
+function award(it){ S.points += [10,6,3][Math.min(it.tries, 2)]; if (it.tries === 0) S.firstTry++; }
+const solvedSt = id => S.items[id] && S.items[id].status !== 'open';
+
+/* ---------- diagnostics ---------- */
+function diagPrice(i, t, v){
+  const g = DATA.goods[i], y = DATA.years[t], rep = DATA.reports[t];
+  const own = rep.find(x => x.good === i);
+  if (own && own.pack > 1 && close(v, own.price, 0.001)) return `That tag is for a ${g.pack.label}. The table needs the price of one ${g.u}: divide $${fmtM(own.price)} by ${own.pack}.`;
+  const ex = rep.find(x => x.good === -1 && close(v, x.price, 0.001));
+  if (ex) return `That is the price of ${ex.n.toLowerCase()}, which is not in this household's basket.`;
+  const other = rep.find(x => x.good >= 0 && x.good !== i && (close(v, x.price, 0.001) || close(v, x.price/x.pack, 0.001)));
+  if (other) return `That is the price of ${other.n.toLowerCase()}. Find ${g.n.toLowerCase()} in the ${y} report.`;
+  for (let s = 0; s < 3; s++) if (s !== t && close(v, g.P[s], 0.001)) return `That is the ${DATA.years[s]} price. Use the ${y} market report.`;
+  return `Find ${g.n.toLowerCase()} in the ${y} market report and enter the price of one ${g.u}.`;
+}
+function diagCost(i, t, v){
+  const g = DATA.goods[i], y = DATA.years[t], b = DATA.base, yb = DATA.years[b], qb = X.Qb[i];
+  if (t !== b && close(v, g.P[t]*g.Q[t], 0.001)) return `You used what the household actually bought in ${y} (${fmt(g.Q[t])} ${g.us}). The basket is fixed at the ${yb} quantity: ${fmt(qb)} ${g.us}.`;
+  if (t !== b && close(v, g.P[b]*qb, 0.001)) return `That uses the ${yb} price. Use the ${y} price with the basket quantity.`;
+  if (g.pack && close(v, g.P[t]*g.pack.k*qb, 0.01)) return `That uses a pack price. Use the price of one ${g.u}.`;
+  if (close(v, g.P[t] + qb, 0.001)) return 'Multiply the price by the basket quantity rather than adding them.';
+  return `${g.n} in ${y}: ${y} price ($${fmtM(g.P[t])}) × basket quantity (${fmt(qb)}).`;
+}
+function diagTotal(t, v){
+  const y = DATA.years[t];
+  for (let i = 0; i < 3; i++) if (close(v, sum(X.cost[i]), 0.01)) return `That adds one item across the three years. The ${y} cost adds the three items in the ${y} column.`;
+  if (t !== DATA.base && close(v, X.actual[t], 0.01) && !close(X.actual[t], X.C[t], 0.01)) return `That is what the household actually spent in ${y}. The CPI uses the fixed basket, so add the basket costs in the ${y} column.`;
+  return `Add the three costs in the ${y} column.`;
+}
+function diagCPI(t, v){
+  const C = X.C, b = DATA.base, y = DATA.years[t], yb = DATA.years[b];
+  if (close(v, C[b]/C[t]*100, 0.1)) return `You divided the base-year cost by the ${y} cost. Flip it: cost in ${y} ÷ cost in ${yb} × 100.`;
+  if (close(v, C[t]/C[b], 0.002)) return 'Nearly there: multiply by 100 to turn the ratio into an index.';
+  if (t > 0 && t - 1 !== b && close(v, C[t]/C[t-1]*100, 0.1)) return `That divides by ${DATA.years[t-1]}'s cost. The CPI always divides by the base-year (${yb}) cost.`;
+  if (t !== b && close(v, (C[t]/C[b] - 1)*100, 0.1)) return `That is the percentage change since ${yb}. The index itself is the ratio × 100, so it is 100 plus that.`;
+  if (close(v, C[t] - C[b], 0.01)) return 'Divide rather than subtract: cost this year ÷ cost in the base year × 100.';
+  return `CPI ${y} = basket cost in ${y} (${money(C[t])}) ÷ basket cost in ${yb} (${money(C[b])}) × 100.`;
+}
+function diagInfl(t, v){
+  const P = X.CPI, Pr = X.CPIr, y = DATA.years[t], yp = DATA.years[t-1];
+  const tests = [
+    [(P[t] - P[t-1])/P[t]*100, `Divide by the <i>previous</i> year's CPI (${fmt(Pr[t-1],1)}), not ${y}'s.`],
+    [P[t] - P[t-1], `That is the change in index points. Divide it by ${yp}'s CPI and multiply by 100.`],
+    [P[t]/P[t-1] - 1, 'Multiply by 100 to express it as a percentage.'],
+    [P[t]/P[t-1]*100, 'That is the ratio × 100. Subtract 100 to get the inflation rate.'],
+    [P[t] - 100, `That compares ${y} with the base year. Inflation compares ${y} with ${yp}.`],
+    [(X.actual[t]/X.actual[t-1] - 1)*100, 'That uses what the household actually spent. Inflation uses the CPI, which prices the fixed basket.']
+  ];
+  for (const [x, m] of tests) if (close(v, x, 0.12)) return m;
+  return `Inflation in ${y} = (CPI ${y} − CPI ${yp}) ÷ CPI ${yp} × 100.`;
+}
+
+/* ---------- items ---------- */
+function buildItems(){
+  S.items = {}; S.points = 0; S.max = 0; S.firstTry = 0; S.shown = {};
+  const G = DATA.goods, Y = DATA.years, b = DATA.base, yb = Y[b], sh = G[DATA.shock];
+  // Step 1
+  addItem('mc-basket', {stage:0, kind:'mc', shuffle:false,
+    q:`The statistics office uses ${yb} as its base year. Which purchases should define the CPI basket?`,
+    opts:Y.map((y, t) => ({t:`What the household bought in ${y}`, ok:t === b, why: t === b ? `Right. The basket is fixed at what the typical household bought in the base year, ${yb}.` : `Not ${y}. The basket comes from the survey of the base year, ${yb}, and then stays fixed.`}))
+      .concat([{t:'An average of all three years', ok:false, why:'An average would mix in later spending habits. The CPI fixes the basket in the base year so that only prices change.'}])});
+  const qi = X.Qb.map((q, i) => ({q, i})).sort((a, c) => (G[c.i].P[b]*c.q) - (G[a.i].P[b]*a.q));
+  const big = qi[0].i, small = qi[2].i;
+  addItem('mc-weight', {stage:0, kind:'mc',
+    q:`In the basket, ${G[big].n.toLowerCase()} costs ${money(G[big].P[b]*X.Qb[big])} a month but ${G[small].n.toLowerCase()} only ${money(G[small].P[b]*X.Qb[small])}. What does that mean for the CPI?`,
+    opts:[
+      {t:`A price rise in ${G[big].n.toLowerCase()} moves the CPI more than the same percentage rise in ${G[small].n.toLowerCase()}`, ok:true, why:'Right. Each item counts in proportion to how much the household spends on it. That is why the survey of spending matters.'},
+      {t:'Every item counts equally, whatever the household spends on it', ok:false, why:'The basket quantities act as weights. Items the household spends more on matter more.'},
+      {t:`${G[small].n} should be dropped because it is a small expense`, ok:false, why:'Small items stay in the basket. They simply carry less weight.'},
+      {t:'Only the item with the highest price per unit matters', ok:false, why:'Price per unit alone does not matter. What counts is spending: price × quantity.'}
+    ]});
+  addItem('mc-fixed', {stage:0, kind:'mc',
+    q:`In ${Y[2]}, the price of ${sh.n.toLowerCase()} jumped and the household bought less of it (${fmt(sh.Q[b])} → ${fmt(sh.Q[2])} ${sh.us}). What happens to the CPI basket?`,
+    opts:[
+      {t:`Nothing. It stays at ${fmt(sh.Q[b])} ${sh.us}, so the CPI tracks prices, not changing habits`, ok:true, why:'Right. A fixed basket means any change in its cost comes from prices alone.'},
+      {t:`It falls to ${fmt(sh.Q[2])} ${sh.us} to match what the household now buys`, ok:false, why:'If the basket changed, the CPI would mix price changes with changes in what people buy.'},
+      {t:`${sh.n} is removed from the basket`, ok:false, why:'Items are not dropped just because their price rose. That would hide inflation.'},
+      {t:'The basket is rebuilt from scratch every month', ok:false, why:'Statistics offices update baskets only every few years. Between updates the basket is fixed.'}
+    ]});
+  // Step 2
+  G.forEach((g, i) => Y.forEach((y, t) => addItem(`p-${i}-${t}`, {stage:1, exp:g.P[t], tol:0.001, dp:2, how:'', label:`${g.n}, ${y}`, diag:v => diagPrice(i, t, v),
+    howFn:() => { const tg = DATA.reports[t].find(x => x.good === i); return tg.pack > 1 ? `$${fmtM(tg.price)} ÷ ${tg.pack}` : 'from the report'; }})));
+  // Step 3
+  G.forEach((g, i) => Y.forEach((y, t) => addItem(`c-${i}-${t}`, {stage:2, exp:X.cost[i][t], tol:0.001, dp:2, how:`$${fmtM(g.P[t])} × ${fmt(X.Qb[i])}`, label:`${g.n}, ${y}`, diag:v => diagCost(i, t, v)})));
+  Y.forEach((y, t) => addItem(`C-${t}`, {stage:2, exp:X.C[t], tol:0.001, dp:2, how:X.cost.map(r => fmtM(r[t])).join(' + '), label:`Basket cost, ${y}`, diag:v => diagTotal(t, v)}));
+  // Step 4
+  addItem('mc-denom', {stage:3, kind:'mc',
+    q:'Which basket cost goes in the denominator of every year’s CPI?',
+    opts:[
+      {t:`The base-year cost (${yb})`, ok:true, why:`Right. Every year is compared with the same reference point, the cost in ${yb}.`},
+      {t:'The previous year’s cost', ok:false, why:'Dividing by last year gives a growth factor, which is closer to the inflation rate. The index always uses the base year.'},
+      {t:'That year’s own cost', ok:false, why:'Dividing a cost by itself always gives 100, so the index would never change.'},
+      {t:'The average cost of all three years', ok:false, why:'The CPI uses a single base year as its reference point.'}
+    ]});
+  Y.forEach((y, t) => addItem(`cpi-${t}`, {stage:3, exp:X.CPI[t], tol:0.1, dp:1, how:`${fmtM(X.C[t])} ÷ ${fmtM(X.C[b])} × 100`, label:`CPI, ${y}`, diag:v => diagCPI(t, v)}));
+  // Step 5
+  [1,2].forEach(t => addItem(`inf-${t}`, {stage:4, exp:X.Ir[t], alt:[X.I[t]], tol:0.12, dp:1, how:`(${fmt(X.CPIr[t],1)} − ${fmt(X.CPIr[t-1],1)}) ÷ ${fmt(X.CPIr[t-1],1)} × 100`, label:`Inflation, ${Y[t]}`, diag:v => diagInfl(t, v)}));
+  const dCost = G.map((g, i) => X.cost[i][2] - X.cost[i][0]);
+  const top = dCost.indexOf(Math.max(...dCost));
+  addItem('mc-contrib', {stage:4, kind:'mc',
+    q:`Which item added the most to the basket's cost between ${Y[0]} and ${Y[2]}?`,
+    opts:G.map((g, i) => ({t:g.n, ok:i === top, why: i === top
+      ? `Right. ${g.n} added ${money(dCost[i])}: its price went from $${fmtM(g.P[0])} to $${fmtM(g.P[2])}, times ${fmt(X.Qb[i])} ${g.us}. What matters is the change in price × basket quantity.`
+      : `${g.n} added ${money(dCost[i])}. Compare the change in price × basket quantity for each item.`}))});
+  addItem('mc-subst', {stage:4, kind:'mc',
+    q:`The household switched away from ${sh.n.toLowerCase()} after its price jumped. Compared with the household's true change in the cost of living, the CPI most likely…`,
+    opts:[
+      {t:'Overstates the increase, because the fixed basket ignores switching to cheaper items', ok:true, why: X.paas < X.lasp - 0.05
+        ? `Right. This is substitution bias. At the same prices, the fixed basket got ${pct(X.lasp)} dearer in ${Y[2]}, but the basket the household actually chose got only ${pct(X.paas)} dearer, because it bought less ${sh.n.toLowerCase()}.`
+        : `Right. This is substitution bias: by buying less ${sh.n.toLowerCase()} and more of other items, the household softens the price jump, but the fixed basket keeps charging for the old quantity.`},
+      {t:'Understates the increase, because the household now buys fewer goods', ok:false, why:'Buying less of an item whose price jumped softens the blow. The fixed basket keeps charging for the old quantity.'},
+      {t:'Measures it exactly, because the basket is carefully chosen', ok:false, why:'A fixed basket cannot capture how people respond to price changes.'},
+      {t:'Says nothing about the cost of living', ok:false, why:'The CPI is designed to track the cost of living; it is just an imperfect measure.'}
+    ]});
+  addItem('mc-defl', {stage:4, kind:'mc',
+    q:'How is the CPI different from the GDP deflator?',
+    opts:[
+      {t:'The CPI prices a fixed basket of what consumers buy, including imports; the deflator covers everything produced at home, using current quantities', ok:true, why:'Right. Different baskets, and fixed versus changing weights, so the two can tell slightly different stories.'},
+      {t:'The CPI uses current quantities; the deflator uses a fixed basket', ok:false, why:'It is the other way round.'},
+      {t:'They are the same index with different names', ok:false, why:'They cover different goods and weight them differently.'},
+      {t:'The CPI only covers goods bought by the government', ok:false, why:'The CPI covers goods and services bought by consumers.'}
+    ]});
+}
+
+/* ---------- stages ---------- */
+const STAGES = [
+  {title:'Fix the basket', c:'var(--bask)', ct:'var(--bask-t)'},
+  {title:'Find the prices', c:'var(--price)', ct:'var(--price-t)'},
+  {title:'Compute the basket’s cost', c:'var(--cost)', ct:'var(--cost-t)'},
+  {title:'Compute the index', c:'var(--cpi)', ct:'var(--cpi-t)'},
+  {title:'Compute the inflation rate', c:'var(--infl)', ct:'var(--infl-t)'}
+];
+const stageItems = k => Object.keys(S.items).filter(id => S.items[id].stage === k);
+const stageDone = k => stageItems(k).every(solvedSt);
+
+function cellHTML(id, aria){
+  return `<div class="cellwrap"><input class="cell" data-id="${id}" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(aria)}"><span class="how" data-how="${id}"></span><button type="button" class="rev-btn" data-rev="${id}" hidden>Show answer</button></div>`;
+}
+function mcHTML(id){
+  const it = S.items[id];
+  return `<div class="mc" data-mc="${id}"><p class="q">${it.q}</p><div class="opts">${it.opts.map((o, j) => `<button type="button" data-o="${j}">${o.t}</button>`).join('')}</div><div class="mc-fb" aria-live="polite"></div></div>`;
+}
+function yearHead(withBase){ const Y = DATA.years, b = DATA.base; return Y.map((y, t) => `<th class="${withBase && t === b ? 'base' : ''}">${y}${withBase && t === b ? ' (base)' : ''}</th>`).join(''); }
+
+function stageBody(k){
+  const G = DATA.goods, Y = DATA.years, b = DATA.base, yb = Y[b];
+  if (k === 0) return `
+    <p class="lede">The CPI measures the cost of a <b>fixed basket</b> of goods and services. To decide what goes in the basket, the statistics office surveys what a typical consumer buys. Here the typical consumer is ${DATA.who}, and the survey year is the base year, <b>${yb}</b>.</p>
+    <p class="sec">The household's spending diary (quantities bought per month)</p>
+    <div class="tscroll"><table class="diary"><thead><tr><th>Item</th>${yearHead(true)}</tr></thead><tbody>
+      ${G.map(g => `<tr><td>${g.n} <span style="color:var(--muted);font-size:12px">(${g.us})</span></td>${Y.map((y, t) => `<td class="num ${t === b ? 'base' : ''}">${fmt(g.Q[t])}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div>
+    ${mcHTML('mc-basket')}${mcHTML('mc-weight')}${mcHTML('mc-fixed')}`;
+  if (k === 1) return `
+    <p class="lede">Next, price collectors record what each item in the basket costs in each year. Read the market reports and enter the price of <b>one unit</b> of each basket item.</p>
+    <div class="note-box">Watch out: some tags quote a multi-unit pack, and the reports also list items this household does not buy.</div>
+    <div class="reports">${Y.map((y, t) => `<div class="report"><h4>Market report, ${y}</h4><ul>${DATA.reports[t].map(tg => `<li class="ptag"><span>${tg.n}<small>${tg.unit}</small></span><b class="num">$${fmt(tg.price, tg.good >= 0 ? 2 : 0)}</b></li>`).join('')}</ul></div>`).join('')}</div>
+    <div class="tscroll"><table class="work"><thead><tr><th>Price of one unit</th>${yearHead(true)}</tr></thead><tbody>
+      ${G.map((g, i) => `<tr><th>${g.n}<small>per ${g.u}</small></th>${Y.map((y, t) => `<td>${cellHTML(`p-${i}-${t}`, `Price of one ${g.u} of ${g.n} in ${y}`)}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div>`;
+  if (k === 2) return `
+    <p class="lede">Now price the basket in every year. Multiply each item's price by its <b>basket quantity</b> and add the three items. The quantities never change from year to year; only the prices do.</p>
+    <div class="formula">Basket cost<sub>year</sub> = Σ (price<sub>year</sub> × basket quantity)<span class="note">Basket quantities come from the ${yb} survey.</span></div>
+    <div class="tscroll"><table class="work"><thead><tr><th></th>${yearHead(true)}</tr></thead><tbody>
+      ${G.map((g, i) => `<tr><th>${g.n}<small>× ${fmt(X.Qb[i])} ${g.us}</small></th>${Y.map((y, t) => `<td>${cellHTML(`c-${i}-${t}`, `Cost of ${g.n} in the basket in ${y}`)}</td>`).join('')}</tr>`).join('')}
+      <tr class="total"><th>Basket cost</th>${Y.map((y, t) => `<td>${cellHTML(`C-${t}`, `Total basket cost in ${y}`)}</td>`).join('')}</tr>
+    </tbody></table></div>`;
+  if (k === 3) return `
+    ${mcHTML('mc-denom')}
+    <p class="lede">The CPI expresses each year's basket cost relative to the base year, with the base year set to 100.</p>
+    <div class="formula">CPI<sub>year</sub> = Basket cost<sub>year</sub> ÷ Basket cost<sub>${yb}</sub> × 100<span class="note">Round to one decimal place.</span></div>
+    <div class="tscroll"><table class="work"><thead><tr><th></th>${yearHead(true)}</tr></thead><tbody>
+      <tr><th>Basket cost</th>${Y.map((y, t) => `<td class="given num">${money(X.C[t])}</td>`).join('')}</tr>
+      <tr class="total"><th>CPI</th>${Y.map((y, t) => `<td>${cellHTML(`cpi-${t}`, `CPI in ${y}`)}</td>`).join('')}</tr>
+    </tbody></table></div>`;
+  if (k === 4) return `
+    <p class="lede">Finally, the inflation rate is the <b>percentage change in the CPI from the previous year</b>.</p>
+    <div class="formula">Inflation<sub>year</sub> = (CPI<sub>year</sub> − CPI<sub>previous year</sub>) ÷ CPI<sub>previous year</sub> × 100<span class="note">Round to one decimal place. Use the rounded CPI values.</span></div>
+    <div class="tscroll"><table class="work"><thead><tr><th></th>${yearHead(false)}</tr></thead><tbody>
+      <tr><th>CPI</th>${Y.map((y, t) => `<td class="given num">${fmt(X.CPIr[t],1)}</td>`).join('')}</tr>
+      <tr class="total"><th>Inflation rate (%)</th><td class="na">no earlier year</td>${[1,2].map(t => `<td>${cellHTML(`inf-${t}`, `Inflation rate in ${Y[t]}`)}</td>`).join('')}</tr>
+    </tbody></table></div>
+    <p style="color:var(--muted);font-size:13px;margin:4px 0 16px">Then use what you found to answer three questions.</p>
+    ${mcHTML('mc-contrib')}${mcHTML('mc-subst')}${mcHTML('mc-defl')}`;
+  return '';
+}
+function takeaway(k){
+  const G = DATA.goods, Y = DATA.years, b = DATA.base, yb = Y[b];
+  if (k === 0) return `<h3>Step 1 done: the basket is fixed</h3><p>The basket is ${G.map((g, i) => `${fmt(X.Qb[i])} ${g.us} of ${g.n.toLowerCase()}`).join(', ')} per month. It will not change, even though the household's actual purchases do.</p>`;
+  if (k === 1) return `<h3>Step 2 done: prices recorded</h3><p>You now have the price of every basket item in every year. Prices for things the household does not buy were ignored, and pack prices were converted to a single unit, just as real price collectors do.</p>`;
+  if (k === 2) return `<h3>Step 3 done: the basket is priced</h3><p>The same basket cost ${money(X.C[0])} in ${Y[0]}, ${money(X.C[1])} in ${Y[1]} and ${money(X.C[2])} in ${Y[2]}. Because the quantities are identical every year, any change in cost is purely a change in prices.</p>`;
+  if (k === 3){ const t = b === 0 ? 2 : (Math.abs(X.CPIr[2] - 100) >= Math.abs(X.CPIr[0] - 100) ? 2 : 0); const v = X.CPIr[t];
+    return `<h3>Step 4 done: the index is built</h3><p>The CPI is 100 in ${yb} by construction. In ${Y[t]} it is ${fmt(v,1)}: the basket cost ${fmt(Math.abs(v - 100),1)}% ${v >= 100 ? 'more' : 'less'} than in ${yb}.</p>`; }
+  if (k === 4) return `<h3>All five steps complete</h3><p>Consumer prices rose ${pct(X.Ir[1])} in ${Y[1]} and ${pct(X.Ir[2])} in ${Y[2]}. See your results and the substitution check.</p>`;
+  return '';
+}
+
+/* ---------- rendering ---------- */
+function renderHUD(){ $('#score').textContent = S.points; $('#scoreMax').textContent = '/ ' + S.max; $('#codeTxt').textContent = DATA.code; }
+function renderSteps(){
+  $('#steps').innerHTML = STAGES.map((st, k) => {
+    const done = stageDone(k), cur = S.view === 'stage' && S.stage === k, locked = k > S.unlocked;
+    return `<li class="${cur ? 'cur' : ''} ${done ? 'done' : ''} ${locked ? 'locked' : ''}" style="--c:${st.c};--ct:${st.ct}"><button type="button" data-step="${k}" ${locked ? 'aria-disabled="true"' : ''} aria-current="${cur ? 'step' : 'false'}"><span class="n">${done ? '✓' : k + 1}</span><span class="lab">${st.title}</span></button></li>`;
+  }).join('');
+  $$('#steps [data-step]').forEach(b => b.addEventListener('click', () => { const k = +b.dataset.step; if (k <= S.unlocked) openStage(k); }));
+}
+function renderBook(){
+  const G = DATA.goods, Y = DATA.years, b = DATA.base;
+  const val = (id, f) => solvedSt(id) ? `<td>${f(S.items[id].exp)}</td>` : '<td class="pend">?</td>';
+  let h = `<h2>Workbook: ${DATA.title}</h2><p class="sub">Base year <b>${Y[b]}</b>. Prices in dollars; quantities per month.</p>`;
+  h += `<h3 style="--c:var(--bask)"><span class="sw"></span>Step 1: the basket</h3>`;
+  h += solvedSt('mc-basket') ? `<table class="t"><thead><tr><th>Item</th><th>Basket quantity</th></tr></thead><tbody>${G.map((g, i) => `<tr><td>${g.n}</td><td>${fmt(X.Qb[i])} ${g.us}</td></tr>`).join('')}</tbody></table>` : '<p class="pending">Choose the basket in step 1.</p>';
+  h += `<h3 style="--c:var(--price)"><span class="sw"></span>Step 2: prices of one unit</h3>`;
+  h += `<div class="tscroll"><table class="t"><thead><tr><th>Item</th>${Y.map((y, t) => `<th class="${t === b ? 'base' : ''}">${y}</th>`).join('')}</tr></thead><tbody>${G.map((g, i) => `<tr><td>${g.n}</td>${Y.map((y, t) => val(`p-${i}-${t}`, v => '$' + fmtM(v))).join('')}</tr>`).join('')}</tbody></table></div>`;
+  h += `<h3 style="--c:var(--cpi)"><span class="sw"></span>Steps 3 to 5: results</h3>`;
+  h += `<div class="tscroll"><table class="t"><thead><tr><th>Year</th><th>Basket cost</th><th>CPI</th><th>Inflation</th></tr></thead><tbody>${Y.map((y, t) => `<tr><td>${y}</td>${val('C-' + t, money)}${val('cpi-' + t, v => fmt(v,1))}${t === 0 ? '<td class="pend">n/a</td>' : val('inf-' + t, pct)}</tr>`).join('')}</tbody></table></div>`;
+  $('#book').innerHTML = h;
+}
+
+function openStage(k){
+  S.view = 'stage'; S.stage = k;
+  const st = STAGES[k], el = $('#stage');
+  el.style.setProperty('--c', st.c);
+  const hasInputs = k >= 1;
+  el.innerHTML = `<div class="stepno">Step ${k + 1} of 5</div><h2>${st.title}</h2>${stageBody(k)}
+    <div class="fb" id="fb" aria-live="polite">${hasInputs ? 'Type your answer in a box, then press Enter.' : 'Choose an answer for each question.'}</div>
+    <div class="actions no-print" id="actions"></div><div id="worked"></div><div class="takeaway" id="take" hidden></div>`;
+  bindStage(); refreshStage(); renderSteps();
+  if (S.shown[k]) $('#worked').innerHTML = S.shown[k];
+  const first = el.querySelector('input.cell:not([readonly])');
+  if (first && window.innerWidth > 1000 && k !== 4) first.focus({preventScroll:true});
+}
+function bindStage(){
+  const el = $('#stage');
+  el.querySelectorAll('input.cell').forEach(inp => {
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); checkNum(inp.dataset.id, inp.value, true); } });
+    inp.addEventListener('blur', () => checkNum(inp.dataset.id, inp.value, false));
+    inp.addEventListener('input', () => inp.classList.remove('bad'));
+  });
+  el.querySelectorAll('[data-rev]').forEach(b => b.addEventListener('click', () => reveal(b.dataset.rev)));
+  el.querySelectorAll('.mc').forEach(box => { const id = box.dataset.mc; box.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => answerMC(id, +b.dataset.o))); });
+}
+function howOf(it){ return it.howFn ? it.howFn() : it.how; }
+function setCellUI(id){
+  const it = S.items[id], inp = $(`#stage input[data-id="${id}"]`); if (!inp) return;
+  const how = $(`#stage [data-how="${id}"]`), rv = $(`#stage [data-rev="${id}"]`);
+  inp.classList.remove('ok', 'bad', 'rev');
+  if (it.status !== 'open'){
+    inp.value = fmt(it.exp, it.dp || 0); inp.readOnly = true;
+    inp.classList.add(it.status === 'ok' ? 'ok' : 'rev');
+    if (how) how.textContent = howOf(it);
+    if (rv) rv.hidden = true;
+  } else { inp.readOnly = false; if (rv) rv.hidden = it.tries < 2; }
+}
+function setMCUI(id){
+  const it = S.items[id], box = $(`#stage .mc[data-mc="${id}"]`); if (!box) return;
+  const fb = box.querySelector('.mc-fb');
+  box.querySelectorAll('[data-o]').forEach(b => {
+    const j = +b.dataset.o;
+    b.classList.toggle('wrong', (it.wrong || []).includes(j));
+    b.classList.toggle('right', it.status !== 'open' && it.opts[j].ok);
+    b.disabled = it.status !== 'open' || (it.wrong || []).includes(j);
+  });
+  box.classList.toggle('solved', it.status !== 'open');
+  if (it.status !== 'open'){ fb.className = 'mc-fb ok'; fb.innerHTML = it.opts.find(x => x.ok).why; }
+  else if (it.lastWhy){ fb.className = 'mc-fb bad'; fb.innerHTML = it.lastWhy; }
+}
+function refreshStage(){
+  const k = S.stage;
+  stageItems(k).forEach(id => S.items[id].kind === 'mc' ? setMCUI(id) : setCellUI(id));
+  const act = $('#actions'); if (!act) return;
+  const done = stageDone(k);
+  const labels = {1:'Show me the first year', 2:'Show me the first year', 3:'Show me one worked example', 4:'Show me one worked example'};
+  act.innerHTML = !done && labels[k] ? `<button class="btn ghost sm" type="button" id="showMe">${labels[k]}</button>` : '';
+  const sm = $('#showMe');
+  if (sm){ if (S.shown[k]) sm.disabled = true; sm.addEventListener('click', () => showMe(k)); }
+  const tk = $('#take');
+  if (done){
+    tk.hidden = false;
+    tk.innerHTML = takeaway(k) + (k < 4 ? `<button class="btn" type="button" id="nextStage">Continue to step ${k + 2}: ${STAGES[k + 1].title}</button>` : `<button class="btn" type="button" id="toSummary">See your results</button>`);
+    const ns = $('#nextStage'); if (ns) ns.addEventListener('click', () => openStage(k + 1));
+    const ts = $('#toSummary'); if (ts) ts.addEventListener('click', openSummary);
+  } else tk.hidden = true;
+}
+function say(msg, cls){ const fb = $('#fb'); if (!fb) return; fb.className = 'fb ' + (cls || ''); fb.innerHTML = msg; }
+function checkNum(id, raw, viaEnter){
+  const it = S.items[id]; if (!it || it.status !== 'open'){ if (viaEnter) focusNext(id); return; }
+  const str = String(raw).trim(); if (str === '') return;
+  if (!viaEnter && str === it.last) return;
+  it.last = str;
+  const v = parseNum(str), inp = $(`#stage input[data-id="${id}"]`);
+  if (!isFinite(v)){ say('Enter a number, for example 2.5 or 104.3.', 'bad'); inp.classList.add('bad'); return; }
+  const ok = close(v, it.exp, it.tol) || (it.alt || []).some(a => a != null && close(v, a, it.tol));
+  if (ok){
+    award(it); it.status = 'ok';
+    const hw = howOf(it);
+    say(`Correct. ${it.label}: ${hw && hw !== 'from the report' ? hw + ' = ' : ''}${fmt(it.exp, it.dp || 0)}.`, 'ok');
+    setCellUI(id); afterSolve();
+    if (viaEnter) focusNext(id);
+  } else {
+    it.tries++;
+    say(it.diag(v) + (it.tries >= 2 ? ' <span style="opacity:.8">(You can also use "Show answer" under the box.)</span>' : ''), 'bad');
+    setCellUI(id); inp.classList.add('bad');
+  }
+  renderHUD();
+}
+function focusNext(id){
+  const all = $$('#stage input.cell'), i = all.findIndex(x => x.dataset.id === id);
+  for (let j = i + 1; j < all.length; j++) if (!all[j].readOnly){ all[j].focus(); return; }
+  for (let j = 0; j < i; j++) if (!all[j].readOnly){ all[j].focus(); return; }
+}
+function reveal(id){
+  const it = S.items[id]; if (it.status !== 'open') return;
+  it.status = 'revealed';
+  const hw = howOf(it);
+  say(`Answer shown: ${it.label} = ${hw && hw !== 'from the report' ? hw + ' = ' : ''}${fmt(it.exp, it.dp || 0)}. No points for this one, but the method is what counts.`, 'info');
+  setCellUI(id); afterSolve();
+}
+function answerMC(id, j){
+  const it = S.items[id]; if (it.status !== 'open') return;
+  const o = it.opts[j];
+  if (o.ok){ award(it); it.status = 'ok'; it.lastWhy = null; }
+  else { it.tries++; (it.wrong = it.wrong || []).push(j); it.lastWhy = o.why; }
+  setMCUI(id); renderHUD();
+  if (o.ok) afterSolve();
+}
+function afterSolve(){
+  renderBook(); renderHUD();
+  const k = S.stage;
+  if (stageDone(k)){
+    S.unlocked = Math.max(S.unlocked, Math.min(4, k + 1));
+    refreshStage(); renderSteps();
+    say('Step complete. Read the summary below, then continue.', 'ok');
+  } else refreshStage();
+}
+function showMe(k){
+  const G = DATA.goods, Y = DATA.years, b = DATA.base;
+  let h = '';
+  const rev = id => { const it = S.items[id]; if (it && it.status === 'open') it.status = 'revealed'; };
+  if (k === 1){
+    const lines = G.map((g, i) => { const tg = DATA.reports[0].find(x => x.good === i); return tg.pack > 1 ? `${g.n}: the tag says $${fmtM(tg.price)} for a ${g.pack.label}, so one ${g.u} costs $${fmtM(tg.price)} ÷ ${tg.pack} = <b>$${fmtM(g.P[0])}</b>` : `${g.n}: <b>$${fmtM(g.P[0])}</b> per ${g.u}, read straight from the tag`; });
+    const ex = DATA.reports[0].filter(x => x.good === -1).map(x => x.n.toLowerCase());
+    h = `<div class="worked"><h4>Worked example: ${Y[0]}</h4>${lines.map(l => `<p>${l}</p>`).join('')}<p>Ignore ${ex.join(' and ')}: they are not in the basket.</p></div>`;
+    G.forEach((g, i) => rev(`p-${i}-0`));
+  } else if (k === 2){
+    const t = 0;
+    h = `<div class="worked"><h4>Worked example: ${Y[t]}</h4>${G.map((g, i) => `<p class="num">${g.n}: $${fmtM(g.P[t])} × ${fmt(X.Qb[i])} = ${money(X.cost[i][t])}</p>`).join('')}<p class="num"><b>Basket cost ${Y[t]} = ${X.cost.map(r => fmtM(r[t])).join(' + ')} = ${money(X.C[t])}</b></p><p>Use the same quantities for the other years; only the prices change.</p></div>`;
+    G.forEach((g, i) => rev(`c-${i}-0`)); rev('C-0');
+  } else if (k === 3){
+    const t = b === 0 ? 1 : 0;
+    h = `<div class="worked"><h4>Worked example: ${Y[t]}</h4><p class="num">CPI = ${money(X.C[t])} ÷ ${money(X.C[b])} × 100 = ${fmt(X.C[t]/X.C[b], 4)} × 100 = <b>${fmt(X.CPIr[t],1)}</b></p><p>What must the CPI be in the base year, ${Y[b]}?</p></div>`;
+    rev(`cpi-${t}`);
+  } else if (k === 4){
+    h = `<div class="worked"><h4>Worked example: ${Y[1]}</h4><p class="num">Inflation = (${fmt(X.CPIr[1],1)} − ${fmt(X.CPIr[0],1)}) ÷ ${fmt(X.CPIr[0],1)} × 100 = <b>${pct(X.Ir[1])}</b></p><p>Now do ${Y[2]}, comparing it with ${Y[1]}.</p></div>`;
+    rev('inf-1');
+  }
+  S.shown[k] = h; $('#worked').innerHTML = h;
+  say('Worked example shown below. Those answers are filled in without points.', 'info');
+  afterSolve();
+}
+
+/* ---------- summary ---------- */
+function rank(p){ if (p >= 0.9) return 'Chief Statistician'; if (p >= 0.75) return 'Senior Price Analyst'; if (p >= 0.5) return 'Price Analyst'; return 'Trainee Price Collector'; }
+function cpiChart(){
+  const Y = DATA.years, W = 640, H = 230, ml = 44, mb = 30, mt = 18, pw = W - ml - 12, ph = H - mt - mb;
+  const lo = Math.min(90, Math.floor(Math.min(...X.CPIr)/10)*10), hi = Math.max(...X.CPIr)*1.06;
+  const yv = v => mt + ph - (v - lo)/(hi - lo)*ph;
+  let s = '';
+  for (let v = lo; v <= hi; v += 10) s += `<line x1="${ml}" x2="${ml+pw}" y1="${yv(v)}" y2="${yv(v)}" stroke="${v === 100 ? '#8D99A5' : '#E5EAEF'}" ${v === 100 ? 'stroke-dasharray="4 4"' : ''}/><text x="${ml-6}" y="${yv(v)+4}" text-anchor="end" font-size="11" fill="#5C6976">${v}</text>`;
+  const gw = pw/3, bw = Math.min(70, gw*0.45);
+  Y.forEach((y, t) => {
+    const cx = ml + gw*t + gw/2, top = yv(X.CPIr[t]);
+    s += `<rect x="${cx - bw/2}" y="${top}" width="${bw}" height="${mt + ph - top}" rx="3" fill="#6A4C9C"/>`;
+    s += `<text x="${cx}" y="${top - 6}" text-anchor="middle" font-size="12" font-weight="700" fill="#1A2430">${fmt(X.CPIr[t],1)}</text>`;
+    s += `<text x="${cx}" y="${H - 10}" text-anchor="middle" font-size="12" font-weight="700" fill="#1A2430">${y}${t === DATA.base ? ' (base)' : ''}</text>`;
+  });
+  s += `<line x1="${ml}" x2="${ml+pw}" y1="${mt+ph}" y2="${mt+ph}" stroke="#1A2430"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="CPI by year" style="font-family:inherit">${s}</svg>`;
+}
+function openSummary(){
+  S.view = 'summary'; renderSteps();
+  const Y = DATA.years, b = DATA.base, total = Object.keys(S.items).length, share = S.max ? S.points/S.max : 0, sh = DATA.goods[DATA.shock];
+  const el = $('#stage'); el.style.setProperty('--c', 'var(--ink)');
+  el.innerHTML = `<div class="summary"><div class="stepno">Results</div><h2>${rank(share)}</h2>
+    <div class="big"><div class="stat"><b class="num">${S.points} / ${S.max}</b><span>Score</span></div><div class="stat"><b class="num">${S.firstTry} / ${total}</b><span>Right first time</span></div><div class="stat"><b class="num">${DATA.code}</b><span>Basket code</span></div></div>
+    <h3>The CPI for ${DATA.who}</h3>
+    <div class="tscroll"><table class="t"><thead><tr><th>Year</th><th>Basket cost</th><th>CPI</th><th>Inflation</th></tr></thead><tbody>
+    ${Y.map((y, t) => `<tr><td>${y}${t === b ? ' (base)' : ''}</td><td>${money(X.C[t])}</td><td>${fmt(X.CPIr[t],1)}</td><td>${t === 0 ? 'n/a' : pct(X.Ir[t])}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="chart">${cpiChart()}</div>
+    <h3>Substitution check</h3>
+    <p>The CPI keeps pricing the ${Y[b]} basket. The household did not keep buying it: when ${sh.n.toLowerCase()} jumped in price in ${Y[2]}, it bought less of it (${fmt(sh.Q[1])} → ${fmt(sh.Q[2])} ${sh.us}) and more of other things. Using the same ${Y[1]} and ${Y[2]} prices for both:</p>
+    <div class="tscroll"><table class="t"><thead><tr><th>Price rise from ${Y[1]} to ${Y[2]} for…</th><th></th></tr></thead><tbody>
+      <tr><td>The fixed ${Y[b]} basket (what the CPI measures)</td><td>${pct(X.lasp)}</td></tr>
+      <tr><td>The basket the household actually bought in ${Y[2]}</td><td>${pct(X.paas)}</td></tr>
+    </tbody></table></div>
+    <p style="font-size:13.5px;color:var(--muted)">${X.paas < X.lasp - 0.05 ? `The household's own basket rose less in price because it shifted away from the item that became expensive. A fixed-basket CPI ignores this switching, which is why economists say it tends to overstate increases in the cost of living (substitution bias).` : `Here the two measures are close. In general, when households switch away from items whose prices rise fastest, a fixed-basket CPI overstates increases in the cost of living (substitution bias).`}</p>
+    <h3>The five steps</h3>
+    <ol>
+      <li><b>Fix the basket</b> using what typical consumers bought in the base year.</li>
+      <li><b>Find the prices</b> of each item in each year, per unit.</li>
+      <li><b>Compute the basket's cost</b> each year: Σ price × basket quantity.</li>
+      <li><b>Compute the index</b>: cost this year ÷ cost in the base year × 100.</li>
+      <li><b>Compute the inflation rate</b>: the percentage change in the CPI from the previous year.</li>
+    </ol>
+    <div class="cert"><label for="nameIn">Your name (for your instructor)</label><input id="nameIn" autocomplete="name" placeholder="Type your name">
+      <div class="line">Completed <b>Basket Watch</b>, basket <b>${DATA.code}</b>, with a score of <b>${S.points} / ${S.max}</b> on ${new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})}.</div></div>
+    <div class="actions no-print" style="margin-top:14px"><button class="btn" type="button" id="playAgain">Play a new basket</button><button class="btn ghost" type="button" id="printBtn">Print or save as PDF</button><button class="btn ghost" type="button" id="backBtn">Back to the steps</button></div>
+  </div>`;
+  $('#playAgain').addEventListener('click', () => startNew(newCode(), true));
+  $('#printBtn').addEventListener('click', () => window.print());
+  $('#backBtn').addEventListener('click', () => openStage(4));
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+/* ---------- answer key ---------- */
+function renderKey(){
+  const G = DATA.goods, Y = DATA.years;
+  let h = `<p style="margin:8px 0 0;font-size:13px;color:var(--muted)">Basket ${DATA.code}, ${DATA.who}. Base year ${Y[DATA.base]}.</p><div class="tscroll"><table><thead><tr><th></th>${Y.map(y => `<th>${y}</th>`).join('')}</tr></thead><tbody>`;
+  G.forEach((g, i) => { h += `<tr><td>${g.n}: basket quantity</td><td colspan="3">${fmt(X.Qb[i])} ${g.us}</td></tr>`; });
+  G.forEach((g, i) => { h += `<tr><td>${g.n}: price per ${g.u}</td>${Y.map((y, t) => `<td>${fmtM(g.P[t])}</td>`).join('')}</tr>`; });
+  G.forEach((g, i) => { h += `<tr><td>${g.n}: cost in basket</td>${Y.map((y, t) => `<td>${fmtM(X.cost[i][t])}</td>`).join('')}</tr>`; });
+  h += `<tr><td><b>Basket cost</b></td>${Y.map((y, t) => `<td><b>${fmtM(X.C[t])}</b></td>`).join('')}</tr>`;
+  h += `<tr><td><b>CPI</b></td>${Y.map((y, t) => `<td><b>${fmt(X.CPIr[t],1)}</b></td>`).join('')}</tr>`;
+  h += `<tr><td><b>Inflation (%)</b></td>${Y.map((y, t) => `<td><b>${t === 0 ? 'n/a' : fmt(X.Ir[t],1)}</b></td>`).join('')}</tr>`;
+  h += `</tbody></table></div>`;
+  $('#keyBody').innerHTML = h;
+}
+
+/* ---------- lifecycle ---------- */
+function startNew(code, confirmFirst){
+  const progress = Object.values(S.items).some(it => it.status !== 'open');
+  if (confirmFirst && progress && S.view !== 'summary' && !window.confirm('Start a new basket? Your progress on this one will be lost.')) return;
+  DATA = generate(code); X = solve(DATA);
+  buildItems();
+  S.stage = 0; S.unlocked = 0; S.view = 'stage';
+  try { history.replaceState(null, '', '#code=' + code); } catch(e) {}
+  renderHUD(); renderBook(); renderKey(); openStage(0);
+  window.scrollTo(0, 0);
+}
+function codeFromHash(){ const m = /code=([A-Za-z0-9]{3,8})/.exec(location.hash || ''); return m ? m[1].toUpperCase() : null; }
+$('#btnNew').addEventListener('click', () => startNew(newCode(), true));
+$('#btnCode').addEventListener('click', () => { const d = $('#codeDlg'); $('#codeIn').value = ''; if (d.showModal) d.showModal(); else { const c = window.prompt('Basket code'); if (c) startNew(c.trim().toUpperCase(), true); } });
+$('#codeDlg').addEventListener('close', () => { const d = $('#codeDlg'); const c = $('#codeIn').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); if (d.returnValue === 'ok' && c.length >= 3) startNew(c, true); });
+startNew(codeFromHash() || newCode(), false);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GDP Ledger</title>
+<meta name="description" content="A step-by-step game for calculating nominal GDP, real GDP, the GDP deflator and the inflation rate.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ECF0F3;--panel:#FFFFFF;--ink:#1A2430;--muted:#5C6976;--faint:#8D99A5;--rule:#D3DBE2;--soft:#F4F6F8;
+  --nom:#B07812;--real:#1E7A57;--defl:#2D5BA6;--infl:#A8364A;--ok:#1E7A57;--bad:#A8364A;
+  --nom-t:#F7EDDA;--real-t:#E2F1E9;--defl-t:#E4EBF7;--infl-t:#F6E3E6;
+  --sans:"Public Sans","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+h1,h2,h3,h4{margin:0}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--defl);outline-offset:2px}
+[hidden]{display:none !important}
+
+.top{background:var(--panel);border-bottom:1px solid var(--rule)}
+.top-inner{max-width:1320px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px 20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.mark{width:40px;height:40px;flex:none;display:block}
+.brand h1{font-size:22px;font-weight:800;letter-spacing:-.015em;line-height:1.1}
+.brand p{margin:3px 0 0;color:var(--muted);font-size:13.5px}
+.hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hud .box{display:flex;flex-direction:column;line-height:1.15;padding:5px 12px;border:1px solid var(--rule);border-radius:9px;background:var(--soft);min-width:84px}
+.hud .lab{font-size:11px;color:var(--muted)}
+.hud b{font-size:17px;font-weight:800}
+.hud .of{font-size:12px;color:var(--muted);font-weight:600}
+.hud .score b{color:var(--ink)}
+.btn{border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:8px;padding:9px 15px;font-weight:600;cursor:pointer;font-size:13.5px}
+.btn:hover{background:#2A3644}
+.btn.ghost{background:var(--panel);color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--ink);background:var(--panel)}
+.btn.sm{padding:7px 12px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+.wrap{max-width:1320px;margin:0 auto;padding:16px 20px 40px}
+.steps{list-style:none;margin:0 0 14px;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.steps button{width:100%;display:flex;align-items:center;gap:10px;border:1px solid var(--rule);background:var(--panel);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;font-weight:600;font-size:13.5px;color:var(--muted);line-height:1.2}
+.steps .n{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--rule);font-size:12.5px;font-weight:800;background:var(--panel)}
+.steps li.cur button{border-color:var(--c);color:var(--ink);box-shadow:inset 0 -3px 0 var(--c)}
+.steps li.cur .n{background:var(--c);border-color:var(--c);color:#fff}
+.steps li.done button{color:var(--ink)}
+.steps li.done .n{background:var(--ct);border-color:var(--c);color:var(--c)}
+.steps li.locked button{cursor:not-allowed;opacity:.5}
+@media (max-width:820px){.steps .lab{display:none}.steps button{justify-content:center;padding:8px}}
+
+.grid{display:grid;grid-template-columns:minmax(0,450px) minmax(0,1fr);gap:14px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:12px}
+.data{position:sticky;top:12px;padding:16px}
+@media (max-width:1000px){.grid{grid-template-columns:minmax(0,1fr)}.data{position:static}}
+.data h2{font-size:16px;font-weight:800}
+.data .sub{color:var(--muted);font-size:13px;margin:3px 0 12px}
+.tscroll{overflow-x:auto;margin:0 -4px;padding:0 4px}
+table{border-collapse:collapse;font-variant-numeric:tabular-nums}
+table.data-t{width:100%;font-size:13.5px}
+.data-t th,.data-t td{padding:6px 6px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+.data-t thead th{font-size:12px;color:var(--muted);font-weight:600}
+.data-t thead tr:first-child th{color:var(--ink);font-size:13px;font-weight:700;text-align:center;border-bottom:0;padding-bottom:0}
+.data-t tbody th{text-align:left;font-weight:600}
+.data-t tbody th .u{display:block;font-weight:400;font-size:11.5px;color:var(--muted)}
+.data-t .base{background:var(--defl-t)}
+.data-t thead .base{border-radius:8px 8px 0 0}
+.bpill{display:block;font-size:10.5px;font-weight:700;color:var(--defl);margin-top:1px}
+.data-t td.p{color:var(--nom);font-weight:600}
+.data-t td.q{color:var(--ink)}
+.data-t tr:last-child td,.data-t tr:last-child th{border-bottom:0}
+.legend-row{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.legend-row span{display:inline-flex;gap:6px;align-items:center}
+.legend-row i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.results{margin-top:18px;border-top:1px solid var(--rule);padding-top:14px}
+.results h3{font-size:14px;font-weight:700;margin-bottom:6px}
+table.res-t{width:100%;font-size:13px}
+.res-t th,.res-t td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--rule)}
+.res-t th:first-child,.res-t td:first-child{text-align:left}
+.res-t thead th{font-size:11.5px;color:var(--muted);font-weight:600}
+.res-t td.pend{color:var(--faint)}
+.res-t tr:last-child td{border-bottom:0}
+
+.stage{padding:20px 22px 22px;min-width:0}
+.stepno{font-size:12.5px;color:var(--muted);font-weight:600}
+.stage h2{font-size:24px;font-weight:800;letter-spacing:-.015em;margin:2px 0 10px;line-height:1.2}
+.lede{font-size:15.5px;max-width:62ch;margin:0 0 12px}
+.formula{display:inline-block;background:var(--soft);border:1px solid var(--rule);border-left:4px solid var(--c);border-radius:8px;padding:10px 14px;margin:4px 0 16px;font-size:15px;font-weight:600}
+.formula .note{display:block;font-size:12.5px;color:var(--muted);font-weight:500;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.chip{font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--defl-t);color:var(--defl)}
+table.work{font-size:14px;margin:0 0 6px;min-width:100%}
+.work th,.work td{padding:7px 8px;border-bottom:1px solid var(--rule);text-align:right;vertical-align:top}
+.work thead th{font-size:12.5px;color:var(--muted);font-weight:600;text-align:center}
+.work thead th.base{color:var(--defl)}
+.work tbody th{text-align:left;font-weight:600;white-space:nowrap;padding-top:13px}
+.work tbody th small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
+.work tr.total th,.work tr.total td{border-top:2px solid var(--ink);border-bottom:0}
+.work td.given{padding-top:13px;font-weight:600;color:var(--muted)}
+.work td.na{padding-top:13px;color:var(--faint);text-align:center;min-width:112px}
+.cellwrap{display:flex;flex-direction:column;align-items:stretch;min-width:112px}
+input.cell{width:100%;text-align:right;font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;padding:7px 9px;border:1.5px solid var(--rule);border-radius:7px;background:var(--panel)}
+input.cell:focus{border-color:var(--c);outline:none;box-shadow:0 0 0 3px rgba(45,91,166,.15)}
+input.cell.bad{border-color:var(--bad);background:#FDF5F6}
+input.cell.ok{border-color:var(--ok);background:var(--real-t);color:var(--ok)}
+input.cell.rev{border-style:dashed;border-color:var(--faint);background:var(--soft);color:var(--muted)}
+input.cell[readonly]{cursor:default}
+.how{font-size:11.5px;color:var(--muted);margin-top:3px;text-align:right;min-height:0}
+.rev-btn{border:0;background:none;color:var(--defl);font-size:11.5px;font-weight:600;cursor:pointer;padding:2px 0 0;text-align:right}
+.fb{min-height:24px;margin:12px 0 4px;padding:9px 12px;border-radius:8px;font-size:14px;background:var(--soft);color:var(--muted)}
+.fb.ok{background:var(--real-t);color:#14563D}
+.fb.bad{background:var(--infl-t);color:#7D2333}
+.fb.info{background:var(--defl-t);color:#1F4280}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.worked{background:var(--soft);border:1px solid var(--rule);border-radius:10px;padding:12px 14px;margin:12px 0 0;font-size:14px}
+.worked h4{font-size:13.5px;margin-bottom:4px}
+.worked p{margin:3px 0}
+.takeaway{margin-top:16px;border:1.5px solid var(--ok);background:#F3FAF6;border-radius:12px;padding:14px 16px}
+.takeaway h3{font-size:15.5px;font-weight:800;color:var(--ok);margin-bottom:4px}
+.takeaway p{margin:0 0 10px;max-width:66ch}
+
+.mc{border:1px solid var(--rule);border-radius:10px;padding:13px 14px;margin:0 0 12px}
+.mc .q{font-weight:700;margin:0 0 8px;font-size:14.5px}
+.mc .opts{display:grid;gap:6px}
+.mc .opts button{text-align:left;border:1.5px solid var(--rule);background:var(--panel);border-radius:8px;padding:8px 11px;cursor:pointer;font-size:14px}
+.mc .opts button:hover:not(:disabled){border-color:var(--ink)}
+.mc .opts button.wrong{border-color:var(--bad);color:var(--bad);background:#FDF5F6}
+.mc .opts button.right{border-color:var(--ok);color:var(--ok);background:var(--real-t);font-weight:600}
+.mc .opts button:disabled{cursor:default}
+.mc-fb{font-size:13.5px;margin-top:8px}
+.mc-fb.ok{color:#14563D}.mc-fb.bad{color:#7D2333}
+.mc.solved{border-color:var(--ok)}
+.bonus{border:1px dashed var(--faint);border-radius:10px;padding:13px 14px;margin:4px 0 12px}
+.bonus .row{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.bonus .row .cellwrap{width:150px}
+
+.summary .big{display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 16px}
+.summary .stat{border:1px solid var(--rule);border-radius:10px;padding:10px 14px;min-width:130px}
+.summary .stat b{display:block;font-size:22px;font-weight:800}
+.summary .stat span{font-size:12px;color:var(--muted)}
+.summary table.res-t{max-width:640px;font-size:14px}
+.summary h3{font-size:15px;margin:18px 0 6px}
+.summary ul{margin:4px 0 10px;padding-left:1.2em;max-width:66ch}
+.summary li{margin:0 0 5px}
+.cert{border:2px solid var(--ink);border-radius:12px;padding:14px 16px;margin-top:18px;max-width:640px}
+.cert label{font-size:13px;font-weight:600;display:block;margin-bottom:4px}
+.cert input{width:100%;max-width:340px;padding:8px 10px;border:1.5px solid var(--rule);border-radius:7px}
+.cert .line{font-size:14px;margin-top:10px}
+.chart{max-width:640px;margin:6px 0 4px}
+.chart svg{display:block;width:100%;height:auto}
+
+details.key{margin-top:22px;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:12px 16px}
+details.key summary{cursor:pointer;font-weight:600;font-size:13.5px;color:var(--muted)}
+details.key table{font-size:13px;margin-top:10px}
+details.key th,details.key td{padding:4px 8px;border-bottom:1px solid var(--rule);text-align:right}
+details.key th:first-child,details.key td:first-child{text-align:left}
+dialog{border:1px solid var(--rule);border-radius:12px;padding:18px 20px;max-width:360px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(26,36,48,.45)}
+dialog h3{font-size:16px;margin-bottom:6px}
+dialog p{margin:0 0 10px;color:var(--muted);font-size:13.5px}
+dialog input{width:100%;padding:9px 11px;border:1.5px solid var(--rule);border-radius:8px;font-size:16px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.foot{color:var(--muted);font-size:12px;margin-top:14px}
+@media (max-width:600px){
+  .wrap{padding:12px 12px 32px}
+  .stage{padding:16px 14px 18px}
+  .stage h2{font-size:21px}
+  .hud .box{min-width:0}
+  .data{padding:14px 12px}
+  .data-t{font-size:12.5px}
+  .data-t th,.data-t td{padding:5px 3px}
+  .data-t tbody th{white-space:normal}
+  .work th,.work td{padding:6px 3px}
+  .work tbody th{white-space:normal;font-size:13px}
+  .work tbody th small{display:none}
+  .cellwrap{min-width:72px}
+  input.cell{font-size:14px;padding:6px 6px}
+  .how{font-size:10.5px}
+  .work td.na{min-width:72px;font-size:12px}
+}
+@media print{
+  body{background:#fff}
+  .top .hud,.steps,.data,details.key,.no-print,.foot{display:none !important}
+  .grid{display:block}
+  .panel{border:0}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="9" fill="#1A2430"/><rect x="9" y="22" width="6" height="10" rx="1.5" fill="#E2A93B"/><rect x="17" y="15" width="6" height="17" rx="1.5" fill="#47B98B"/><rect x="25" y="9" width="6" height="23" rx="1.5" fill="#7FA3E0"/></svg>
+      <div>
+        <h1>GDP Ledger</h1>
+        <p>Work out nominal GDP, real GDP, the GDP deflator and inflation, one step at a time</p>
+      </div>
+    </div>
+    <div class="hud">
+      <div class="box score"><span class="lab">Score</span><span><b id="score" class="num">0</b> <span class="of num" id="scoreMax">/ 0</span></span></div>
+      <div class="box"><span class="lab">Economy code</span><b id="codeTxt" class="num">-----</b></div>
+      <button class="btn ghost sm" type="button" id="btnNew">New economy</button>
+      <button class="btn ghost sm" type="button" id="btnCode">Enter a code</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <ol class="steps" id="steps" aria-label="Steps"></ol>
+  <div class="grid">
+    <aside class="panel data" id="dataPanel" aria-label="Economy data"></aside>
+    <section class="panel stage" id="stage" aria-live="off"></section>
+  </div>
+  <details class="key">
+    <summary>Instructor answer key for this economy</summary>
+    <div id="keyBody"></div>
+  </details>
+  <p class="foot">Tip for instructors: give the class one economy code so everyone works with the same numbers. Calculators are allowed; round the deflator and percentages to one decimal place.</p>
+</main>
+
+<dialog id="codeDlg">
+  <form method="dialog">
+    <h3>Enter an economy code</h3>
+    <p>Everyone who enters the same code gets the same economy.</p>
+    <input id="codeIn" maxlength="8" autocomplete="off" aria-label="Economy code">
+    <div class="row"><button class="btn ghost sm" value="cancel" type="submit">Cancel</button><button class="btn sm" value="ok" type="submit">Load economy</button></div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
+
+/* ---------- helpers ---------- */
+const MINUS = '−';
+function fmt(v, dp){ dp = dp || 0; const a = Math.abs(v), z = Number(a.toFixed(dp)) === 0;
+  return (v < 0 && !z ? MINUS : '') + a.toLocaleString('en-US', {minimumFractionDigits:dp, maximumFractionDigits:dp}); }
+const money = v => (v < 0 ? MINUS : '') + '$' + fmt(Math.abs(v));
+const pct = v => fmt(v, 1) + '%';
+const close = (a, b, t) => Math.abs(a - b) <= t;
+function parseNum(raw){
+  const s = String(raw).replace(/[−–]/g, '-').replace(/[$,%\s]/g, '');
+  if (s === '' || s === '-' || s === '.') return NaN;
+  return Number(s);
+}
+const sum = a => a.reduce((x, y) => x + y, 0);
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- seeded random ---------- */
+function seedFrom(str){ let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++){ h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); return (h ^= h >>> 16) >>> 0; }
+function mulberry32(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const CODE_CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function newCode(){ let s = ''; for (let i = 0; i < 5; i++) s += CODE_CH[Math.floor(Math.random()*CODE_CH.length)]; return s; }
+
+/* ---------- economies ---------- */
+const THEMES = [
+  {name:'Kestrel Valley', goods:[{n:'Apples', u:'crate', p:[8,16], q:[100,250]}, {n:'Wool sweaters', u:'sweater', p:[20,35], q:[40,90]}, {n:'Guitar lessons', u:'lesson', p:[15,25], q:[60,150]}]},
+  {name:'Port Marlin', goods:[{n:'Fish', u:'crate', p:[10,20], q:[80,200]}, {n:'Boat tours', u:'tour', p:[25,40], q:[30,80]}, {n:'Sea salt', u:'bag', p:[2,6], q:[150,300]}]},
+  {name:'Ridgeford', goods:[{n:'Wheat', u:'bushel', p:[4,9], q:[200,400]}, {n:'Bicycles', u:'bicycle', p:[80,120], q:[15,40]}, {n:'Haircuts', u:'haircut', p:[8,15], q:[60,150]}]},
+  {name:'Copperbay', goods:[{n:'Tea', u:'box', p:[3,7], q:[150,300]}, {n:'Laptops', u:'laptop', p:[300,500], q:[5,15]}, {n:'Taxi rides', u:'ride', p:[6,12], q:[100,200]}]},
+  {name:'Amberfield', goods:[{n:'Rice', u:'sack', p:[15,25], q:[50,120]}, {n:'Shoes', u:'pair', p:[30,60], q:[20,60]}, {n:'Cinema tickets', u:'ticket', p:[6,12], q:[80,200]}]}
+];
+function generate(code){
+  const R = mulberry32(seedFrom('gdp-' + code));
+  const ri = (a, b) => a + Math.floor(R()*(b - a + 1));
+  const th = THEMES[Math.floor(R()*THEMES.length)];
+  const y0 = ri(2020, 2023), years = [y0, y0 + 1, y0 + 2];
+  const br = R(), base = br < 0.5 ? 0 : (br < 0.75 ? 1 : 2);
+  const goods = th.goods.map(g => {
+    const qstep = g.q[1] <= 20 ? 1 : 5;
+    const P = [ri(g.p[0], g.p[1])], Q = [ri(g.q[0]/qstep, g.q[1]/qstep)*qstep];
+    for (let t = 1; t < 3; t++){
+      const gp = -0.04 + R()*0.26;
+      P.push(Math.max(1, Math.round(P[t-1]*(1 + gp))));
+      const gq = -0.15 + R()*0.38;
+      Q.push(Math.max(qstep, Math.round(Q[t-1]*(1 + gq)/qstep)*qstep));
+    }
+    return {n:g.n, u:g.u, P, Q};
+  });
+  // make sure the price level changes every year
+  for (let t = 1; t < 3; t++) if (goods.every(g => g.P[t] === g.P[t-1])) goods.forEach(g => { for (let s = t; s < 3; s++) g.P[s] += 1; });
+  return {code, theme:th.name, years, base, goods};
+}
+function solve(d){
+  const G = d.goods, b = d.base;
+  const nom = G.map(g => g.P.map((p, t) => p*g.Q[t]));
+  const real = G.map(g => g.Q.map(q => g.P[b]*q));
+  const N = [0,1,2].map(t => sum(nom.map(r => r[t])));
+  const R = [0,1,2].map(t => sum(real.map(r => r[t])));
+  const D = N.map((n, t) => n/R[t]*100);
+  const Dr = D.map(v => Math.round(v*10)/10);
+  const I = [null, (D[1]/D[0] - 1)*100, (D[2]/D[1] - 1)*100];
+  const Ir = [null, (Dr[1]/Dr[0] - 1)*100, (Dr[2]/Dr[1] - 1)*100];
+  return {nom, real, N, R, D, Dr, I, Ir};
+}
+
+/* ---------- state ---------- */
+let DATA = null, X = null;
+const S = {items:{}, points:0, max:0, firstTry:0, stage:0, unlocked:0, view:'stage', shown:{}};
+
+function addItem(id, o){
+  if (o.kind === 'mc' && o.shuffle !== false && DATA){ const R = mulberry32(seedFrom(DATA.code + id)); const a = o.opts.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(R()*(i + 1)); [a[i], a[j]] = [a[j], a[i]]; } o.opts = a; }
+  S.items[id] = Object.assign({status:'open', tries:0, last:''}, o); S.max += 10; }
+function award(it){ S.points += [10,6,3][Math.min(it.tries, 2)]; if (it.tries === 0) S.firstTry++; }
+const solvedSt = id => S.items[id] && S.items[id].status !== 'open';
+
+/* ---------- diagnostics ---------- */
+function diagNom(i, t, v){
+  const g = DATA.goods[i], y = DATA.years[t], b = DATA.base;
+  if (close(v, g.P[b]*g.Q[t], 0.001)) return `That uses the ${DATA.years[b]} (base-year) price. Nominal GDP values ${y}'s output at ${y}'s own price.`;
+  if (close(v, g.P[t] + g.Q[t], 0.001)) return 'Multiply the price by the quantity rather than adding them.';
+  for (let s = 0; s < 3; s++) if (s !== t && (close(v, g.P[t]*g.Q[s], 0.001) || close(v, g.P[s]*g.Q[t], 0.001) || close(v, g.P[s]*g.Q[s], 0.001))) return `Check the year: use the price <i>and</i> the quantity from ${y}.`;
+  return `Not quite. ${g.n} in ${y}: multiply the ${y} price by the ${y} quantity.`;
+}
+function diagReal(i, t, v){
+  const g = DATA.goods[i], y = DATA.years[t], b = DATA.base, yb = DATA.years[b];
+  if (close(v, g.P[t]*g.Q[t], 0.001)) return `That is the nominal value. Real GDP holds prices at ${yb} levels, so use the ${yb} price of ${g.n.toLowerCase()} ($${g.P[b]}).`;
+  if (close(v, g.P[t]*g.Q[b], 0.001)) return `Swap them: real GDP uses the ${yb} price with the ${y} quantity.`;
+  if (t !== b && close(v, g.P[b]*g.Q[b], 0.001)) return `Use ${y}'s quantity. Only the price stays fixed at its ${yb} level.`;
+  if (close(v, g.P[b] + g.Q[t], 0.001)) return 'Multiply the price by the quantity rather than adding them.';
+  return `Not quite. ${g.n} in ${y}: ${yb} price × ${y} quantity.`;
+}
+function diagTotal(kind, t, v){
+  const y = DATA.years[t], arr = kind === 'N' ? X.nom : X.real;
+  for (let i = 0; i < 3; i++) if (close(v, sum(arr[i]), 0.001)) return `That adds one good across the three years. GDP for ${y} adds the three goods in the ${y} column.`;
+  if (kind === 'R' && close(v, X.N[t], 0.001) && !close(X.N[t], X.R[t], 0.001)) return `That is nominal GDP for ${y}. Add up the real (base-year-price) values instead.`;
+  if (kind === 'N' && close(v, X.R[t], 0.001) && !close(X.N[t], X.R[t], 0.001)) return `That looks like real GDP. Nominal GDP adds the values at ${y} prices.`;
+  return `Add the three values in the ${y} column. Check each one, then add again.`;
+}
+function diagDefl(t, v){
+  const N = X.N[t], R = X.R[t];
+  if (close(v, R/N*100, 0.1)) return 'You divided real GDP by nominal GDP. Flip it: nominal ÷ real × 100.';
+  if (close(v, N/R, 0.002)) return 'Nearly there: multiply by 100 to turn the ratio into an index.';
+  if (close(v, (N/R - 1)*100, 0.1)) return 'That is the percentage gap between nominal and real GDP. The deflator itself is nominal ÷ real × 100.';
+  if (close(v, N - R, 0.5)) return 'Divide rather than subtract: nominal GDP ÷ real GDP × 100.';
+  return `Divide ${DATA.years[t]}'s nominal GDP (${money(N)}) by its real GDP (${money(R)}), then multiply by 100.`;
+}
+function diagInfl(t, v){
+  const D = X.D, Dr = X.Dr, y = DATA.years[t], yp = DATA.years[t-1];
+  const tests = [
+    [(D[t] - D[t-1])/D[t]*100, `Divide by the <i>previous</i> year's deflator (${fmt(Dr[t-1],1)}), not ${y}'s.`],
+    [D[t] - D[t-1], `That is the change in index points. Divide it by ${yp}'s deflator and multiply by 100.`],
+    [D[t]/D[t-1] - 1, 'Multiply by 100 to express it as a percentage.'],
+    [D[t]/D[t-1]*100, 'That is the ratio × 100. Subtract 100 (or use the change ÷ previous year) to get the inflation rate.'],
+    [(X.N[t]/X.N[t-1] - 1)*100, 'That is the growth rate of nominal GDP, which mixes price and output changes. Inflation uses the deflator.'],
+    [D[t] - 100, `That compares ${y} with the base year. Inflation compares ${y} with ${yp}.`]
+  ];
+  for (const [x, m] of tests) if (close(v, x, 0.12)) return m;
+  return `Inflation in ${y} = (deflator ${y} − deflator ${yp}) ÷ deflator ${yp} × 100.`;
+}
+function diagGrowth(v){
+  const R = X.R, N = X.N;
+  if (close(v, (N[2]/N[1] - 1)*100, 0.12)) return 'That is nominal GDP growth, which includes price increases. Economic growth uses real GDP.';
+  if (close(v, R[2]/R[1] - 1, 0.002)) return 'Multiply by 100 to express it as a percentage.';
+  if (close(v, (R[2] - R[1])/R[2]*100, 0.12)) return `Divide by the earlier year's real GDP (${money(R[1])}).`;
+  if (close(v, R[2] - R[1], 0.5)) return 'That is the change in dollars. Divide it by the earlier year’s real GDP and multiply by 100.';
+  return `Growth = (real GDP ${DATA.years[2]} − real GDP ${DATA.years[1]}) ÷ real GDP ${DATA.years[1]} × 100.`;
+}
+
+/* ---------- build items ---------- */
+function buildItems(){
+  S.items = {}; S.points = 0; S.max = 0; S.firstTry = 0; S.shown = {};
+  const G = DATA.goods, Y = DATA.years, b = DATA.base, yb = Y[b];
+  G.forEach((g, i) => Y.forEach((y, t) => addItem(`n-${i}-${t}`, {stage:0, exp:X.nom[i][t], tol:0.001, how:`$${fmt(g.P[t])} × ${fmt(g.Q[t])}`, label:`${g.n}, ${y}`, diag:v => diagNom(i, t, v)})));
+  Y.forEach((y, t) => addItem(`N-${t}`, {stage:0, exp:X.N[t], tol:0.001, how:X.nom.map(r => fmt(r[t])).join(' + '), label:`Nominal GDP, ${y}`, diag:v => diagTotal('N', t, v)}));
+  addItem('mc-base', {stage:1, kind:'mc', shuffle:false,
+    q:`Before you calculate: in which year will real GDP be exactly equal to nominal GDP?`,
+    opts:Y.map((y, t) => ({t:String(y), ok:t === b, why: t === b ? `Right. In ${yb}, "base-year prices" and "current prices" are the same prices, so the two measures match.` : `Not ${y}. In ${y} the current prices differ from the base-year prices, so real and nominal GDP differ.`})).concat([{t:'In none of the years', ok:false, why:'Think about the base year: what prices does real GDP use there?'}])});
+  G.forEach((g, i) => Y.forEach((y, t) => addItem(`r-${i}-${t}`, {stage:1, exp:X.real[i][t], tol:0.001, how:`$${fmt(g.P[b])} × ${fmt(g.Q[t])}`, label:`${g.n}, ${y}`, diag:v => diagReal(i, t, v)})));
+  Y.forEach((y, t) => addItem(`R-${t}`, {stage:1, exp:X.R[t], tol:0.001, how:X.real.map(r => fmt(r[t])).join(' + '), label:`Real GDP, ${y}`, diag:v => diagTotal('R', t, v)}));
+  Y.forEach((y, t) => addItem(`d-${t}`, {stage:2, exp:X.D[t], tol:0.1, dp:1, how:`${fmt(X.N[t])} ÷ ${fmt(X.R[t])} × 100`, label:`GDP deflator, ${y}`, diag:v => diagDefl(t, v)}));
+  [1,2].forEach(t => addItem(`i-${t}`, {stage:3, exp:X.Ir[t], alt:[X.I[t]], tol:0.12, dp:1, how:`(${fmt(X.Dr[t],1)} − ${fmt(X.Dr[t-1],1)}) ÷ ${fmt(X.Dr[t-1],1)} × 100`, label:`Inflation, ${Y[t]}`, diag:v => diagInfl(t, v)}));
+  // stage 5: interpretation
+  const nG = (X.N[2]/X.N[0] - 1)*100, rG = (X.R[2]/X.R[0] - 1)*100, pricesUp = X.D[2] > X.D[0];
+  addItem('mc-gap', {stage:4, kind:'mc',
+    q:`From ${Y[0]} to ${Y[2]}, nominal GDP changed by ${pct(nG)} but real GDP changed by ${pct(rG)}. What explains the difference?`,
+    opts:[
+      {t: pricesUp ? 'Prices rose, so part of the nominal increase is just higher prices' : 'Prices fell, so nominal GDP understates the growth in output', ok:true, why:`Right. The deflator moved from ${fmt(X.Dr[0],1)} to ${fmt(X.Dr[2],1)}. Nominal GDP mixes quantity and price changes; real GDP strips out the price changes.`},
+      {t:'Real GDP counts a different set of goods', ok:false, why:'Both measures count exactly the same goods and quantities. Only the prices used to value them differ.'},
+      {t:'The base year was changed between the two years', ok:false, why:`The base year stayed at ${yb} throughout.`},
+      {t:'Real GDP subtracts government spending', ok:false, why:'Real GDP is not a different spending concept. It is the same output valued at constant prices.'}
+    ]});
+  let tX = [0,1,2].filter(t => t !== b).reduce((a, t) => Math.abs(X.Dr[t] - 100) > Math.abs(X.Dr[a] - 100) ? t : a, b === 0 ? 1 : 0);
+  const dX = X.Dr[tX], gap = Math.abs(dX - 100), dir = dX >= 100 ? 'higher' : 'lower';
+  addItem('mc-mean', {stage:4, kind:'mc',
+    q:`The GDP deflator for ${Y[tX]} is ${fmt(dX,1)}. What does that tell you?`,
+    opts:[
+      {t:`The prices of the goods produced were, on average, ${fmt(gap,1)}% ${dir} than in ${yb}`, ok:true, why:`Right. The deflator is a price index with the base year (${yb}) set to 100.`},
+      {t:`The economy produced ${fmt(gap,1)}% ${dX >= 100 ? 'more' : 'less'} output than in ${yb}`, ok:false, why:'That would be a change in real GDP. The deflator measures prices, not quantities.'},
+      {t:`Inflation in ${Y[tX]} was ${fmt(dX,1)}%`, ok:false, why:'The deflator is an index level, not a rate of change. Inflation is the percentage change in the deflator from one year to the next.'},
+      {t:`Real GDP in ${Y[tX]} was ${fmt(dX,1)} dollars`, ok:false, why:'The deflator has no dollar units. It is nominal GDP ÷ real GDP × 100.'}
+    ]});
+  addItem('mc-which', {stage:4, kind:'mc',
+    q:`A minister says, "Our economy produced more in ${Y[2]} than in ${Y[1]}." Which number should you check?`,
+    opts:[
+      {t:'Real GDP', ok:true, why:'Right. Real GDP holds prices fixed, so it rises only when quantities rise.'},
+      {t:'Nominal GDP', ok:false, why:'Nominal GDP can rise just because prices rose, even if output fell.'},
+      {t:'The GDP deflator', ok:false, why:'The deflator tracks prices, not the quantity of output.'},
+      {t:'The inflation rate', ok:false, why:'Inflation tells you how fast prices rose, not how much was produced.'}
+    ]});
+  addItem('mc-100', {stage:4, kind:'mc',
+    q:`Why is the GDP deflator exactly 100 in ${yb}?`,
+    opts:[
+      {t:`In ${yb}, real and nominal GDP use the same prices, so they are equal`, ok:true, why:'Right. Nominal ÷ real = 1 in the base year, and 1 × 100 = 100.'},
+      {t:`Because prices did not change during ${yb}`, ok:false, why:'Prices may well have changed that year. The 100 comes from the choice of base year, not from zero inflation.'},
+      {t:`Because ${yb} had the highest output`, ok:false, why:'Any year can be the base year, whatever its output.'},
+      {t:'Because 100 is the normal inflation rate', ok:false, why:'The deflator is an index, not an inflation rate.'}
+    ]});
+  addItem('g-real', {stage:4, exp:(X.R[2]/X.R[1] - 1)*100, tol:0.12, dp:1, how:`(${fmt(X.R[2])} − ${fmt(X.R[1])}) ÷ ${fmt(X.R[1])} × 100`, label:`Real GDP growth, ${Y[2]}`, diag:diagGrowth});
+}
+
+/* ---------- stages ---------- */
+const STAGES = [
+  {key:'nom', title:'Nominal GDP', c:'var(--nom)', ct:'var(--nom-t)'},
+  {key:'real', title:'Real GDP', c:'var(--real)', ct:'var(--real-t)'},
+  {key:'defl', title:'GDP deflator', c:'var(--defl)', ct:'var(--defl-t)'},
+  {key:'infl', title:'Inflation rate', c:'var(--infl)', ct:'var(--infl-t)'},
+  {key:'interp', title:'Make sense of it', c:'var(--ink)', ct:'#E3E7EB'}
+];
+const stageItems = k => Object.keys(S.items).filter(id => S.items[id].stage === k);
+const stageDone = k => stageItems(k).every(solvedSt);
+
+function cellHTML(id, aria){
+  return `<div class="cellwrap"><input class="cell" data-id="${id}" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(aria)}"><span class="how" data-how="${id}"></span><button type="button" class="rev-btn" data-rev="${id}" hidden>Show answer</button></div>`;
+}
+function workTable(pfx, tot, totLabel, noun){
+  const Y = DATA.years, b = DATA.base;
+  let h = `<div class="tscroll"><table class="work"><thead><tr><th></th>${Y.map((y, t) => `<th class="${t === b ? 'base' : ''}">${y}${t === b ? ' (base)' : ''}</th>`).join('')}</tr></thead><tbody>`;
+  DATA.goods.forEach((g, i) => {
+    h += `<tr><th>${g.n}<small>${noun}</small></th>${Y.map((y, t) => `<td>${cellHTML(`${pfx}-${i}-${t}`, `${totLabel === 'Nominal GDP' ? 'Nominal' : 'Real'} value of ${g.n} in ${y}`)}</td>`).join('')}</tr>`;
+  });
+  h += `<tr class="total"><th>${totLabel}</th>${Y.map((y, t) => `<td>${cellHTML(`${tot}-${t}`, `${totLabel} in ${y}`)}</td>`).join('')}</tr></tbody></table></div>`;
+  return h;
+}
+function mcHTML(id){
+  const it = S.items[id];
+  return `<div class="mc" data-mc="${id}"><p class="q">${it.q}</p><div class="opts">${it.opts.map((o, j) => `<button type="button" data-o="${j}">${o.t}</button>`).join('')}</div><div class="mc-fb" aria-live="polite"></div></div>`;
+}
+
+function stageBody(k){
+  const Y = DATA.years, b = DATA.base, yb = Y[b];
+  if (k === 0) return `
+    <p class="lede">Nominal GDP values each year's output at <b>that year's own prices</b>. For every good, multiply its price by the quantity produced, then add the three goods together.</p>
+    <div class="formula">Nominal GDP<sub>year</sub> = Σ (price<sub>year</sub> × quantity<sub>year</sub>)<span class="note">Press Enter or Tab after each answer to check it.</span></div>
+    ${workTable('n', 'N', 'Nominal GDP', 'price × quantity')}`;
+  if (k === 1) return `
+    ${mcHTML('mc-base')}
+    <p class="lede">Real GDP values every year's output at <b>base-year prices</b>, so any change in it comes only from changes in quantities. Use the ${yb} price of each good for every year, together with that year's own quantity.</p>
+    <div class="chips">${DATA.goods.map(g => `<span class="chip">${g.n}: $${fmt(g.P[b])} in ${yb}</span>`).join('')}</div>
+    <div class="formula">Real GDP<sub>year</sub> = Σ (price<sub>${yb}</sub> × quantity<sub>year</sub>)</div>
+    ${workTable('r', 'R', 'Real GDP', `${yb} price × quantity`)}`;
+  if (k === 2) return `
+    <p class="lede">The GDP deflator measures the overall price level relative to the base year. It compares what output is worth at current prices with what the same output is worth at base-year prices.</p>
+    <div class="formula">GDP deflator<sub>year</sub> = Nominal GDP<sub>year</sub> ÷ Real GDP<sub>year</sub> × 100<span class="note">Round to one decimal place.</span></div>
+    <div class="tscroll"><table class="work"><thead><tr><th></th>${Y.map((y, t) => `<th class="${t === b ? 'base' : ''}">${y}${t === b ? ' (base)' : ''}</th>`).join('')}</tr></thead><tbody>
+      <tr><th>Nominal GDP</th>${Y.map((y, t) => `<td class="given num">${money(X.N[t])}</td>`).join('')}</tr>
+      <tr><th>Real GDP</th>${Y.map((y, t) => `<td class="given num">${money(X.R[t])}</td>`).join('')}</tr>
+      <tr class="total"><th>GDP deflator</th>${Y.map((y, t) => `<td>${cellHTML(`d-${t}`, `GDP deflator in ${y}`)}</td>`).join('')}</tr>
+    </tbody></table></div>`;
+  if (k === 3) return `
+    <p class="lede">The inflation rate is the <b>percentage change in the price level from one year to the next</b>. Here the price level is measured by the GDP deflator you just calculated.</p>
+    <div class="formula">Inflation<sub>year</sub> = (Deflator<sub>year</sub> − Deflator<sub>previous year</sub>) ÷ Deflator<sub>previous year</sub> × 100<span class="note">Round to one decimal place. Use the rounded deflators.</span></div>
+    <div class="tscroll"><table class="work"><thead><tr><th></th>${Y.map(y => `<th>${y}</th>`).join('')}</tr></thead><tbody>
+      <tr><th>GDP deflator</th>${Y.map((y, t) => `<td class="given num">${fmt(X.Dr[t],1)}</td>`).join('')}</tr>
+      <tr class="total"><th>Inflation rate (%)</th><td class="na">no earlier year</td>${[1,2].map(t => `<td>${cellHTML(`i-${t}`, `Inflation rate in ${Y[t]}`)}</td>`).join('')}</tr>
+    </tbody></table></div>
+    <p class="small" style="color:var(--muted);font-size:13px;margin:4px 0 0">There is no inflation rate for ${Y[0]} because the table has no figure for the year before it.</p>`;
+  if (k === 4) return `
+    <p class="lede">Numbers only matter if you can read them. Answer these questions about ${DATA.theme}'s results.</p>
+    ${mcHTML('mc-gap')}${mcHTML('mc-mean')}${mcHTML('mc-which')}${mcHTML('mc-100')}
+    <div class="bonus"><p class="q" style="font-weight:700;margin:0 0 6px">Bonus: what was the growth rate of real GDP in ${Y[2]}? (%)</p>
+      <p style="margin:0 0 8px;font-size:13.5px;color:var(--muted)">Economic growth is measured with real GDP. Use ${Y[1]} and ${Y[2]}; round to one decimal place.</p>
+      <div class="row">${cellHTML('g-real', `Real GDP growth rate in ${Y[2]}`)}</div></div>`;
+  return '';
+}
+function takeaway(k){
+  const Y = DATA.years, b = DATA.base, yb = Y[b], N = X.N, R = X.R;
+  if (k === 0) return `<h3>Nominal GDP done</h3><p>Nominal GDP went from ${money(N[0])} in ${Y[0]} to ${money(N[2])} in ${Y[2]}, a change of ${pct((N[2]/N[0] - 1)*100)}. But part of that change could simply be higher prices. Real GDP will separate price changes from quantity changes.</p>`;
+  if (k === 1) return `<h3>Real GDP done</h3><p>Real GDP went from ${money(R[0])} to ${money(R[2])}, a change of ${pct((R[2]/R[0] - 1)*100)}. Because every year is valued at ${yb} prices, this change comes only from producing different quantities. Notice that in ${yb} real and nominal GDP are identical.</p>`;
+  if (k === 2){ const t = [0,1,2].filter(s => s !== b).reduce((a, s) => Math.abs(X.Dr[s] - 100) > Math.abs(X.Dr[a] - 100) ? s : a, b === 0 ? 1 : 0); const dv = X.Dr[t];
+    return `<h3>GDP deflator done</h3><p>The deflator is 100 in ${yb} by construction. In ${Y[t]} it is ${fmt(dv,1)}, which means the prices of ${DATA.theme}'s output were on average ${fmt(Math.abs(dv - 100),1)}% ${dv >= 100 ? 'higher' : 'lower'} than in ${yb}.</p>`; }
+  if (k === 3){ const i1 = X.Ir[1], i2 = X.Ir[2]; return `<h3>Inflation done</h3><p>Prices ${i1 >= 0 ? 'rose' : 'fell'} ${pct(Math.abs(i1))} in ${Y[1]} and ${i2 >= 0 ? 'rose' : 'fell'} ${pct(Math.abs(i2))} in ${Y[2]}. Inflation always compares a year with the year before it, not with the base year.</p>`; }
+  if (k === 4) return `<h3>All five steps complete</h3><p>You have taken raw prices and quantities all the way to an inflation rate. See your results and a summary you can print or screenshot.</p>`;
+  return '';
+}
+
+/* ---------- rendering ---------- */
+function renderHUD(){
+  $('#score').textContent = S.points;
+  $('#scoreMax').textContent = '/ ' + S.max;
+  $('#codeTxt').textContent = DATA.code;
+}
+function renderSteps(){
+  $('#steps').innerHTML = STAGES.map((st, k) => {
+    const done = stageDone(k), cur = S.view === 'stage' && S.stage === k, locked = k > S.unlocked;
+    return `<li class="${cur ? 'cur' : ''} ${done ? 'done' : ''} ${locked ? 'locked' : ''}" style="--c:${st.c};--ct:${st.ct}"><button type="button" data-step="${k}" ${locked ? 'aria-disabled="true"' : ''} aria-current="${cur ? 'step' : 'false'}"><span class="n">${done ? '✓' : k + 1}</span><span class="lab">${st.title}</span></button></li>`;
+  }).join('');
+  $$('#steps [data-step]').forEach(b => b.addEventListener('click', () => { const k = +b.dataset.step; if (k <= S.unlocked) openStage(k); }));
+}
+function renderData(){
+  const Y = DATA.years, b = DATA.base;
+  let h = `<h2>${DATA.theme}: what the economy produced</h2><p class="sub">Three goods over three years. Prices are in dollars per unit. The base year is <b>${Y[b]}</b>.</p>`;
+  h += `<div class="tscroll"><table class="data-t"><thead><tr><th></th>${Y.map((y, t) => `<th colspan="2" class="${t === b ? 'base' : ''}">${y}${t === b ? '<span class="bpill">Base year</span>' : ''}</th>`).join('')}</tr>`;
+  h += `<tr><th style="text-align:left">Good</th>${Y.map((y, t) => `<th class="${t === b ? 'base' : ''}">Price</th><th class="${t === b ? 'base' : ''}">Qty</th>`).join('')}</tr></thead><tbody>`;
+  DATA.goods.forEach(g => { h += `<tr><th>${g.n}<span class="u">per ${g.u}</span></th>${Y.map((y, t) => `<td class="p ${t === b ? 'base' : ''}">$${fmt(g.P[t])}</td><td class="q ${t === b ? 'base' : ''}">${fmt(g.Q[t])}</td>`).join('')}</tr>`; });
+  h += `</tbody></table></div><div class="legend-row"><span><i style="background:var(--nom)"></i>Price</span><span><i style="background:var(--ink)"></i>Quantity</span><span><i style="background:var(--defl-t);border:1px solid var(--defl)"></i>Base year</span></div>`;
+  h += `<div class="results"><h3>Your results so far</h3><div id="resBox"></div></div>`;
+  $('#dataPanel').innerHTML = h;
+  renderResults();
+}
+function resVal(id, f){ const it = S.items[id]; return it && it.status !== 'open' ? f(it.exp) : null; }
+function renderResults(){
+  const Y = DATA.years;
+  const cell = v => v == null ? '<td class="pend">?</td>' : `<td>${v}</td>`;
+  let h = `<table class="res-t"><thead><tr><th>Year</th><th>Nominal GDP</th><th>Real GDP</th><th>Deflator</th><th>Inflation</th></tr></thead><tbody>`;
+  Y.forEach((y, t) => {
+    h += `<tr><td>${y}</td>${cell(resVal('N-' + t, money))}${cell(resVal('R-' + t, money))}${cell(resVal('d-' + t, v => fmt(v,1)))}${t === 0 ? '<td class="pend">n/a</td>' : cell(resVal('i-' + t, v => pct(v)))}</tr>`;
+  });
+  h += `</tbody></table>`;
+  const box = $('#resBox'); if (box) box.innerHTML = h;
+}
+
+function openStage(k){
+  S.view = 'stage'; S.stage = k;
+  const st = STAGES[k], el = $('#stage');
+  el.style.setProperty('--c', st.c);
+  el.innerHTML = `<div class="stepno">Step ${k + 1} of 5</div><h2>${st.title}</h2>${stageBody(k)}
+    <div class="fb" id="fb" aria-live="polite">${k < 4 ? 'Type your answer in a box, then press Enter.' : 'Choose an answer for each question.'}</div>
+    <div class="actions no-print" id="actions"></div><div id="worked"></div><div class="takeaway" id="take" hidden></div>`;
+  bindStage();
+  refreshStage();
+  renderSteps();
+  if (S.shown[k]) $('#worked').innerHTML = S.shown[k];
+  const first = el.querySelector('input.cell:not([readonly])');
+  if (first && window.innerWidth > 1000) first.focus({preventScroll:true});
+}
+function bindStage(){
+  const el = $('#stage');
+  el.querySelectorAll('input.cell').forEach(inp => {
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); checkNum(inp.dataset.id, inp.value, true); } });
+    inp.addEventListener('blur', () => { checkNum(inp.dataset.id, inp.value, false); });
+    inp.addEventListener('input', () => inp.classList.remove('bad'));
+  });
+  el.querySelectorAll('[data-rev]').forEach(b => b.addEventListener('click', () => reveal(b.dataset.rev)));
+  el.querySelectorAll('.mc').forEach(box => {
+    const id = box.dataset.mc;
+    box.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => answerMC(id, +b.dataset.o, box)));
+  });
+}
+function setCellUI(id){
+  const it = S.items[id], inp = $(`#stage input[data-id="${id}"]`); if (!inp) return;
+  const how = $(`#stage [data-how="${id}"]`), rv = $(`#stage [data-rev="${id}"]`);
+  inp.classList.remove('ok', 'bad', 'rev');
+  if (it.status !== 'open'){
+    inp.value = fmt(it.exp, it.dp || 0); inp.readOnly = true;
+    inp.classList.add(it.status === 'ok' ? 'ok' : 'rev');
+    if (how) how.textContent = it.how;
+    if (rv) rv.hidden = true;
+  } else {
+    inp.readOnly = false;
+    if (rv) rv.hidden = it.tries < 2;
+  }
+}
+function setMCUI(id){
+  const it = S.items[id], box = $(`#stage .mc[data-mc="${id}"]`); if (!box) return;
+  const fb = box.querySelector('.mc-fb');
+  box.querySelectorAll('[data-o]').forEach(b => {
+    const j = +b.dataset.o;
+    b.classList.toggle('wrong', (it.wrong || []).includes(j));
+    b.classList.toggle('right', it.status !== 'open' && it.opts[j].ok);
+    b.disabled = it.status !== 'open' || (it.wrong || []).includes(j);
+  });
+  box.classList.toggle('solved', it.status !== 'open');
+  if (it.status !== 'open'){ const o = it.opts.find(x => x.ok); fb.className = 'mc-fb ok'; fb.innerHTML = o.why; }
+  else if (it.lastWhy){ fb.className = 'mc-fb bad'; fb.innerHTML = it.lastWhy; }
+}
+function refreshStage(){
+  const k = S.stage;
+  stageItems(k).forEach(id => S.items[id].kind === 'mc' ? setMCUI(id) : setCellUI(id));
+  const act = $('#actions'); if (!act) return;
+  let a = '';
+  const done = stageDone(k);
+  if (!done && (k === 0 || k === 1)) a += `<button class="btn ghost sm" type="button" id="showMe">Show me the first year</button>`;
+  if (!done && (k === 2 || k === 3)) a += `<button class="btn ghost sm" type="button" id="showMe">Show me one worked example</button>`;
+  act.innerHTML = a;
+  const sm = $('#showMe');
+  if (sm){
+    const firstCol = k <= 1 ? (k === 0 ? 'n' : 'r') : null;
+    const anyOpen = k <= 1 ? [0,1,2].some(i => !solvedSt(`${firstCol}-${i}-0`)) || !solvedSt(`${k === 0 ? 'N' : 'R'}-0`) : (k === 2 ? !solvedSt('d-0') || !solvedSt('d-1') : !solvedSt('i-1'));
+    if (!anyOpen || S.shown[k]) sm.disabled = true;
+    sm.addEventListener('click', () => showMe(k));
+  }
+  const tk = $('#take');
+  if (done){
+    tk.hidden = false;
+    tk.innerHTML = takeaway(k) + (k < 4 ? `<button class="btn" type="button" id="nextStage">Continue to ${STAGES[k + 1].title}</button>` : `<button class="btn" type="button" id="toSummary">See your results</button>`);
+    const ns = $('#nextStage'); if (ns) ns.addEventListener('click', () => openStage(k + 1));
+    const ts = $('#toSummary'); if (ts) ts.addEventListener('click', openSummary);
+  } else tk.hidden = true;
+}
+function say(msg, cls){ const fb = $('#fb'); if (!fb) return; fb.className = 'fb ' + (cls || ''); fb.innerHTML = msg; }
+
+function checkNum(id, raw, viaEnter){
+  const it = S.items[id]; if (!it || it.status !== 'open') { if (viaEnter) focusNext(id); return; }
+  const str = String(raw).trim();
+  if (str === ''){ return; }
+  if (!viaEnter && str === it.last) return;
+  it.last = str;
+  const v = parseNum(str), inp = $(`#stage input[data-id="${id}"]`);
+  if (!isFinite(v)){ say('Enter a number, for example 1250 or 108.5.', 'bad'); inp.classList.add('bad'); return; }
+  const ok = close(v, it.exp, it.tol) || (it.alt || []).some(a => a != null && close(v, a, it.tol));
+  if (ok){
+    award(it); it.status = 'ok';
+    say(`Correct. ${it.label}: ${it.how} = ${fmt(it.exp, it.dp || 0)}${it.dp ? '' : ''}.`, 'ok');
+    setCellUI(id); afterSolve(id);
+    if (viaEnter) focusNext(id);
+  } else {
+    it.tries++;
+    inp.classList.add('bad');
+    say(it.diag(v) + (it.tries >= 2 ? ' <span style="opacity:.8">(You can also use "Show answer" under the box.)</span>' : ''), 'bad');
+    setCellUI(id); inp.classList.add('bad');
+  }
+  renderHUD();
+}
+function focusNext(id){
+  const all = $$('#stage input.cell');
+  const i = all.findIndex(x => x.dataset.id === id);
+  for (let j = i + 1; j < all.length; j++) if (!all[j].readOnly){ all[j].focus(); return; }
+  for (let j = 0; j < i; j++) if (!all[j].readOnly){ all[j].focus(); return; }
+}
+function reveal(id){
+  const it = S.items[id]; if (it.status !== 'open') return;
+  it.status = 'revealed';
+  say(`Answer shown: ${it.label} = ${it.how} = ${fmt(it.exp, it.dp || 0)}. No points for this one, but the method is what counts.`, 'info');
+  setCellUI(id); afterSolve(id);
+}
+function answerMC(id, j, box){
+  const it = S.items[id]; if (it.status !== 'open') return;
+  const o = it.opts[j];
+  if (o.ok){ award(it); it.status = 'ok'; it.lastWhy = null; afterSolve(id); }
+  else { it.tries++; (it.wrong = it.wrong || []).push(j); it.lastWhy = o.why; }
+  setMCUI(id); renderHUD();
+}
+function afterSolve(id){
+  renderResults(); renderHUD();
+  const k = S.stage;
+  if (stageDone(k)){
+    S.unlocked = Math.max(S.unlocked, Math.min(4, k + 1));
+    refreshStage(); renderSteps();
+    say('Stage complete. Read the summary below, then continue.', 'ok');
+  } else refreshStage();
+}
+function showMe(k){
+  const Y = DATA.years, b = DATA.base, G = DATA.goods;
+  let h = '';
+  if (k === 0 || k === 1){
+    const p = k === 0 ? 'n' : 'r', T = k === 0 ? 'N' : 'R', t = 0;
+    const lines = G.map((g, i) => `${g.n}: $${fmt(k === 0 ? g.P[t] : g.P[b])} × ${fmt(g.Q[t])} = ${money(k === 0 ? X.nom[i][t] : X.real[i][t])}`);
+    h = `<div class="worked"><h4>Worked example: ${Y[t]}</h4>${k === 1 ? `<p>Use ${Y[b]} prices with ${Y[t]} quantities.</p>` : `<p>Use ${Y[t]} prices with ${Y[t]} quantities.</p>`}${lines.map(l => `<p class="num">${l}</p>`).join('')}<p class="num"><b>${k === 0 ? 'Nominal' : 'Real'} GDP ${Y[t]} = ${G.map((g, i) => fmt(k === 0 ? X.nom[i][t] : X.real[i][t])).join(' + ')} = ${money(k === 0 ? X.N[t] : X.R[t])}</b></p><p>Now do the other two years the same way.</p></div>`;
+    [0,1,2].forEach(i => { const it = S.items[`${p}-${i}-0`]; if (it.status === 'open') it.status = 'revealed'; });
+    const it = S.items[`${T}-0`]; if (it.status === 'open') it.status = 'revealed';
+  } else if (k === 2){
+    const t = b === 0 ? 1 : 0;
+    h = `<div class="worked"><h4>Worked example: ${Y[t]}</h4><p class="num">GDP deflator = ${money(X.N[t])} ÷ ${money(X.R[t])} × 100 = ${fmt(X.N[t]/X.R[t], 4)} × 100 = <b>${fmt(X.Dr[t],1)}</b></p><p>Do the other two years the same way. What do you expect the base year to give?</p></div>`;
+    const it = S.items[`d-${t}`]; if (it.status === 'open') it.status = 'revealed';
+  } else if (k === 3){
+    h = `<div class="worked"><h4>Worked example: ${Y[1]}</h4><p class="num">Inflation = (${fmt(X.Dr[1],1)} − ${fmt(X.Dr[0],1)}) ÷ ${fmt(X.Dr[0],1)} × 100 = ${fmt(X.Dr[1] - X.Dr[0],1)} ÷ ${fmt(X.Dr[0],1)} × 100 = <b>${pct(X.Ir[1])}</b></p><p>Now do ${Y[2]}, comparing it with ${Y[1]}.</p></div>`;
+    const it = S.items['i-1']; if (it.status === 'open') it.status = 'revealed';
+  }
+  S.shown[k] = h;
+  $('#worked').innerHTML = h;
+  say('Worked example shown below. Those answers are filled in without points.', 'info');
+  stageItems(k).forEach(id => S.items[id].kind === 'mc' ? setMCUI(id) : setCellUI(id));
+  afterSolve('');
+}
+
+/* ---------- summary ---------- */
+function rank(p){ if (p >= 0.9) return 'Chief Statistician'; if (p >= 0.75) return 'Senior Analyst'; if (p >= 0.5) return 'Analyst'; return 'Trainee Analyst'; }
+function barChart(){
+  const Y = DATA.years, W = 640, H = 240, ml = 54, mb = 34, mt = 16, pw = W - ml - 12, ph = H - mt - mb;
+  const mx = Math.max(...X.N, ...X.R)*1.12;
+  const raw = mx/4, mag = Math.pow(10, Math.floor(Math.log10(raw))), nrm = raw/mag;
+  const step = (nrm < 1.5 ? 1 : nrm < 3 ? 2 : nrm < 7 ? 5 : 10)*mag;
+  const yv = v => mt + ph - v/mx*ph;
+  let s = '';
+  for (let v = 0; v <= mx; v += step){ s += `<line x1="${ml}" x2="${ml+pw}" y1="${yv(v)}" y2="${yv(v)}" stroke="#E5EAEF"/><text x="${ml-6}" y="${yv(v)+4}" text-anchor="end" font-size="11" fill="#5C6976">${fmt(v)}</text>`; }
+  const gw = pw/3, bw = Math.min(46, gw*0.3);
+  Y.forEach((y, t) => {
+    const cx = ml + gw*t + gw/2;
+    s += `<rect x="${cx - bw - 2}" y="${yv(X.N[t])}" width="${bw}" height="${ph - (yv(X.N[t]) - mt)}" rx="3" fill="#B07812"/>`;
+    s += `<rect x="${cx + 2}" y="${yv(X.R[t])}" width="${bw}" height="${ph - (yv(X.R[t]) - mt)}" rx="3" fill="#1E7A57"/>`;
+    s += `<text x="${cx}" y="${H - 14}" text-anchor="middle" font-size="12" font-weight="700" fill="#1A2430">${y}${t === DATA.base ? ' (base)' : ''}</text>`;
+    s += `<text x="${cx}" y="${H - 1}" text-anchor="middle" font-size="11" fill="#2D5BA6">deflator ${fmt(X.Dr[t],1)}</text>`;
+  });
+  s += `<line x1="${ml}" x2="${ml+pw}" y1="${mt+ph}" y2="${mt+ph}" stroke="#1A2430"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Nominal and real GDP by year" style="font-family:inherit">${s}</svg><div class="legend-row"><span><i style="background:var(--nom)"></i>Nominal GDP</span><span><i style="background:var(--real)"></i>Real GDP</span></div>`;
+}
+function openSummary(){
+  S.view = 'summary'; renderSteps();
+  const Y = DATA.years, total = Object.keys(S.items).length, share = S.max ? S.points/S.max : 0;
+  const el = $('#stage');
+  el.style.setProperty('--c', 'var(--ink)');
+  let h = `<div class="summary"><div class="stepno">Results</div><h2>${rank(share)}</h2>
+    <div class="big"><div class="stat"><b class="num">${S.points} / ${S.max}</b><span>Score</span></div><div class="stat"><b class="num">${S.firstTry} / ${total}</b><span>Right first time</span></div><div class="stat"><b class="num">${DATA.code}</b><span>Economy code</span></div></div>
+    <h3>${DATA.theme} at a glance</h3>
+    <div class="tscroll"><table class="res-t"><thead><tr><th>Year</th><th>Nominal GDP</th><th>Real GDP</th><th>GDP deflator</th><th>Inflation</th></tr></thead><tbody>
+    ${Y.map((y, t) => `<tr><td>${y}${t === DATA.base ? ' (base)' : ''}</td><td>${money(X.N[t])}</td><td>${money(X.R[t])}</td><td>${fmt(X.Dr[t],1)}</td><td>${t === 0 ? 'n/a' : pct(X.Ir[t])}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="chart">${barChart()}</div>
+    <h3>The four ideas to remember</h3>
+    <ul>
+      <li><b>Nominal GDP</b> = Σ current price × current quantity. It rises when prices <i>or</i> quantities rise.</li>
+      <li><b>Real GDP</b> = Σ base-year price × current quantity. It rises only when quantities rise, so it measures output and growth.</li>
+      <li><b>GDP deflator</b> = nominal ÷ real × 100. It is a price index, equal to 100 in the base year.</li>
+      <li><b>Inflation rate</b> = percentage change in the deflator from the previous year.</li>
+    </ul>
+    <div class="cert"><label for="nameIn">Your name (for your instructor)</label><input id="nameIn" autocomplete="name" placeholder="Type your name">
+      <div class="line">Completed <b>GDP Ledger</b>, economy <b>${DATA.code}</b>, with a score of <b>${S.points} / ${S.max}</b> on ${new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})}.</div></div>
+    <div class="actions no-print" style="margin-top:14px"><button class="btn" type="button" id="playAgain">Play a new economy</button><button class="btn ghost" type="button" id="printBtn">Print or save as PDF</button><button class="btn ghost" type="button" id="backBtn">Back to the steps</button></div>
+  </div>`;
+  el.innerHTML = h;
+  $('#playAgain').addEventListener('click', () => startNew(newCode(), true));
+  $('#printBtn').addEventListener('click', () => window.print());
+  $('#backBtn').addEventListener('click', () => openStage(4));
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+/* ---------- answer key ---------- */
+function renderKey(){
+  const Y = DATA.years;
+  let h = `<p style="margin:8px 0 0;font-size:13px;color:var(--muted)">Economy ${DATA.code}, ${DATA.theme}. Base year ${Y[DATA.base]}.</p><div class="tscroll"><table><thead><tr><th></th>${Y.map(y => `<th>${y}</th>`).join('')}</tr></thead><tbody>`;
+  DATA.goods.forEach((g, i) => { h += `<tr><td>${g.n}: nominal</td>${Y.map((y, t) => `<td>${fmt(X.nom[i][t])}</td>`).join('')}</tr>`; });
+  h += `<tr><td><b>Nominal GDP</b></td>${Y.map((y, t) => `<td><b>${fmt(X.N[t])}</b></td>`).join('')}</tr>`;
+  DATA.goods.forEach((g, i) => { h += `<tr><td>${g.n}: real</td>${Y.map((y, t) => `<td>${fmt(X.real[i][t])}</td>`).join('')}</tr>`; });
+  h += `<tr><td><b>Real GDP</b></td>${Y.map((y, t) => `<td><b>${fmt(X.R[t])}</b></td>`).join('')}</tr>`;
+  h += `<tr><td><b>GDP deflator</b></td>${Y.map((y, t) => `<td><b>${fmt(X.Dr[t],1)}</b></td>`).join('')}</tr>`;
+  h += `<tr><td><b>Inflation (%)</b></td>${Y.map((y, t) => `<td><b>${t === 0 ? 'n/a' : fmt(X.Ir[t],1)}</b></td>`).join('')}</tr>`;
+  h += `<tr><td>Real GDP growth (%)</td>${Y.map((y, t) => `<td>${t === 0 ? 'n/a' : fmt((X.R[t]/X.R[t-1] - 1)*100,1)}</td>`).join('')}</tr>`;
+  h += `</tbody></table></div>`;
+  $('#keyBody').innerHTML = h;
+}
+
+/* ---------- lifecycle ---------- */
+function startNew(code, confirmFirst){
+  const progress = Object.values(S.items).some(it => it.status !== 'open');
+  if (confirmFirst && progress && S.view !== 'summary' && !window.confirm('Start a new economy? Your progress on this one will be lost.')) return;
+  DATA = generate(code); X = solve(DATA);
+  buildItems();
+  S.stage = 0; S.unlocked = 0; S.view = 'stage';
+  try { history.replaceState(null, '', '#code=' + code); } catch(e) {}
+  renderHUD(); renderData(); renderKey(); openStage(0);
+  window.scrollTo(0, 0);
+}
+function codeFromHash(){ const m = /code=([A-Za-z0-9]{3,8})/.exec(location.hash || ''); return m ? m[1].toUpperCase() : null; }
+
+$('#btnNew').addEventListener('click', () => startNew(newCode(), true));
+$('#btnCode').addEventListener('click', () => { const d = $('#codeDlg'); $('#codeIn').value = ''; if (d.showModal) d.showModal(); else { const c = window.prompt('Economy code'); if (c) startNew(c.trim().toUpperCase(), true); } });
+$('#codeDlg').addEventListener('close', () => { const d = $('#codeDlg'); const c = $('#codeIn').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); if (d.returnValue === 'ok' && c.length >= 3) startNew(c, true); });
+
+startNew(codeFromHash() || newCode(), false);
+})();
+</script>
+</body>
+</html>
