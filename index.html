@@ -1,18 +1,21 @@
-<!DOCTYPE html>
 
+
+
+<!DOCTYPE html>
+ 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Economics Simulators Hub</title>
-
+ 
 <style>
     * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
     }
-
+ 
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
         background: linear-gradient(135deg,#667eea,#764ba2);
@@ -22,33 +25,33 @@
         align-items:center;
         padding:20px;
     }
-
+ 
     .container{
         max-width:1100px;
         width:100%;
     }
-
+ 
     .header{
         text-align:center;
         color:white;
         margin-bottom:50px;
     }
-
+ 
     .header h1{
         font-size:42px;
         margin-bottom:12px;
     }
-
+ 
     .header p{
         font-size:18px;
     }
-
+ 
     .simulators-grid{
         display:grid;
         grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
         gap:30px;
     }
-
+ 
     .simulator-card{
         background:#fff;
         border-radius:12px;
@@ -56,48 +59,48 @@
         box-shadow:0 10px 35px rgba(0,0,0,.18);
         transition:.3s;
     }
-
+ 
     .simulator-card:hover{
         transform:translateY(-8px);
         box-shadow:0 18px 45px rgba(0,0,0,.25);
     }
-
+ 
     .card-header{
         padding:28px;
         color:#fff;
         font-size:22px;
         font-weight:600;
     }
-
+ 
     .card-content{
         padding:25px;
     }
-
+ 
     .card-description{
         color:#555;
         line-height:1.6;
         min-height:90px;
         margin-bottom:20px;
     }
-
+ 
     .card-features h4{
         margin-bottom:10px;
         font-size:13px;
         text-transform:uppercase;
     }
-
+ 
     .card-features ul{
         list-style:none;
         margin-bottom:25px;
     }
-
+ 
     .card-features li{
         padding:6px 0;
         padding-left:18px;
         position:relative;
         color:#666;
     }
-
+ 
     .card-features li::before{
         content:"✓";
         position:absolute;
@@ -105,7 +108,7 @@
         color:green;
         font-weight:bold;
     }
-
+ 
     .card-button{
         display:block;
         text-align:center;
@@ -116,59 +119,74 @@
         font-weight:600;
         transition:.3s;
     }
-
+ 
     .card-button:hover{
         opacity:0.9;
         transform:translateY(-2px);
     }
-
+ 
     /* Phillips */
-
+ 
     .phillips{
         background:linear-gradient(135deg,#1e88e5,#1565c0);
     }
-
+ 
     /* IS-LM */
-
+ 
     .islm{
         background:linear-gradient(135deg,#d32f2f,#b71c1c);
     }
-
+ 
     /* AS-AD */
-
+ 
     .asad{
         background:linear-gradient(135deg,#f57c00,#e65100);
     }
-
+ 
     /* Macro Simulator */
-
+ 
     .macro{
         background:linear-gradient(135deg,#43a047,#2e7d32);
     }
-
+ 
     /* Demand & Supply */
-
+ 
     .micro{
         background:linear-gradient(135deg,#ec407a,#ad1457);
     }
-
+ 
     /* Elasticity */
-
+ 
     .elasticity{
         background:linear-gradient(135deg,#8e24aa,#5e35b1);
     }
-
+ 
     /* Market Structures Game */
-
+ 
     .structures{
         background:linear-gradient(135deg,#00897b,#00574b);
     }
-
+ 
     /* DSGE Workshop */
     .dsge{
         background:linear-gradient(135deg,#455a64,#263238);
     }
-
+ 
+    /* Loanable Funds Lab */
+    .loanable{
+        background:linear-gradient(135deg,#00acc1,#00838f);
+    }
+ 
+    /* GDP Ledger */
+    .gdp{
+        background:linear-gradient(135deg,#8d6e63,#5d4037);
+    }
+ 
+    /* CPI Basket Watch */
+    .cpi{
+        background:linear-gradient(135deg,#3949ab,#283593);
+    }
+ 
     .footer{
         text-align:center;
         color:white;
@@ -176,7 +194,7 @@
         font-size:13px;
         line-height:1.8;
     }
-
+ 
     .footer a{
         color:white;
         font-weight:600;
@@ -184,53 +202,53 @@
         border-bottom:1px solid rgba(255,255,255,0.7);
         transition:.3s;
     }
-
+ 
     .footer a:hover{
         opacity:0.8;
         border-bottom-color:white;
     }
-
+ 
     @media(max-width:768px){
-
+ 
         .header h1{
             font-size:32px;
         }
-
+ 
         .simulators-grid{
             grid-template-columns:1fr;
         }
-
+ 
     }
-
+ 
 </style>
-
+ 
 </head>
-
+ 
 <body>
-
+ 
 <div class="container">
-
+ 
 <div class="header">
     <h1>📊 Economics Simulators</h1>
     <p>Interactive tools for exploring economic models</p>
 </div>
-
+ 
 <div class="simulators-grid">
-
+ 
     <!-- Phillips Curve -->
-
+ 
     <div class="simulator-card">
-
+ 
         <div class="card-header phillips">
             Phillips Curve
         </div>
-
+ 
         <div class="card-content">
-
+ 
             <p class="card-description">
                 Explore the relationship between inflation and unemployment. Adjust inflation expectations and supply shocks to see how the Phillips Curve shifts.
             </p>
-
+ 
             <div class="card-features">
                 <h4>Features</h4>
                 <ul>
@@ -240,30 +258,30 @@
                     <li>Stagflation scenarios</li>
                 </ul>
             </div>
-
+ 
             <a href="phillips_curve_simulator.html" class="card-button phillips">
                 Open Simulator
             </a>
-
+ 
         </div>
-
+ 
     </div>
-
-
+ 
+ 
     <!-- IS-LM -->
-
+ 
     <div class="simulator-card">
-
+ 
         <div class="card-header islm">
             IS-LM Model
         </div>
-
+ 
         <div class="card-content">
-
+ 
             <p class="card-description">
                 Study fiscal and monetary policy by adjusting government spending, taxation and money supply.
             </p>
-
+ 
             <div class="card-features">
                 <h4>Features</h4>
                 <ul>
@@ -273,30 +291,30 @@
                     <li>Equilibrium calculation</li>
                 </ul>
             </div>
-
+ 
             <a href="islm_simulator.html" class="card-button islm">
                 Open Simulator
             </a>
-
+ 
         </div>
-
+ 
     </div>
-
-
+ 
+ 
     <!-- AS-AD -->
-
+ 
     <div class="simulator-card">
-
+ 
         <div class="card-header asad">
             AS-AD Model
         </div>
-
+ 
         <div class="card-content">
-
+ 
             <p class="card-description">
                 Analyze aggregate supply and aggregate demand. Explore inflation, output and supply shocks.
             </p>
-
+ 
             <div class="card-features">
                 <h4>Features</h4>
                 <ul>
@@ -306,30 +324,30 @@
                     <li>Supply shocks</li>
                 </ul>
             </div>
-
+ 
             <a href="asad_simulator.html" class="card-button asad">
                 Open Simulator
             </a>
-
+ 
         </div>
-
+ 
     </div>
-
-
+ 
+ 
     <!-- Macroeconomics Simulator -->
-
+ 
     <div class="simulator-card">
-
+ 
         <div class="card-header macro">
             Macroeconomics Simulator
         </div>
-
+ 
         <div class="card-content">
-
+ 
             <p class="card-description">
                 Comprehensive undergraduate macroeconomics simulator combining multiple policy experiments in one interactive environment.
             </p>
-
+ 
             <div class="card-features">
                 <h4>Features</h4>
                 <ul>
@@ -339,30 +357,30 @@
                     <li>Student learning mode</li>
                 </ul>
             </div>
-
+ 
             <a href="macro_simulator_v2.html" class="card-button macro">
                 Open Simulator
             </a>
-
+ 
         </div>
-
+ 
     </div>
-
-
+ 
+ 
     <!-- Demand & Supply -->
-
+ 
     <div class="simulator-card">
-
+ 
         <div class="card-header micro">
             Demand &amp; Supply
         </div>
-
+ 
         <div class="card-content">
-
+ 
             <p class="card-description">
                 Run the market for ice cream. Switch the good between normal, inferior and Giffen, then move the price and non-price shifters to find the new equilibrium.
             </p>
-
+ 
             <div class="card-features">
                 <h4>Features</h4>
                 <ul>
@@ -372,30 +390,30 @@
                     <li>Predict-the-shock challenge</li>
                 </ul>
             </div>
-
+ 
             <a href="demand_supply_simulator.html" class="card-button micro">
                 Open Simulator
             </a>
-
+ 
         </div>
-
+ 
     </div>
-
-
+ 
+ 
     <!-- Elasticity Simulator -->
-
+ 
     <div class="simulator-card">
-
+ 
         <div class="card-header elasticity">
             Elasticity Simulator
         </div>
-
+ 
         <div class="card-content">
-
+ 
             <p class="card-description">
                 Explore price, income and cross-price elasticity of demand. Change prices, quantities and consumer income to understand how responsiveness affects total revenue and demand.
             </p>
-
+ 
             <div class="card-features">
                 <h4>Features</h4>
                 <ul>
@@ -405,30 +423,30 @@
                     <li>Total revenue analysis</li>
                 </ul>
             </div>
-
+ 
             <a href="elasticity_simulator.html" class="card-button elasticity">
                 Open Simulator
             </a>
-
+ 
         </div>
-
+ 
     </div>
-
-
+ 
+ 
     <!-- Market Structures Game -->
-
+ 
     <div class="simulator-card">
-
+ 
         <div class="card-header structures">
             Market Structures Game
         </div>
-
+ 
         <div class="card-content">
-
+ 
             <p class="card-description">
                 Run a firm under perfect competition, monopolistic competition, oligopoly and monopoly. Set prices and output, face new entrants and a rival cartel member, and see how total surplus is shared.
             </p>
-
+ 
             <div class="card-features">
                 <h4>Features</h4>
                 <ul>
@@ -438,15 +456,15 @@
                     <li>Consumer surplus, producer surplus and DWL</li>
                 </ul>
             </div>
-
+ 
             <a href="market-structures-game.html" class="card-button structures">
                 Play the Game
             </a>
-
+ 
         </div>
-
+ 
     </div>
-
+ 
     <!-- DSGE Workshop -->
     <div class="simulator-card">
         <div class="card-header dsge">
@@ -470,16 +488,89 @@
             </a>
         </div>
     </div>
-
+ 
+ 
+    <!-- Loanable Funds Lab -->
+    <div class="simulator-card">
+        <div class="card-header loanable">
+            Loanable Funds Lab
+        </div>
+        <div class="card-content">
+            <p class="card-description">
+                See how government spending, taxes and investment incentives move the real interest rate. Track where funds come from (households, government, foreign savers) and who borrows them.
+            </p>
+            <div class="card-features">
+                <h4>Features</h4>
+                <ul>
+                    <li>Fiscal policy and crowding out</li>
+                    <li>Sources of funds and investment demand</li>
+                    <li>Ricardian equivalence and open economy</li>
+                    <li>Predict-and-test scenarios, challenges and guide</li>
+                </ul>
+            </div>
+            <a href="loanable-funds-simulator.html" class="card-button loanable">
+                Open Simulator
+            </a>
+        </div>
+    </div>
+ 
+    <!-- GDP Ledger -->
+    <div class="simulator-card">
+        <div class="card-header gdp">
+            GDP Ledger
+        </div>
+        <div class="card-content">
+            <p class="card-description">
+                Work through an economy producing three goods over three years. Calculate nominal GDP, real GDP, the GDP deflator and the inflation rate step by step.
+            </p>
+            <div class="card-features">
+                <h4>Features</h4>
+                <ul>
+                    <li>Nominal and real GDP</li>
+                    <li>GDP deflator and inflation rate</li>
+                    <li>Hints for common mistakes</li>
+                    <li>Shared economy codes for the whole class</li>
+                </ul>
+            </div>
+            <a href="gdp-ledger-game.html" class="card-button gdp">
+                Play the Game
+            </a>
+        </div>
+    </div>
+ 
+    <!-- CPI Basket Watch -->
+    <div class="simulator-card">
+        <div class="card-header cpi">
+            CPI in Five Steps
+        </div>
+        <div class="card-content">
+            <p class="card-description">
+                Measure inflation the way statistics offices do. Fix the basket, collect prices, price the basket, build the CPI and compute the inflation rate.
+            </p>
+            <div class="card-features">
+                <h4>Features</h4>
+                <ul>
+                    <li>The five steps of the CPI</li>
+                    <li>Market price reports with pack prices</li>
+                    <li>Substitution bias check</li>
+                    <li>Shared basket codes for the whole class</li>
+                </ul>
+            </div>
+            <a href="cpi-five-steps-game.html" class="card-button cpi">
+                Play the Game
+            </a>
+        </div>
+    </div>
+ 
 </div>
-
-
+ 
+ 
 <div class="footer">
-
+ 
     © 2026 - Khalil Ullah Mohammad - Bahria University
     • Interactive learning tools for Undergraduate economics courses
     <br>
-
+ 
     <a href="https://www.linkedin.com/in/khalil-ullah-mohammad-1a151580/"
         
        target="_blank"
@@ -500,8 +591,9 @@
         🔗 Check out the youtube page
     </a>
 </div>
-
+ 
 </div>
-
+ 
 </body>
 </html>
+Claude finished the response
