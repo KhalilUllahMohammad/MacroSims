@@ -1,599 +1,511 @@
 
-
-
 <!DOCTYPE html>
- 
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Economics Simulators Hub</title>
- 
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Economics Simulators Hub</title>
+<meta name="description" content="Interactive simulators and games for undergraduate economics courses at Bahria University.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+:root{
+  --bg:#F3F5F7; --panel:#FFFFFF; --ink:#16202B; --muted:#5A6774; --faint:#8E99A4; --rule:#DAE1E7; --grid:#E3E8ED;
+  --sans:"Public Sans","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+  --serif:"Literata",Georgia,"Times New Roman",serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+:focus-visible{outline:2.5px solid #1E6FD9;outline-offset:3px;border-radius:6px}
+[hidden]{display:none !important}
  
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-        background: linear-gradient(135deg,#667eea,#764ba2);
-        min-height:100vh;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        padding:20px;
-    }
+/* ---------- Hero ---------- */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--rule);background:#FBFCFD}
+.hero::before{content:"";position:absolute;inset:0;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  -webkit-mask-image:linear-gradient(105deg,transparent 0%,rgba(0,0,0,.35) 35%,#000 70%);
+  mask-image:linear-gradient(105deg,transparent 0%,rgba(0,0,0,.35) 35%,#000 70%)}
+.hero-inner{position:relative;max-width:1180px;margin:0 auto;padding:56px 24px 52px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:40px;align-items:center}
+.brandline{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--muted);margin-bottom:22px}
+.brandline svg{width:30px;height:30px;flex:none}
+.hero h1{font-family:var(--serif);font-weight:700;font-size:clamp(40px,6vw,64px);line-height:1.02;letter-spacing:-.02em;margin-bottom:18px}
+.hero h1 span{display:block;color:var(--muted);font-weight:500}
+.hero .lede{font-size:18px;color:#3A4754;max-width:34em;margin-bottom:26px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;text-decoration:none;border-radius:10px;padding:12px 18px;border:1.5px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
+.btn:hover{background:#2A3644}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--ink);background:#fff}
+.byline{margin-top:26px;font-size:14px;color:var(--muted)}
+.byline b{color:var(--ink);font-weight:700}
+.hero-figure{position:relative}
+.hero-figure svg{display:block;width:100%;height:auto;max-width:500px;margin-left:auto}
+.hero-figure .lbl{font:700 15px var(--sans)}
+.hero-figure .ax{font:600 13px var(--sans);fill:var(--muted)}
  
-    .container{
-        max-width:1100px;
-        width:100%;
-    }
+/* curve drawing sequence */
+.draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw 1.1s cubic-bezier(.6,.05,.3,1) forwards}
+.d2{animation-delay:.15s}
+.pop{opacity:0;transform-box:fill-box;transform-origin:center;animation:pop .35s ease-out forwards}
+.p1{animation-delay:1.1s}
+.shift{opacity:0;animation:fade .6s ease-out forwards;animation-delay:1.6s}
+.p2{animation-delay:2.15s}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes pop{0%{opacity:0;transform:scale(.2)}70%{opacity:1;transform:scale(1.25)}100%{opacity:1;transform:scale(1)}}
+@keyframes fade{to{opacity:1}}
  
-    .header{
-        text-align:center;
-        color:white;
-        margin-bottom:50px;
-    }
+/* ---------- Toolbar ---------- */
+.toolbar{position:sticky;top:0;z-index:5;background:rgba(243,245,247,.88);-webkit-backdrop-filter:saturate(1.4) blur(10px);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--rule)}
+.toolbar-inner{max-width:1180px;margin:0 auto;padding:12px 24px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.filters button{border:1.5px solid var(--rule);background:#fff;border-radius:999px;padding:7px 14px;font:600 14px var(--sans);color:var(--muted);cursor:pointer;display:inline-flex;gap:7px;align-items:center}
+.filters button:hover{border-color:var(--ink);color:var(--ink)}
+.filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.filters .n{font-size:12px;font-weight:700;opacity:.7}
+.search{position:relative;flex:0 1 280px}
+.search input{width:100%;font:500 14px var(--sans);padding:9px 12px 9px 36px;border:1.5px solid var(--rule);border-radius:10px;background:#fff;color:var(--ink)}
+.search input:focus{outline:none;border-color:var(--ink)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--faint)}
  
-    .header h1{
-        font-size:42px;
-        margin-bottom:12px;
-    }
+/* ---------- Sections & cards ---------- */
+main{max-width:1180px;margin:0 auto;padding:12px 24px 40px}
+.group{padding-top:36px}
+.group-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.group-head h2{font-family:var(--serif);font-size:28px;font-weight:700;letter-spacing:-.015em}
+.group-head p{color:var(--muted);font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.card{position:relative;display:flex;flex-direction:column;background:var(--panel);border:1.5px solid var(--rule);border-radius:16px;overflow:hidden;text-decoration:none;color:inherit;transition:border-color .2s, box-shadow .2s}
+.card:hover{border-color:var(--c);box-shadow:0 10px 30px -18px var(--c)}
+.card:focus-visible{outline:3px solid var(--c);outline-offset:3px;border-radius:16px}
+.thumb{position:relative;height:140px;background:var(--t);border-bottom:1.5px solid var(--rule);overflow:hidden}
+.card:hover .thumb{border-bottom-color:var(--c)}
+.thumb::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.55) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.55) 1px,transparent 1px);background-size:20px 20px}
+.thumb svg{position:relative;display:block;width:100%;height:100%}
+.thumb .badge{position:absolute;top:12px;right:12px;font:800 11.5px var(--sans);letter-spacing:.02em;background:var(--ink);color:#fff;border-radius:999px;padding:4px 10px}
+.body{padding:18px 20px 20px;display:flex;flex-direction:column;flex:1}
+.kind{font-size:13px;font-weight:700;color:var(--c);margin-bottom:4px}
+.card h3{font-size:20px;font-weight:800;letter-spacing:-.01em;line-height:1.2;margin-bottom:8px}
+.desc{color:#46525F;font-size:14.5px;line-height:1.55;margin-bottom:14px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.tags li{list-style:none;font-size:12.5px;font-weight:600;color:#3D4955;background:var(--bg);border:1px solid var(--rule);border-radius:999px;padding:3px 10px}
+.open{margin-top:auto;display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:15px;color:var(--c);border-top:1px solid var(--rule);padding-top:14px}
+.open svg{width:20px;height:20px;transition:transform .2s}
+.card:hover .open svg{transform:translateX(4px)}
+.empty{padding:40px 0;text-align:center;color:var(--muted);font-size:15px}
  
-    .header p{
-        font-size:18px;
-    }
+/* ---------- Footer ---------- */
+footer{margin-top:40px;background:var(--ink);color:#C9D2DB}
+.foot-inner{max-width:1180px;margin:0 auto;padding:40px 24px 34px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center}
+.who{display:flex;gap:16px;align-items:center}
+.avatar{width:56px;height:56px;border-radius:50%;background:#26323F;border:1.5px solid #3A4856;display:grid;place-items:center;font:700 19px var(--serif);color:#fff;flex:none}
+.who h2{font-family:var(--serif);font-size:21px;color:#fff;font-weight:700}
+.who p{font-size:14.5px}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.links a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#fff;font-weight:600;font-size:14px;border:1.5px solid #3A4856;border-radius:10px;padding:9px 14px}
+.links a:hover{border-color:#fff;background:#202B37}
+.links svg{width:18px;height:18px;flex:none}
+.copy{max-width:1180px;margin:0 auto;padding:16px 24px 26px;border-top:1px solid #2A3643;font-size:13px;color:#8E99A4}
  
-    .simulators-grid{
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-        gap:30px;
-    }
- 
-    .simulator-card{
-        background:#fff;
-        border-radius:12px;
-        overflow:hidden;
-        box-shadow:0 10px 35px rgba(0,0,0,.18);
-        transition:.3s;
-    }
- 
-    .simulator-card:hover{
-        transform:translateY(-8px);
-        box-shadow:0 18px 45px rgba(0,0,0,.25);
-    }
- 
-    .card-header{
-        padding:28px;
-        color:#fff;
-        font-size:22px;
-        font-weight:600;
-    }
- 
-    .card-content{
-        padding:25px;
-    }
- 
-    .card-description{
-        color:#555;
-        line-height:1.6;
-        min-height:90px;
-        margin-bottom:20px;
-    }
- 
-    .card-features h4{
-        margin-bottom:10px;
-        font-size:13px;
-        text-transform:uppercase;
-    }
- 
-    .card-features ul{
-        list-style:none;
-        margin-bottom:25px;
-    }
- 
-    .card-features li{
-        padding:6px 0;
-        padding-left:18px;
-        position:relative;
-        color:#666;
-    }
- 
-    .card-features li::before{
-        content:"✓";
-        position:absolute;
-        left:0;
-        color:green;
-        font-weight:bold;
-    }
- 
-    .card-button{
-        display:block;
-        text-align:center;
-        text-decoration:none;
-        color:white;
-        padding:13px;
-        border-radius:6px;
-        font-weight:600;
-        transition:.3s;
-    }
- 
-    .card-button:hover{
-        opacity:0.9;
-        transform:translateY(-2px);
-    }
- 
-    /* Phillips */
- 
-    .phillips{
-        background:linear-gradient(135deg,#1e88e5,#1565c0);
-    }
- 
-    /* IS-LM */
- 
-    .islm{
-        background:linear-gradient(135deg,#d32f2f,#b71c1c);
-    }
- 
-    /* AS-AD */
- 
-    .asad{
-        background:linear-gradient(135deg,#f57c00,#e65100);
-    }
- 
-    /* Macro Simulator */
- 
-    .macro{
-        background:linear-gradient(135deg,#43a047,#2e7d32);
-    }
- 
-    /* Demand & Supply */
- 
-    .micro{
-        background:linear-gradient(135deg,#ec407a,#ad1457);
-    }
- 
-    /* Elasticity */
- 
-    .elasticity{
-        background:linear-gradient(135deg,#8e24aa,#5e35b1);
-    }
- 
-    /* Market Structures Game */
- 
-    .structures{
-        background:linear-gradient(135deg,#00897b,#00574b);
-    }
- 
-    /* DSGE Workshop */
-    .dsge{
-        background:linear-gradient(135deg,#455a64,#263238);
-    }
- 
-    /* Loanable Funds Lab */
-    .loanable{
-        background:linear-gradient(135deg,#00acc1,#00838f);
-    }
- 
-    /* GDP Ledger */
-    .gdp{
-        background:linear-gradient(135deg,#8d6e63,#5d4037);
-    }
- 
-    /* CPI Basket Watch */
-    .cpi{
-        background:linear-gradient(135deg,#3949ab,#283593);
-    }
- 
-    .footer{
-        text-align:center;
-        color:white;
-        margin-top:40px;
-        font-size:13px;
-        line-height:1.8;
-    }
- 
-    .footer a{
-        color:white;
-        font-weight:600;
-        text-decoration:none;
-        border-bottom:1px solid rgba(255,255,255,0.7);
-        transition:.3s;
-    }
- 
-    .footer a:hover{
-        opacity:0.8;
-        border-bottom-color:white;
-    }
- 
-    @media(max-width:768px){
- 
-        .header h1{
-            font-size:32px;
-        }
- 
-        .simulators-grid{
-            grid-template-columns:1fr;
-        }
- 
-    }
- 
+@media (max-width:860px){
+  .hero-inner{grid-template-columns:1fr;padding:40px 20px 36px;gap:18px}
+  .hero-figure svg{max-width:420px;margin:0 auto}
+  .hero::before{-webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.25),#000);mask-image:linear-gradient(180deg,rgba(0,0,0,.25),#000)}
+  .foot-inner{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .toolbar-inner,main{padding-left:16px;padding-right:16px}
+  .search{flex:1 1 100%}
+  .filters{overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .filters button{white-space:nowrap}
+  .grid{grid-template-columns:1fr}
+  .hero .lede{font-size:16.5px}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .draw{animation:none;stroke-dashoffset:0}
+  .pop,.shift{animation:none;opacity:1}
+  .card,.open svg{transition:none}
+}
 </style>
- 
 </head>
- 
 <body>
  
-<div class="container">
- 
-<div class="header">
-    <h1>📊 Economics Simulators</h1>
-    <p>Interactive tools for exploring economic models</p>
-</div>
- 
-<div class="simulators-grid">
- 
-    <!-- Phillips Curve -->
- 
-    <div class="simulator-card">
- 
-        <div class="card-header phillips">
-            Phillips Curve
-        </div>
- 
-        <div class="card-content">
- 
-            <p class="card-description">
-                Explore the relationship between inflation and unemployment. Adjust inflation expectations and supply shocks to see how the Phillips Curve shifts.
-            </p>
- 
-            <div class="card-features">
-                <h4>Features</h4>
-                <ul>
-                    <li>Inflation expectations</li>
-                    <li>Supply shocks</li>
-                    <li>Curve shifting</li>
-                    <li>Stagflation scenarios</li>
-                </ul>
-            </div>
- 
-            <a href="phillips_curve_simulator.html" class="card-button phillips">
-                Open Simulator
-            </a>
- 
-        </div>
- 
+<header class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="brandline">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#16202B"/><path d="M9 31 L31 9" stroke="#F08A2B" stroke-width="3.4" stroke-linecap="round"/><path d="M9 11 L31 29" stroke="#5B9CF0" stroke-width="3.4" stroke-linecap="round"/><circle cx="20" cy="20" r="3.4" fill="#fff"/></svg>
+        Bahria University
+      </div>
+      <h1>Economics Simulators<span>Learn by moving the curves</span></h1>
+      <p class="lede">Interactive models and games for undergraduate economics. Change a policy, shift a curve or work through the numbers, and see the theory respond in front of you.</p>
+      <div class="hero-actions">
+        <a class="btn" href="#tools">Browse the <span id="toolCount">11</span> tools</a>
+        <a class="btn ghost" href="#group-measure">New: GDP and CPI games</a>
+      </div>
+      <p class="byline">Built by <b>Khalil Ullah Mohammad</b> for economics students at Bahria University</p>
     </div>
  
+    <div class="hero-figure" aria-hidden="true">
+      <svg viewBox="0 0 440 340">
+        <defs>
+          <marker id="harrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1E6FD9"/></marker>
+        </defs>
+        <rect x="40" y="10" width="380" height="290" rx="14" fill="#fff" stroke="#DAE1E7" stroke-width="1.5"/>
+        <g stroke="#EEF1F4" stroke-width="1">
+          <path d="M70 40 V280 M120 40 V280 M170 40 V280 M220 40 V280 M270 40 V280 M320 40 V280 M370 40 V280"/>
+          <path d="M70 60 H400 M70 110 H400 M70 160 H400 M70 210 H400 M70 260 H400"/>
+        </g>
+        <path d="M70 34 V280 H404" fill="none" stroke="#16202B" stroke-width="2"/>
+        <text class="ax" x="56" y="42" text-anchor="end">P</text>
+        <text class="ax" x="404" y="300" text-anchor="end">Q</text>
+        <!-- equilibrium guides -->
+        <path class="shift" d="M70 160 H220 V280" fill="none" stroke="#8E99A4" stroke-width="1.5" stroke-dasharray="3 4" style="animation-delay:1.15s"/>
+        <!-- supply -->
+        <path class="draw" style="--len:330" d="M100 265 L340 55" fill="none" stroke="#E06A00" stroke-width="5" stroke-linecap="round"/>
+        <!-- demand -->
+        <path class="draw d2" style="--len:330" d="M100 55 L340 265" fill="none" stroke="#1E6FD9" stroke-width="5" stroke-linecap="round"/>
+        <text class="lbl pop p1" x="350" y="56" fill="#E06A00">S</text>
+        <text class="lbl pop p1" x="350" y="276" fill="#1E6FD9">D</text>
+        <!-- shifted demand -->
+        <g class="shift">
+          <path d="M150 55 L390 265" fill="none" stroke="#1E6FD9" stroke-width="3" stroke-dasharray="8 7" stroke-linecap="round" opacity=".7"/>
+          <path d="M228 118 L268 118" stroke="#1E6FD9" stroke-width="2.5" marker-end="url(#harrow)"/>
+          <text class="lbl" x="396" y="262" fill="#1E6FD9" opacity=".8">D′</text>
+        </g>
+        <circle class="pop p1" cx="220" cy="160" r="8" fill="#16202B" stroke="#fff" stroke-width="3"/>
+        <circle class="pop p2" cx="247" cy="136" r="8" fill="#fff" stroke="#16202B" stroke-width="3"/>
+        <!-- floating notes -->
+        <g class="shift" style="animation-delay:2.3s">
+          <rect x="250" y="190" width="150" height="56" rx="10" fill="#16202B"/>
+          <text x="264" y="213" fill="#fff" style="font:700 13px var(--sans)">Demand rises</text>
+          <text x="264" y="233" fill="#C9D2DB" style="font:500 12.5px var(--sans)">Price and quantity ↑</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</header>
  
-    <!-- IS-LM -->
+<nav class="toolbar" id="tools" aria-label="Filter tools">
+  <div class="toolbar-inner">
+    <div class="filters" role="group" aria-label="Show">
+      <button type="button" data-filter="all" aria-pressed="true">All <span class="n" data-count="all"></span></button>
+      <button type="button" data-filter="micro" aria-pressed="false">Microeconomics <span class="n" data-count="micro"></span></button>
+      <button type="button" data-filter="macro" aria-pressed="false">Macroeconomics <span class="n" data-count="macro"></span></button>
+      <button type="button" data-filter="measure" aria-pressed="false">Measuring the economy <span class="n" data-count="measure"></span></button>
+    </div>
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" id="q" placeholder="Search, e.g. inflation, elasticity" aria-label="Search the tools">
+    </label>
+  </div>
+</nav>
  
-    <div class="simulator-card">
+<main>
  
-        <div class="card-header islm">
-            IS-LM Model
+  <!-- ================= MICRO ================= -->
+  <section class="group" id="group-micro" data-group="micro">
+    <div class="group-head"><h2>Microeconomics</h2><p>Markets, prices and the decisions of firms and consumers</p></div>
+    <div class="grid">
+ 
+      <a class="card" href="demand_supply_simulator.html" style="--c:#C2185B;--t:#FBE7EF" data-text="demand supply ice cream normal inferior giffen price controls shortage surplus">
+        <div class="thumb"><svg viewBox="0 0 320 140" aria-hidden="true">
+          <path d="M40 18 V122 H290" fill="none" stroke="#16202B" stroke-width="2"/>
+          <path d="M70 30 L250 112" stroke="#C2185B" stroke-width="4" stroke-linecap="round"/>
+          <path d="M70 112 L250 30" stroke="#16202B" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+          <path d="M40 71 H160 V122" fill="none" stroke="#8E99A4" stroke-width="1.5" stroke-dasharray="3 4"/>
+          <circle cx="160" cy="71" r="6" fill="#16202B" stroke="#fff" stroke-width="2.5"/>
+          <text x="256" y="118" font-weight="700" font-size="14" fill="#C2185B">D</text><text x="256" y="34" font-weight="700" font-size="14" fill="#16202B">S</text>
+        </svg></div>
+        <div class="body">
+          <div class="kind">Simulator</div>
+          <h3>Demand &amp; Supply</h3>
+          <p class="desc">Run the market for ice cream. Switch the good between normal, inferior and Giffen, then move the price and non-price shifters to find the new equilibrium.</p>
+          <ul class="tags"><li>Normal, inferior and Giffen goods</li><li>7 demand and 6 supply shifters</li><li>Price controls, shortage and surplus</li><li>Predict-the-shock challenge</li></ul>
+          <div class="open">Open simulator <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
         </div>
+      </a>
  
-        <div class="card-content">
- 
-            <p class="card-description">
-                Study fiscal and monetary policy by adjusting government spending, taxation and money supply.
-            </p>
- 
-            <div class="card-features">
-                <h4>Features</h4>
-                <ul>
-                    <li>Fiscal policy</li>
-                    <li>Monetary policy</li>
-                    <li>Curve shifting</li>
-                    <li>Equilibrium calculation</li>
-                </ul>
-            </div>
- 
-            <a href="islm_simulator.html" class="card-button islm">
-                Open Simulator
-            </a>
- 
+      <a class="card" href="elasticity_simulator.html" style="--c:#6A3DB8;--t:#EFE8FA" data-text="elasticity price income cross-price total revenue responsiveness">
+        <div class="thumb"><svg viewBox="0 0 320 140" aria-hidden="true">
+          <path d="M40 18 V122 H290" fill="none" stroke="#16202B" stroke-width="2"/>
+          <path d="M140 22 L178 118" stroke="#6A3DB8" stroke-width="4" stroke-linecap="round"/>
+          <path d="M60 52 L270 92" stroke="#6A3DB8" stroke-width="4" stroke-linecap="round" opacity=".45"/>
+          <circle cx="158" cy="67" r="6" fill="#16202B" stroke="#fff" stroke-width="2.5"/>
+          <text x="186" y="116" font-weight="700" font-size="12.5" fill="#6A3DB8">Inelastic</text>
+          <text x="214" y="78" font-weight="700" font-size="12.5" fill="#6A3DB8" opacity=".7">Elastic</text>
+        </svg></div>
+        <div class="body">
+          <div class="kind">Simulator</div>
+          <h3>Elasticity Simulator</h3>
+          <p class="desc">Explore price, income and cross-price elasticity of demand. Change prices, quantities and consumer income to understand how responsiveness affects total revenue and demand.</p>
+          <ul class="tags"><li>Price elasticity of demand</li><li>Income elasticity</li><li>Cross-price elasticity</li><li>Total revenue analysis</li></ul>
+          <div class="open">Open simulator <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
         </div>
+      </a>
+ 
+      <a class="card" href="market-structures-game.html" style="--c:#00796B;--t:#E1F3F0" data-text="market structures game perfect competition monopolistic oligopoly monopoly cartel entry exit surplus deadweight loss firm">
+        <div class="thumb"><svg viewBox="0 0 320 140" aria-hidden="true">
+          <path d="M40 18 V122 H290" fill="none" stroke="#16202B" stroke-width="2"/>
+          <path d="M70 40 Q150 140 260 34" fill="none" stroke="#00796B" stroke-width="4" stroke-linecap="round"/>
+          <path d="M80 30 C120 70 170 100 270 108" fill="none" stroke="#16202B" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+          <path d="M40 66 H290" stroke="#00796B" stroke-width="2.5" stroke-dasharray="6 5" opacity=".7"/>
+          <text x="232" y="30" font-weight="700" font-size="13" fill="#00796B">MC</text>
+          <text x="276" y="112" font-weight="700" font-size="13" fill="#16202B" opacity=".6">D</text>
+          <text x="248" y="62" font-weight="700" font-size="12" fill="#00796B">P = MR</text>
+        </svg><span class="badge" style="background:#00796B">Game</span></div>
+        <div class="body">
+          <div class="kind">Game</div>
+          <h3>Market Structures Game</h3>
+          <p class="desc">Run a firm under perfect competition, monopolistic competition, oligopoly and monopoly. Set prices and output, face new entrants and a rival cartel member, and see how total surplus is shared.</p>
+          <ul class="tags"><li>Four market structures</li><li>Entry barriers, entry and exit</li><li>Pricing and market power</li><li>Consumer surplus, producer surplus and DWL</li></ul>
+          <div class="open">Play the game <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        </div>
+      </a>
  
     </div>
+  </section>
  
+  <!-- ================= MACRO ================= -->
+  <section class="group" id="group-macro" data-group="macro">
+    <div class="group-head"><h2>Macroeconomics</h2><p>Output, inflation, interest rates and policy</p></div>
+    <div class="grid">
  
-    <!-- AS-AD -->
- 
-    <div class="simulator-card">
- 
-        <div class="card-header asad">
-            AS-AD Model
+      <a class="card" href="phillips_curve_simulator.html" style="--c:#1E6FD9;--t:#E5EFFC" data-text="phillips curve inflation unemployment expectations supply shocks stagflation">
+        <div class="thumb"><svg viewBox="0 0 320 140" aria-hidden="true">
+          <path d="M40 18 V122 H290" fill="none" stroke="#16202B" stroke-width="2"/>
+          <path d="M66 26 C 90 88, 150 104, 270 110" fill="none" stroke="#1E6FD9" stroke-width="4" stroke-linecap="round"/>
+          <path d="M86 18 C 112 62, 170 78, 280 84" fill="none" stroke="#1E6FD9" stroke-width="3" stroke-dasharray="7 6" stroke-linecap="round" opacity=".5"/>
+          <path d="M150 92 L158 72" stroke="#1E6FD9" stroke-width="2.2"/><path d="M153 70 L160 66 L161 75 z" fill="#1E6FD9"/>
+          <text x="48" y="30" font-weight="600" font-size="11.5" fill="#5A6774">π</text><text x="262" y="134" font-weight="600" font-size="11.5" fill="#5A6774">u</text>
+        </svg></div>
+        <div class="body">
+          <div class="kind">Simulator</div>
+          <h3>Phillips Curve</h3>
+          <p class="desc">Explore the relationship between inflation and unemployment. Adjust inflation expectations and supply shocks to see how the Phillips Curve shifts.</p>
+          <ul class="tags"><li>Inflation expectations</li><li>Supply shocks</li><li>Curve shifting</li><li>Stagflation scenarios</li></ul>
+          <div class="open">Open simulator <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
         </div>
+      </a>
  
-        <div class="card-content">
- 
-            <p class="card-description">
-                Analyze aggregate supply and aggregate demand. Explore inflation, output and supply shocks.
-            </p>
- 
-            <div class="card-features">
-                <h4>Features</h4>
-                <ul>
-                    <li>AD curve</li>
-                    <li>SRAS curve</li>
-                    <li>LRAS curve</li>
-                    <li>Supply shocks</li>
-                </ul>
-            </div>
- 
-            <a href="asad_simulator.html" class="card-button asad">
-                Open Simulator
-            </a>
- 
+      <a class="card" href="islm_simulator.html" style="--c:#C62828;--t:#FBE7E7" data-text="is-lm islm fiscal monetary policy government spending taxation money supply equilibrium">
+        <div class="thumb"><svg viewBox="0 0 320 140" aria-hidden="true">
+          <path d="M40 18 V122 H290" fill="none" stroke="#16202B" stroke-width="2"/>
+          <path d="M70 28 L250 112" stroke="#C62828" stroke-width="4" stroke-linecap="round"/>
+          <path d="M70 108 C 140 96, 200 70, 260 26" fill="none" stroke="#16202B" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+          <circle cx="166" cy="73" r="6" fill="#16202B" stroke="#fff" stroke-width="2.5"/>
+          <text x="256" y="118" font-weight="700" font-size="14" fill="#C62828">IS</text><text x="264" y="30" font-weight="700" font-size="14" fill="#16202B">LM</text>
+        </svg></div>
+        <div class="body">
+          <div class="kind">Simulator</div>
+          <h3>IS-LM Model</h3>
+          <p class="desc">Study fiscal and monetary policy by adjusting government spending, taxation and money supply.</p>
+          <ul class="tags"><li>Fiscal policy</li><li>Monetary policy</li><li>Curve shifting</li><li>Equilibrium calculation</li></ul>
+          <div class="open">Open simulator <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
         </div>
+      </a>
+ 
+      <a class="card" href="asad_simulator.html" style="--c:#D35F00;--t:#FDEEE0" data-text="as-ad asad aggregate supply demand inflation output supply shocks lras sras">
+        <div class="thumb"><svg viewBox="0 0 320 140" aria-hidden="true">
+          <path d="M40 18 V122 H290" fill="none" stroke="#16202B" stroke-width="2"/>
+          <path d="M172 18 V122" stroke="#16202B" stroke-width="3" stroke-dasharray="7 6" opacity=".55"/>
+          <path d="M70 30 L262 112" stroke="#D35F00" stroke-width="4" stroke-linecap="round"/>
+          <path d="M80 104 L262 34" stroke="#16202B" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+          <circle cx="172" cy="73" r="6" fill="#16202B" stroke="#fff" stroke-width="2.5"/>
+          <text x="266" y="118" font-weight="700" font-size="13" fill="#D35F00">AD</text><text x="266" y="38" font-weight="700" font-size="13" fill="#16202B">SRAS</text><text x="178" y="28" font-weight="700" font-size="13" fill="#16202B" opacity=".6">LRAS</text>
+        </svg></div>
+        <div class="body">
+          <div class="kind">Simulator</div>
+          <h3>AS-AD Model</h3>
+          <p class="desc">Analyze aggregate supply and aggregate demand. Explore inflation, output and supply shocks.</p>
+          <ul class="tags"><li>AD curve</li><li>SRAS curve</li><li>LRAS curve</li><li>Supply shocks</li></ul>
+          <div class="open">Open simulator <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        </div>
+      </a>
+ 
+      <a class="card" href="loanable-funds-simulator.html" style="--c:#00838F;--t:#DFF3F5" data-text="loanable funds interest rate saving investment fiscal policy crowding out deficit ricardian open economy twin deficits">
+        <div class="thumb"><svg viewBox="0 0 320 140" aria-hidden="true">
+          <path d="M40 18 V122 H290" fill="none" stroke="#16202B" stroke-width="2"/>
+          <path d="M120 116 L210 24" stroke="#00838F" stroke-width="3" stroke-dasharray="7 6" stroke-linecap="round" opacity=".45"/>
+          <path d="M80 116 L170 24" stroke="#00838F" stroke-width="4" stroke-linecap="round"/>
+          <path d="M70 30 L260 112" stroke="#16202B" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+          <path d="M170 42 L142 42" stroke="#00838F" stroke-width="2.4"/><path d="M140 37 L132 42 L140 47 z" fill="#00838F"/>
+          <circle cx="132" cy="63" r="6" fill="#16202B" stroke="#fff" stroke-width="2.5"/>
+          <text x="174" y="30" font-weight="700" font-size="13" fill="#00838F">S</text><text x="264" y="118" font-weight="700" font-size="13" fill="#16202B">D</text>
+          <text x="48" y="30" font-weight="600" font-size="11.5" fill="#5A6774">r</text>
+        </svg><span class="badge">New</span></div>
+        <div class="body">
+          <div class="kind">Simulator</div>
+          <h3>Loanable Funds Lab</h3>
+          <p class="desc">See how government spending, taxes and investment incentives move the real interest rate. Track where funds come from and who borrows them.</p>
+          <ul class="tags"><li>Fiscal policy and crowding out</li><li>Sources of funds and investment demand</li><li>Ricardian equivalence and open economy</li><li>Scenarios, challenges and guide</li></ul>
+          <div class="open">Open simulator <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        </div>
+      </a>
+ 
+      <a class="card" href="macro_simulator_v2.html" style="--c:#2E7D32;--t:#E5F3E6" data-text="macroeconomics simulator policy tools indicators scenario learning mode">
+        <div class="thumb"><svg viewBox="0 0 320 140" aria-hidden="true">
+          <rect x="34" y="22" width="76" height="96" rx="8" fill="#fff" stroke="#DAE1E7" stroke-width="1.5"/>
+          <rect x="122" y="22" width="76" height="96" rx="8" fill="#fff" stroke="#DAE1E7" stroke-width="1.5"/>
+          <rect x="210" y="22" width="76" height="96" rx="8" fill="#fff" stroke="#DAE1E7" stroke-width="1.5"/>
+          <path d="M44 98 L60 86 L74 90 L88 70 L100 64" fill="none" stroke="#2E7D32" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M132 60 L146 74 L160 70 L174 90 L188 94" fill="none" stroke="#16202B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+          <rect x="222" y="80" width="12" height="28" rx="2" fill="#2E7D32"/><rect x="240" y="64" width="12" height="44" rx="2" fill="#2E7D32" opacity=".7"/><rect x="258" y="50" width="12" height="58" rx="2" fill="#2E7D32" opacity=".45"/>
+          <text x="44" y="42" font-weight="700" font-size="11.5" fill="#5A6774">GDP</text><text x="132" y="42" font-weight="700" font-size="11.5" fill="#5A6774">Unemp.</text><text x="220" y="42" font-weight="700" font-size="11.5" fill="#5A6774">Policy</text>
+        </svg></div>
+        <div class="body">
+          <div class="kind">Simulator</div>
+          <h3>Macroeconomics Simulator</h3>
+          <p class="desc">Comprehensive undergraduate macroeconomics simulator combining multiple policy experiments in one interactive environment.</p>
+          <ul class="tags"><li>Interactive policy tools</li><li>Economic indicators</li><li>Scenario analysis</li><li>Student learning mode</li></ul>
+          <div class="open">Open simulator <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        </div>
+      </a>
+ 
+      <a class="card" href="dsge-workshop%20(2).html" style="--c:#37474F;--t:#E6EBEE" data-text="dsge dynamic stochastic general equilibrium shocks impulse response workshop policy">
+        <div class="thumb"><svg viewBox="0 0 320 140" aria-hidden="true">
+          <path d="M40 18 V122 H290" fill="none" stroke="#16202B" stroke-width="2"/>
+          <path d="M40 70 H290" stroke="#8E99A4" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <path d="M46 70 C 60 70, 62 22, 82 26 C 104 30, 108 104, 132 98 C 154 92, 158 52, 178 56 C 198 60, 202 80, 220 78 C 238 76, 244 66, 262 68 L 286 70" fill="none" stroke="#37474F" stroke-width="4" stroke-linecap="round"/>
+          <path d="M46 70 C 70 70, 72 46, 96 46 C 130 46, 160 66, 286 70" fill="none" stroke="#37474F" stroke-width="2.5" stroke-dasharray="6 5" opacity=".45"/>
+          <text x="230" y="32" font-weight="700" font-size="12" fill="#37474F">Impulse response</text>
+        </svg><span class="badge" style="background:#37474F">Workshop</span></div>
+        <div class="body">
+          <div class="kind">Workshop</div>
+          <h3>DSGE Workshop</h3>
+          <p class="desc">Explore dynamic stochastic general equilibrium (DSGE) models through an interactive workshop.</p>
+          <ul class="tags"><li>DSGE model exploration</li><li>Shocks and responses</li><li>Interactive activities</li><li>Policy analysis</li></ul>
+          <div class="open">Open workshop <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+        </div>
+      </a>
  
     </div>
+  </section>
  
+  <!-- ================= MEASUREMENT ================= -->
+  <section class="group" id="group-measure" data-group="measure">
+    <div class="group-head"><h2>Measuring the economy</h2><p>Step-by-step games for the numbers behind the headlines</p></div>
+    <div class="grid">
  
-    <!-- Macroeconomics Simulator -->
- 
-    <div class="simulator-card">
- 
-        <div class="card-header macro">
-            Macroeconomics Simulator
+      <a class="card" href="gdp-ledger-game.html" style="--c:#6D4C41;--t:#F3ECE8" data-text="gdp ledger nominal real gdp deflator inflation base year game calculation">
+        <div class="thumb"><svg viewBox="0 0 320 140" aria-hidden="true">
+          <path d="M40 122 H290" stroke="#16202B" stroke-width="2"/>
+          <rect x="66" y="70" width="26" height="52" rx="3" fill="#B07812"/><rect x="96" y="58" width="26" height="64" rx="3" fill="#6D4C41"/>
+          <rect x="144" y="54" width="26" height="68" rx="3" fill="#B07812"/><rect x="174" y="52" width="26" height="70" rx="3" fill="#6D4C41"/>
+          <rect x="222" y="34" width="26" height="88" rx="3" fill="#B07812"/><rect x="252" y="46" width="26" height="76" rx="3" fill="#6D4C41"/>
+          <text x="66" y="40" font-weight="700" font-size="12" fill="#B07812">Nominal</text><text x="66" y="56" font-weight="700" font-size="12" fill="#6D4C41">Real</text>
+        </svg><span class="badge">New</span></div>
+        <div class="body">
+          <div class="kind">Game</div>
+          <h3>GDP Ledger</h3>
+          <p class="desc">Work through an economy producing three goods over three years. Calculate nominal GDP, real GDP, the GDP deflator and the inflation rate, step by step.</p>
+          <ul class="tags"><li>Nominal and real GDP</li><li>GDP deflator and inflation rate</li><li>Hints for common mistakes</li><li>Shared class codes</li></ul>
+          <div class="open">Play the game <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
         </div>
+      </a>
  
-        <div class="card-content">
- 
-            <p class="card-description">
-                Comprehensive undergraduate macroeconomics simulator combining multiple policy experiments in one interactive environment.
-            </p>
- 
-            <div class="card-features">
-                <h4>Features</h4>
-                <ul>
-                    <li>Interactive policy tools</li>
-                    <li>Economic indicators</li>
-                    <li>Scenario analysis</li>
-                    <li>Student learning mode</li>
-                </ul>
-            </div>
- 
-            <a href="macro_simulator_v2.html" class="card-button macro">
-                Open Simulator
-            </a>
- 
+      <a class="card" href="cpi-five-steps-game.html" style="--c:#303F9F;--t:#E8EAF7" data-text="cpi consumer price index basket inflation five steps substitution bias game prices">
+        <div class="thumb"><svg viewBox="0 0 320 140" aria-hidden="true">
+          <path d="M40 122 H290" stroke="#16202B" stroke-width="2"/>
+          <path d="M40 92 H290" stroke="#8E99A4" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <text x="44" y="86" font-weight="700" font-size="11" fill="#5A6774">100</text>
+          <path d="M80 92 L160 74 L250 40" fill="none" stroke="#303F9F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="80" cy="92" r="5" fill="#303F9F"/><circle cx="160" cy="74" r="5" fill="#303F9F"/><circle cx="250" cy="40" r="5" fill="#303F9F"/>
+          <g transform="translate(232 72)"><path d="M6 10 Q16 -4 26 10" fill="none" stroke="#303F9F" stroke-width="2.4" stroke-linecap="round"/><path d="M0 10 H32 L28 32 H4 Z" fill="#303F9F" opacity=".85"/></g>
+        </svg><span class="badge">New</span></div>
+        <div class="body">
+          <div class="kind">Game</div>
+          <h3>CPI in Five Steps</h3>
+          <p class="desc">Measure inflation the way statistics offices do. Fix the basket, collect prices, price the basket, build the CPI and compute the inflation rate.</p>
+          <ul class="tags"><li>The five steps of the CPI</li><li>Market price reports</li><li>Substitution bias check</li><li>Shared class codes</li></ul>
+          <div class="open">Play the game <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
         </div>
+      </a>
  
     </div>
+  </section>
  
+  <p class="empty" id="empty" hidden>No tools match that search. Try a broader word, such as "inflation" or "curve".</p>
+</main>
  
-    <!-- Demand & Supply -->
- 
-    <div class="simulator-card">
- 
-        <div class="card-header micro">
-            Demand &amp; Supply
-        </div>
- 
-        <div class="card-content">
- 
-            <p class="card-description">
-                Run the market for ice cream. Switch the good between normal, inferior and Giffen, then move the price and non-price shifters to find the new equilibrium.
-            </p>
- 
-            <div class="card-features">
-                <h4>Features</h4>
-                <ul>
-                    <li>Normal, inferior and Giffen goods</li>
-                    <li>Seven demand and six supply shifters</li>
-                    <li>Price controls, shortage and surplus</li>
-                    <li>Predict-the-shock challenge</li>
-                </ul>
-            </div>
- 
-            <a href="demand_supply_simulator.html" class="card-button micro">
-                Open Simulator
-            </a>
- 
-        </div>
- 
+<footer>
+  <div class="foot-inner">
+    <div class="who">
+      <div class="avatar" aria-hidden="true">KM</div>
+      <div>
+        <h2>Khalil Ullah Mohammad</h2>
+        <p>Bahria University. Interactive learning tools for undergraduate economics courses.</p>
+      </div>
     </div>
- 
- 
-    <!-- Elasticity Simulator -->
- 
-    <div class="simulator-card">
- 
-        <div class="card-header elasticity">
-            Elasticity Simulator
-        </div>
- 
-        <div class="card-content">
- 
-            <p class="card-description">
-                Explore price, income and cross-price elasticity of demand. Change prices, quantities and consumer income to understand how responsiveness affects total revenue and demand.
-            </p>
- 
-            <div class="card-features">
-                <h4>Features</h4>
-                <ul>
-                    <li>Price elasticity of demand</li>
-                    <li>Income elasticity</li>
-                    <li>Cross-price elasticity</li>
-                    <li>Total revenue analysis</li>
-                </ul>
-            </div>
- 
-            <a href="elasticity_simulator.html" class="card-button elasticity">
-                Open Simulator
-            </a>
- 
-        </div>
- 
+    <div class="links">
+      <a href="https://www.linkedin.com/in/khalil-ullah-mohammad-1a151580/" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05C20.6 8.65 21 11.3 21 14.7V21h-4v-5.6c0-1.33-.02-3.05-1.86-3.05-1.86 0-2.14 1.45-2.14 2.95V21H9z"/></svg>
+        LinkedIn
+      </a>
+      <a href="https://scholar.google.com/citations?user=bCFSBq4AAAAJ&amp;hl=en" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 1 9.5l4 2.3V16c0 1.9 3.1 4 7 4s7-2.1 7-4v-4.2l2-1.15V16h2V9.5zm0 2.3 7.3 4.2L12 13.7 4.7 9.5z"/></svg>
+        Google Scholar
+      </a>
+      <a href="https://www.youtube.com/@economistsdoitusingmodels4406" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.75 15.02V8.98L15.5 12z"/></svg>
+        YouTube
+      </a>
     </div>
+  </div>
+  <p class="copy">© 2026 Khalil Ullah Mohammad, Bahria University</p>
+</footer>
  
+<script>
+(function(){
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+  var groups = Array.prototype.slice.call(document.querySelectorAll('.group'));
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('[data-filter]'));
+  var q = document.getElementById('q');
+  var empty = document.getElementById('empty');
+  var current = 'all';
  
-    <!-- Market Structures Game -->
+  // counts
+  var counts = {all: cards.length};
+  groups.forEach(function(g){ counts[g.dataset.group] = g.querySelectorAll('.card').length; });
+  document.querySelectorAll('[data-count]').forEach(function(el){ el.textContent = counts[el.dataset.count] || 0; });
+  var tc = document.getElementById('toolCount'); if (tc) tc.textContent = cards.length;
  
-    <div class="simulator-card">
+  function apply(){
+    var term = (q.value || '').trim().toLowerCase();
+    var shown = 0;
+    groups.forEach(function(g){
+      var inGroup = current === 'all' || g.dataset.group === current;
+      var visible = 0;
+      g.querySelectorAll('.card').forEach(function(c){
+        var hay = (c.textContent + ' ' + (c.dataset.text || '')).toLowerCase();
+        var ok = inGroup && (!term || term.split(/\s+/).every(function(w){ return hay.indexOf(w) !== -1; }));
+        c.hidden = !ok; if (ok) visible++;
+      });
+      g.hidden = visible === 0;
+      shown += visible;
+    });
+    empty.hidden = shown !== 0;
+  }
+  buttons.forEach(function(b){
+    b.addEventListener('click', function(){
+      current = b.dataset.filter;
+      buttons.forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      apply();
+    });
+  });
+  q.addEventListener('input', apply);
  
-        <div class="card-header structures">
-            Market Structures Game
-        </div>
- 
-        <div class="card-content">
- 
-            <p class="card-description">
-                Run a firm under perfect competition, monopolistic competition, oligopoly and monopoly. Set prices and output, face new entrants and a rival cartel member, and see how total surplus is shared.
-            </p>
- 
-            <div class="card-features">
-                <h4>Features</h4>
-                <ul>
-                    <li>Four market structures</li>
-                    <li>Entry barriers, entry and exit</li>
-                    <li>Pricing decisions and market power</li>
-                    <li>Consumer surplus, producer surplus and DWL</li>
-                </ul>
-            </div>
- 
-            <a href="market-structures-game.html" class="card-button structures">
-                Play the Game
-            </a>
- 
-        </div>
- 
-    </div>
- 
-    <!-- DSGE Workshop -->
-    <div class="simulator-card">
-        <div class="card-header dsge">
-            DSGE Workshop
-        </div>
-        <div class="card-content">
-            <p class="card-description">
-                Explore dynamic stochastic general equilibrium (DSGE) models through an interactive workshop.
-            </p>
-            <div class="card-features">
-                <h4>Features</h4>
-                <ul>
-                    <li>DSGE model exploration</li>
-                    <li>Macroeconomic shocks and responses</li>
-                    <li>Interactive workshop activities</li>
-                    <li>Policy analysis</li>
-                </ul>
-            </div>
-            <a href="dsge-workshop%20(2).html" class="card-button dsge">
-                Open Workshop
-            </a>
-        </div>
-    </div>
- 
- 
-    <!-- Loanable Funds Lab -->
-    <div class="simulator-card">
-        <div class="card-header loanable">
-            Loanable Funds Lab
-        </div>
-        <div class="card-content">
-            <p class="card-description">
-                See how government spending, taxes and investment incentives move the real interest rate. Track where funds come from (households, government, foreign savers) and who borrows them.
-            </p>
-            <div class="card-features">
-                <h4>Features</h4>
-                <ul>
-                    <li>Fiscal policy and crowding out</li>
-                    <li>Sources of funds and investment demand</li>
-                    <li>Ricardian equivalence and open economy</li>
-                    <li>Predict-and-test scenarios, challenges and guide</li>
-                </ul>
-            </div>
-            <a href="loanable-funds-simulator.html" class="card-button loanable">
-                Open Simulator
-            </a>
-        </div>
-    </div>
- 
-    <!-- GDP Ledger -->
-    <div class="simulator-card">
-        <div class="card-header gdp">
-            GDP Ledger
-        </div>
-        <div class="card-content">
-            <p class="card-description">
-                Work through an economy producing three goods over three years. Calculate nominal GDP, real GDP, the GDP deflator and the inflation rate step by step.
-            </p>
-            <div class="card-features">
-                <h4>Features</h4>
-                <ul>
-                    <li>Nominal and real GDP</li>
-                    <li>GDP deflator and inflation rate</li>
-                    <li>Hints for common mistakes</li>
-                    <li>Shared economy codes for the whole class</li>
-                </ul>
-            </div>
-            <a href="gdp-ledger-game.html" class="card-button gdp">
-                Play the Game
-            </a>
-        </div>
-    </div>
- 
-    <!-- CPI Basket Watch -->
-    <div class="simulator-card">
-        <div class="card-header cpi">
-            CPI in Five Steps
-        </div>
-        <div class="card-content">
-            <p class="card-description">
-                Measure inflation the way statistics offices do. Fix the basket, collect prices, price the basket, build the CPI and compute the inflation rate.
-            </p>
-            <div class="card-features">
-                <h4>Features</h4>
-                <ul>
-                    <li>The five steps of the CPI</li>
-                    <li>Market price reports with pack prices</li>
-                    <li>Substitution bias check</li>
-                    <li>Shared basket codes for the whole class</li>
-                </ul>
-            </div>
-            <a href="cpi-five-steps-game.html" class="card-button cpi">
-                Play the Game
-            </a>
-        </div>
-    </div>
- 
-</div>
- 
- 
-<div class="footer">
- 
-    © 2026 - Khalil Ullah Mohammad - Bahria University
-    • Interactive learning tools for Undergraduate economics courses
-    <br>
- 
-    <a href="https://www.linkedin.com/in/khalil-ullah-mohammad-1a151580/"
-        
-       target="_blank"
-       rel="noopener noreferrer">
-        🔗 Connect with me on LinkedIn
-    </a>
-    <a href="https://scholar.google.com/citations?user=bCFSBq4AAAAJ&hl=en"
-        
-       target="_blank"
-       rel="noopener noreferrer">
-        🔗 Check out the google scholar account
-    </a>
-   
-    <a href=" https://www.youtube.com/@economistsdoitusingmodels4406"
-        
-       target="_blank"
-       rel="noopener noreferrer">
-        🔗 Check out the youtube page
-    </a>
-</div>
- 
-</div>
- 
+  // "New: GDP and CPI games" link should also reset filters so the section is visible
+  document.querySelectorAll('a[href^="#group-"]').forEach(function(a){
+    a.addEventListener('click', function(){ current = 'all'; q.value = ''; buttons.forEach(function(x){ x.setAttribute('aria-pressed', x.dataset.filter === 'all' ? 'true' : 'false'); }); apply(); });
+  });
+})();
+</script>
 </body>
 </html>
-Claude finished the response
+ 
+Claude is responding
