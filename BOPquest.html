@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BoP Quest: Pakistan's Balance of Payments</title>
+<meta name="description" content="A learning game on Pakistan's balance of payments with real State Bank of Pakistan data, FY25 to July-September 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Zilla+Slab:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&text=%D8%AC%D9%85%D8%B9%20%D9%86%D8%A7%D9%85%20%D8%A8%DB%81%DB%8C%20%DA%A9%DA%BE%D8%A7%D8%AA%DB%81&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#EDF2E9;      /* ledger-green page */
+  --sheet:#F8FAF5;      /* panels and chart surface */
+  --rule:#D3DFCF;       /* ledger rules */
+  --rule-2:#B9CBB3;
+  --ink:#1C2A22;
+  --ink-2:#46554C;
+  --muted:#5F6E65;
+  --khata:#8C1C1C;      /* bahi khata cloth */
+  --khata-2:#701515;
+  --thread:#D4A21E;     /* gold stitching */
+  --in:#2364AA;         /* jama: dollars in */
+  --out:#C4372C;        /* naam: dollars out */
+  --in-wash:#E1EAF5;
+  --out-wash:#F7E3DF;
+  --total:#3A4940;
+  --slab:"Zilla Slab","Rockwell","Roboto Slab",Georgia,serif;
+  --sans:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --urdu:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq",serif;
+  --spine:252px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.62 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--in)}
+a:hover{color:var(--khata)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--thread);outline-offset:2px}
+.urdu{font-family:var(--urdu);font-weight:400;line-height:2.1}
+.num{font-variant-numeric:tabular-nums}
+.in{color:var(--in)} .out{color:var(--out)}
+[hidden]{display:none!important}
+h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- spine (book binding) ---------- */
+.spine{position:fixed;inset:0 auto 0 0;width:var(--spine);background:
+  repeating-linear-gradient(45deg,rgba(255,255,255,.035) 0 2px,transparent 2px 6px),
+  repeating-linear-gradient(-45deg,rgba(0,0,0,.05) 0 2px,transparent 2px 7px),
+  var(--khata);
+  color:#F6E9E4;display:flex;flex-direction:column;z-index:20}
+.spine::after{content:"";position:absolute;top:0;bottom:0;right:10px;border-right:2px dashed var(--thread);opacity:.85}
+.brand{padding:22px 26px 18px 22px}
+.brand a{color:inherit;text-decoration:none;display:block}
+.brand .t{display:block;font:700 1.5rem/1.1 var(--slab);letter-spacing:.2px}
+.brand .s{display:block;font-size:.82rem;opacity:.85;margin-top:4px}
+.brand .urdu{font-size:1.05rem;color:#F3D27A;display:block;margin-top:-2px}
+.toc{list-style:none;margin:0;padding:6px 18px 6px 12px;flex:1;overflow:auto}
+.toc button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:30px 1fr auto;align-items:baseline;gap:6px;width:100%;padding:9px 10px;border-radius:3px;cursor:pointer;color:#F6E9E4}
+.toc button:hover{background:rgba(255,255,255,.08)}
+.toc button[aria-current="page"]{background:#F8FAF5;color:var(--ink)}
+.toc button[aria-current="page"] .n{color:var(--khata)}
+.toc .n{font:700 1.05rem var(--slab);color:#F3D27A}
+.toc .l{font-size:.93rem;line-height:1.3}
+.toc .ck{font-size:.78rem;color:#F3D27A;white-space:nowrap}
+.toc button[aria-current="page"] .ck{color:var(--khata)}
+.toc .sep{height:1px;background:rgba(255,255,255,.18);margin:8px 10px}
+.spine-foot{padding:12px 26px 18px 22px;font-size:.78rem;opacity:.8}
+
+/* ---------- top bar with reserves meter ---------- */
+.wrap{margin-left:var(--spine);min-height:100vh}
+.topbar{position:sticky;top:0;z-index:15;background:rgba(248,250,245,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule-2)}
+.topbar-in{display:flex;align-items:center;gap:22px;padding:10px 32px;max-width:1180px}
+.meter{flex:1;display:grid;grid-template-columns:auto 1fr;gap:4px 18px;align-items:center;position:relative}
+.meter .val{font:700 1.75rem/1 var(--slab);font-variant-numeric:tabular-nums;min-width:6.4ch}
+.meter .cap{font-size:.8rem;color:var(--muted);grid-column:1}
+.bar{grid-row:1 / span 2;grid-column:2;position:relative;height:44px}
+.bar .track{position:absolute;left:0;right:0;top:12px;height:12px;background:#E3EADF;border-radius:6px;overflow:hidden;border:1px solid var(--rule-2)}
+.bar .fill{position:absolute;inset:0 auto 0 0;width:10%;background:var(--out);border-radius:6px 0 0 6px;transition:width .7s cubic-bezier(.2,.8,.2,1),background-color .4s}
+.bar .tick{position:absolute;top:6px;height:24px;border-left:1px solid var(--ink-2);font-size:.7rem;color:var(--muted)}
+.bar .tick span{position:absolute;top:24px;left:-2.2em;width:4.4em;text-align:center;white-space:nowrap}
+.bar .tick.goal{border-left:2px solid var(--thread)}
+.bar .tick.goal span{color:var(--ink);font-weight:700}
+.rank{font-size:.82rem;color:var(--ink-2);white-space:nowrap;text-align:right}
+.rank b{display:block;font:600 1rem var(--slab);color:var(--ink)}
+.toast{position:absolute;left:0;top:-10px;margin-left:6px;font:700 1rem var(--slab);padding:2px 8px;border-radius:3px;opacity:0;pointer-events:none;transform:translateY(0)}
+.toast.show{animation:pop 1.4s ease-out forwards}
+@keyframes pop{0%{opacity:0;transform:translateY(8px)}15%{opacity:1;transform:translateY(-6px)}75%{opacity:1}100%{opacity:0;transform:translateY(-16px)}}
+.mobnav{display:none}
+
+/* ---------- main content ---------- */
+main{max-width:1180px;padding:34px 32px 80px}
+.view{display:none}
+.view.on{display:block}
+.chap-head{display:grid;grid-template-columns:auto 1fr;gap:0 20px;align-items:end;margin-bottom:22px;padding-bottom:16px;border-bottom:2px solid var(--ink)}
+.chap-head .no{font:700 4.2rem/0.85 var(--slab);color:var(--khata)}
+.chap-head h2{font:600 clamp(1.7rem,3vw,2.35rem)/1.12 var(--slab);margin:0}
+.chap-head p{grid-column:2;margin:6px 0 0;color:var(--ink-2);max-width:62ch}
+h3{font:600 1.38rem/1.25 var(--slab);margin:34px 0 10px}
+h4{font:700 1.02rem/1.3 var(--sans);margin:22px 0 6px}
+.lesson{display:grid;grid-template-columns:minmax(0,68ch) minmax(240px,1fr);gap:20px 44px;align-items:start}
+.lesson > *{grid-column:1}
+.lesson .margin{grid-column:2;font-size:.92rem;color:var(--ink-2);border-left:4px double #D8A49E;padding:4px 0 4px 16px}
+.margin h4{margin-top:0;font-size:.95rem;color:var(--ink)}
+.margin p{margin:0 0 10px}
+.wide{grid-column:1 / -1!important}
+p{margin:0 0 14px}
+ul.plain{padding-left:20px;margin:0 0 14px}
+ul.plain li{margin-bottom:6px}
+.term{font-weight:700}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border:2px solid var(--ink);border-radius:3px;background:var(--ink);color:#F8FAF5;font-weight:700;cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--khata);border-color:var(--khata);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--ink);color:#F8FAF5}
+.btnrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+
+/* ---------- ledger sheet ---------- */
+.sheet{background:var(--sheet);border:1px solid var(--rule-2);border-left:6px double #D8A49E;border-radius:2px;padding:22px 26px;position:relative}
+.ruled{background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--rule) 31px 32px);background-color:var(--sheet)}
+
+/* ---------- hero ---------- */
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:44px;align-items:start}
+.hero h1{font:600 clamp(2.1rem,4.2vw,3.3rem)/1.06 var(--slab);margin:4px 0 18px;letter-spacing:-.3px}
+.hero .date{font:600 1.05rem var(--slab);color:var(--khata);margin:0}
+.hero .lede{font-size:1.1rem;max-width:56ch}
+.howto{margin:22px 0 0;padding:0;list-style:none;counter-reset:h}
+.howto li{counter-increment:h;display:grid;grid-template-columns:28px 1fr;gap:8px;margin-bottom:8px;color:var(--ink-2)}
+.howto li::before{content:counter(h);font:700 1rem var(--slab);color:var(--khata)}
+.khata-page{padding:18px 22px 14px}
+.khata-page .kt{font:600 1.1rem var(--slab);margin:0 0 2px}
+.khata-page .ks{font-size:.82rem;color:var(--muted);margin:0 0 6px}
+.kcols{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;line-height:32px}
+.kcol h5{margin:0;font-size:1rem;line-height:32px;display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink)}
+.kcol h5 .urdu{font-size:1.25rem;line-height:32px}
+.kcol.in h5{color:var(--in)} .kcol.out h5{color:var(--out)}
+.krow{display:flex;justify-content:space-between;gap:8px;font-size:.92rem}
+.krow .v{font-variant-numeric:tabular-nums;font-weight:700}
+.kcol.in .v{color:var(--in)} .kcol.out .v{color:var(--out)}
+.ktot{border-top:2px solid var(--ink);font-weight:700}
+.kfoot{margin-top:10px;padding-top:10px;border-top:3px double var(--ink);display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.kfoot b{font:700 1.5rem var(--slab);color:var(--out)}
+
+/* ---------- BoP structure map ---------- */
+.bopmap{display:grid;grid-template-columns:1.25fr 1fr 1.25fr;gap:14px;margin:8px 0 6px}
+.mapcol{border:1px solid var(--rule-2);background:var(--sheet);border-radius:2px;padding:10px}
+.node{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;padding:8px 10px;border-radius:2px;border:1px solid transparent}
+.node:hover{background:#EEF3EB}
+.node[aria-pressed="true"]{background:var(--ink);color:#F8FAF5}
+.node[aria-pressed="true"] .nv{color:#F3D27A}
+.node .nm{font-weight:700;display:block;line-height:1.25}
+.node .nv{font-size:.82rem;font-variant-numeric:tabular-nums}
+.node.top{border-bottom:1px solid var(--rule-2);margin-bottom:6px}
+.node.top .nm{font:600 1.1rem var(--slab)}
+.node.sub{padding-left:22px}
+.maprow{grid-column:1/-1;display:flex;gap:14px;flex-wrap:wrap}
+.maprow .mapcol{flex:1;min-width:220px}
+.nodeinfo{margin-top:12px;min-height:7.5em}
+.nodeinfo h4{margin:0 0 4px;font:600 1.15rem var(--slab)}
+.nodeinfo .fig{font:700 1.05rem var(--sans);margin-top:4px}
+
+/* ---------- quiz cards ---------- */
+.quiz{margin-top:8px}
+.qcard{max-width:820px}
+.qprog{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);margin:0 0 6px}
+.qdots{display:flex;gap:5px}
+.qdots i{width:10px;height:10px;border-radius:50%;background:#DDE5D9;border:1px solid var(--rule-2)}
+.qdots i.ok{background:var(--in);border-color:var(--in)}
+.qdots i.no{background:var(--out);border-color:var(--out)}
+.qdots i.cur{background:var(--thread);border-color:var(--thread)}
+.qtext{font:600 1.32rem/1.35 var(--slab);margin:4px 0 16px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.opts.wide1{grid-template-columns:1fr}
+.opt{all:unset;box-sizing:border-box;cursor:pointer;padding:12px 14px;border:2px solid var(--ink);border-radius:3px;background:#fff;font-weight:700;line-height:1.3}
+.opt small{display:block;font-weight:400;color:var(--ink-2);margin-top:2px;font-size:.85rem}
+.opt:hover:not([disabled]){background:#FFF8E4;border-color:var(--thread)}
+.opt[disabled]{cursor:default;opacity:.55}
+.opt.right{opacity:1;border-color:var(--in);background:var(--in-wash)}
+.opt.wrong{opacity:1;border-color:var(--out);background:var(--out-wash)}
+.opt.right::after{content:"  ✓ correct";color:var(--in);font-weight:700}
+.opt.wrong::after{content:"  ✗ your answer";color:var(--out);font-weight:700}
+.opt.picked{opacity:1;border-color:var(--thread);background:#FFF8E4}
+.opt.picked::after{content:"  ✓ your decision";color:var(--ink);font-weight:700}
+.feedback{margin-top:14px;min-height:1px}
+.feedback .fb{padding:12px 16px;border-left:5px solid;background:#fff}
+.feedback .fb.ok{border-color:var(--in)}
+.feedback .fb.no{border-color:var(--out)}
+.feedback .fb b{font-family:var(--slab);font-size:1.08rem}
+.summary .big{font:700 2rem var(--slab)}
+.review{margin-top:14px;border-top:1px solid var(--rule-2)}
+.review details{border-bottom:1px solid var(--rule-2);padding:8px 0}
+.review summary{cursor:pointer;display:flex;gap:10px;align-items:baseline}
+.review summary .mk{font-weight:700;width:1.2em;flex:none}
+.review .exp{padding:6px 0 4px 28px;color:var(--ink-2);font-size:.95rem}
+.practice-note{font-size:.85rem;color:var(--khata);font-weight:700;margin:0 0 6px}
+
+/* ---------- charts ---------- */
+figure{margin:18px 0 8px}
+figcaption{font:600 1.08rem var(--slab);margin-bottom:2px}
+.fignote{font-size:.83rem;color:var(--muted);margin:4px 0 0}
+.chart{width:100%;height:auto;display:block;background:var(--sheet);border:1px solid var(--rule-2);border-radius:2px}
+.chart text{font-family:var(--sans);fill:var(--ink-2);font-size:12px}
+.chart .lbl{fill:var(--ink);font-weight:700;font-size:12.5px}
+.chart .axis{stroke:#B9C4B5;stroke-width:1}
+.chart .grid{stroke:#E1E8DD;stroke-width:1}
+.chart .zero{stroke:var(--ink-2);stroke-width:1.2}
+.chart .hit{fill:transparent;cursor:crosshair}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:3px;overflow:hidden;margin:6px 0 8px}
+.seg button{all:unset;cursor:pointer;padding:6px 14px;font-weight:700;font-size:.92rem}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#F8FAF5}
+.seg button:focus-visible{outline:3px solid var(--thread);outline-offset:-3px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:.86rem;color:var(--ink-2);margin:6px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:2px;display:inline-block}
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:#F8FAF5;padding:8px 11px;border-radius:3px;font-size:.85rem;line-height:1.4;max-width:280px;opacity:0;transition:opacity .12s}
+#tip b{font-family:var(--slab);font-size:.98rem}
+details.data{margin:6px 0 0;font-size:.9rem}
+details.data summary{cursor:pointer;color:var(--ink-2)}
+table.t{border-collapse:collapse;width:100%;font-size:.92rem;margin:8px 0;background:var(--sheet)}
+table.t th,table.t td{padding:6px 10px;border-bottom:1px solid var(--rule);text-align:right;font-variant-numeric:tabular-nums}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t thead th{font-weight:700;border-bottom:2px solid var(--ink);vertical-align:bottom}
+table.t tr.sum td{border-top:2px solid var(--ink);font-weight:700}
+table.t tr.sub td:first-child{padding-left:26px;color:var(--ink-2)}
+
+/* ---------- summary strip ---------- */
+.strip{display:grid;grid-template-columns:repeat(5,1fr);border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);background:var(--sheet);margin:6px 0 20px}
+.strip div{padding:12px 14px;border-right:1px solid var(--rule-2)}
+.strip div:last-child{border-right:0}
+.strip .sv{font:700 1.45rem/1.15 var(--slab);font-variant-numeric:tabular-nums}
+.strip .sl{font-size:.82rem;color:var(--ink-2);line-height:1.35;margin-top:3px}
+
+/* ---------- equation ---------- */
+.eq{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;margin:10px 0}
+.eq .t{background:#fff;border:1px solid var(--rule-2);border-radius:2px;padding:8px 12px;min-width:110px}
+.eq .t .k{font-size:.8rem;color:var(--ink-2);display:block;line-height:1.25}
+.eq .t .v{font:700 1.3rem var(--slab);font-variant-numeric:tabular-nums}
+.eq .op{align-self:center;font:700 1.4rem var(--slab);color:var(--muted);padding:0 2px}
+.eq .t.res{border:2px solid var(--ink)}
+
+/* ---------- governor's desk ---------- */
+.desk{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:28px;align-items:start}
+.sliders{display:grid;gap:12px}
+.sl-row label{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:.93rem}
+.sl-row label output{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:700;white-space:nowrap}
+.sl-row .hint{font-size:.8rem;color:var(--muted);margin-top:-2px}
+input[type=range]{width:100%;accent-color:var(--khata);margin:4px 0 0}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}
+.presets button{all:unset;cursor:pointer;padding:6px 12px;border:1.5px solid var(--ink);border-radius:3px;font-size:.88rem;font-weight:700;background:#fff}
+.presets button:hover{background:#FFF8E4;border-color:var(--thread)}
+.presets button:focus-visible{outline:3px solid var(--thread)}
+.gauge{margin:10px 0 4px}
+.gauge .gtrack{position:relative;height:16px;background:#E3EADF;border:1px solid var(--rule-2);border-radius:8px;overflow:hidden}
+.gauge .gfill{position:absolute;inset:0 auto 0 0;border-radius:8px 0 0 8px;transition:width .35s}
+.gauge .gmarks{position:relative;height:20px;font-size:.72rem;color:var(--muted)}
+.gauge .gmarks span{position:absolute;transform:translateX(-50%)}
+.gauge .gbench{position:absolute;top:-2px;bottom:-2px;border-left:2px solid var(--thread)}
+.verdict{padding:10px 14px;border-left:5px solid var(--ink);background:#fff;margin:10px 0;font-size:.95rem}
+.verdict b{font-family:var(--slab);font-size:1.05rem}
+.round{max-width:860px}
+.shock{border-left:6px solid var(--out);background:#fff;padding:14px 18px;margin:8px 0 14px}
+.shock.good{border-left-color:var(--in)}
+.shock h4{margin:0 0 4px;font:600 1.2rem var(--slab)}
+.resp{display:grid;gap:10px}
+.resp .opt{font-weight:700}
+.statusline{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);background:var(--sheet);margin:12px 0}
+.statusline div{padding:8px 12px;border-right:1px solid var(--rule-2)}
+.statusline div:last-child{border-right:0}
+.statusline .sv{font:700 1.25rem var(--slab);font-variant-numeric:tabular-nums}
+.statusline .sl{font-size:.78rem;color:var(--ink-2)}
+.pass{color:var(--in);font-weight:700} .fail{color:var(--out);font-weight:700}
+.stars{font-size:1.6rem;color:var(--thread);letter-spacing:4px}
+
+/* ---------- glossary ---------- */
+dl.gloss{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:0;margin:0}
+dl.gloss dt{font-weight:700;padding:9px 12px 9px 0;border-bottom:1px solid var(--rule)}
+dl.gloss dd{margin:0;padding:9px 0;border-bottom:1px solid var(--rule)}
+ol.src{padding-left:22px}
+ol.src li{margin-bottom:6px}
+
+/* ---------- responsive ---------- */
+@media (max-width:1100px){
+  .lesson{grid-template-columns:minmax(0,1fr)}
+  .lesson .margin{grid-column:1;grid-row:auto}
+  .desk{grid-template-columns:1fr}
+}
+@media (max-width:860px){
+  :root{--spine:0px}
+  .spine{display:none}
+  .mobnav{display:block;overflow-x:auto;white-space:nowrap;background:var(--khata);padding:6px 8px;scrollbar-width:thin}
+  .mobnav button{all:unset;cursor:pointer;color:#F6E9E4;padding:6px 10px;border-radius:3px;font-size:.88rem;font-weight:700}
+  .mobnav button[aria-current="page"]{background:#F8FAF5;color:var(--ink)}
+  .topbar-in{padding:8px 14px;gap:12px;flex-wrap:wrap}
+  .rank{display:none}
+  main{padding:22px 16px 60px}
+  .hero{grid-template-columns:1fr}
+  .bopmap{grid-template-columns:1fr}
+  .strip{grid-template-columns:repeat(2,1fr)}
+  .strip div{border-bottom:1px solid var(--rule-2)}
+  .statusline{grid-template-columns:repeat(2,1fr)}
+  .chap-head .no{font-size:3rem}
+  .kcols{grid-template-columns:1fr}
+  dl.gloss{grid-template-columns:1fr}
+  dl.gloss dt{border-bottom:0;padding-bottom:0}
+}
+@media (max-width:860px){.bar .tick:not(.goal) span{display:none}.bar .tick.goal span{left:-4.4em}figure{overflow-x:auto;-webkit-overflow-scrolling:touch}.chart{min-width:640px}details.data{overflow-x:auto}.toast{font-size:.85rem}}
+@media print{.spine,.topbar,.mobnav{display:none}.wrap{margin:0}.view{display:block!important;page-break-after:always}}
+</style>
+</head>
+<body>
+
+<nav class="spine" aria-label="Chapters">
+  <div class="brand">
+    <a href="#" data-go="intro">
+      <span class="urdu" lang="ur">بہی کھاتہ</span>
+      <span class="t">BoP Quest</span>
+      <span class="s">Pakistan's balance of payments</span>
+    </a>
+  </div>
+  <ol class="toc" id="toc"></ol>
+  <div class="spine-foot">Data: State Bank of Pakistan, to 12 Nov 2026.</div>
+</nav>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="mobnav" id="mobnav" aria-label="Chapters"></div>
+    <div class="topbar-in">
+      <div class="meter" aria-live="polite">
+        <div class="val num" id="mval">$2.92bn</div>
+        <div class="cap" id="mcap">Your SBP reserves</div>
+        <div class="bar" aria-hidden="true">
+          <div class="track"><div class="fill" id="mfill"></div></div>
+          <div id="mticks"></div>
+          <div class="toast" id="toast"></div>
+        </div>
+      </div>
+      <div class="rank" id="rank"><b>Crisis desk</b>0.5 months of imports</div>
+    </div>
+  </header>
+
+  <main id="main">
+
+  <!-- ================= INTRO ================= -->
+  <section class="view" id="v-intro" aria-labelledby="h-intro">
+    <div class="hero">
+      <div>
+        <p class="date">Karachi, 3 February 2023</p>
+        <h1 id="h-intro">Pakistan's account with the world, one entry at a time</h1>
+        <p class="lede">The State Bank of Pakistan's own reserves have just fallen to <b>$2.92 billion</b>, enough to pay for a little over two weeks of imports. You have joined its external-sector desk.</p>
+        <p>This guide teaches the balance of payments (BoP) with Pakistan's real figures. Each right answer adds to the reserves; each wrong one costs a little. Your target is the benchmark the State Bank is working towards: <b>three months of import cover</b>, about $19.1 billion at FY26 import levels.</p>
+        <ol class="howto">
+          <li>Six short chapters, each a lesson followed by a challenge.</li>
+          <li>A correct answer adds $0.5bn to your reserves. A wrong one takes away $0.2bn.</li>
+          <li>The last chapter puts you at the governor's desk for FY27.</li>
+          <li>Your progress is saved in this browser.</li>
+        </ol>
+        <div class="btnrow">
+          <button class="btn" id="startBtn">Open the ledger</button>
+          <button class="btn ghost" data-go="c5">See Pakistan's position now</button>
+        </div>
+      </div>
+      <div class="sheet ruled khata-page" aria-label="Pakistan's current account as a ledger page, FY26">
+        <p class="kt">Pakistan's current account, FY26</p>
+        <p class="ks">July 2025 to June 2026, US$ billion. Source: SBP (revised).</p>
+        <div class="kcols">
+          <div class="kcol in">
+            <h5><span>Jama: dollars in</span><span class="urdu" lang="ur">جمع</span></h5>
+            <div class="krow"><span>Workers' remittances</span><span class="v">41.6</span></div>
+            <div class="krow"><span>Goods exports</span><span class="v">30.8</span></div>
+            <div class="krow"><span>Services exports</span><span class="v">10.0</span></div>
+            <div class="krow"><span>Other transfers in</span><span class="v">2.6</span></div>
+            <div class="krow"><span>Income received</span><span class="v">1.2</span></div>
+            <div class="krow ktot"><span>Total in</span><span class="v">86.3</span></div>
+          </div>
+          <div class="kcol out">
+            <h5><span>Naam: dollars out</span><span class="urdu" lang="ur">نام</span></h5>
+            <div class="krow"><span>Goods imports</span><span class="v">64.5</span></div>
+            <div class="krow"><span>Services imports</span><span class="v">11.9</span></div>
+            <div class="krow"><span>Interest and profits paid</span><span class="v">9.7</span></div>
+            <div class="krow"><span>Transfers out</span><span class="v">0.5</span></div>
+            <div class="krow"><span>&nbsp;</span><span class="v">&nbsp;</span></div>
+            <div class="krow ktot"><span>Total out</span><span class="v">86.7</span></div>
+          </div>
+        </div>
+        <div class="kfoot"><span>Current account balance</span><b class="num">−0.39</b></div>
+        <p class="ks" style="margin-top:6px">Totals use unrounded SBP figures.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CHAPTER 1 ================= -->
+  <section class="view" id="v-c1" aria-labelledby="h-c1">
+    <div class="chap-head"><span class="no">1</span><h2 id="h-c1">The balance of payments as a national ledger</h2><p>What the BoP records, who counts as a resident, and the three accounts.</p></div>
+    <div class="lesson">
+      <div>
+        <p>The <span class="term">balance of payments</span> records every economic transaction between the <span class="term">residents</span> of Pakistan and the rest of the world over a period: a month, a quarter or a fiscal year (Pakistan's runs from July to June). Residents are the households, firms, government and central bank whose main economic interest lies in Pakistan.</p>
+        <p>Residence depends on where someone lives and works, whatever their nationality. A Pakistani nurse who has worked in Riyadh for years is a resident of Saudi Arabia, so the money she sends to her family in Pakistan crosses a border and enters the BoP.</p>
+        <h4>Two sides of every page</h4>
+        <p>A shopkeeper's <i>bahi khata</i> has a <i>jama</i> column for money received and a <i>naam</i> column for money paid out. The BoP works the same way. <span class="in"><b>Credit (jama)</b></span> entries bring foreign currency in: exports, remittances, foreign investment and loans received. <span class="out"><b>Debit (naam)</b></span> entries send it out: imports, interest and profits paid abroad, and loan repayments.</p>
+        <h4>Three accounts</h4>
+        <ul class="plain">
+          <li>The <span class="term">current account</span> covers day-to-day earning and spending: goods, services, income and transfers.</li>
+          <li>The <span class="term">capital account</span> covers capital transfers, such as debt forgiveness, and a few non-financial assets. For Pakistan it is tiny.</li>
+          <li>The <span class="term">financial account</span> covers investment and borrowing: what foreigners invest in or lend to Pakistan, what Pakistanis invest abroad, and the State Bank's reserves.</li>
+        </ul>
+        <p>A fourth line, <span class="term">net errors and omissions</span>, absorbs the statistical gaps that remain because no country records every transaction perfectly.</p>
+      </div>
+      <aside class="margin">
+        <h4>Who publishes it</h4>
+        <p>The State Bank of Pakistan compiles the BoP every month using the IMF's sixth manual (BPM6) and releases it in the middle of the following month. The figures for the latest months are provisional and are often revised.</p>
+        <h4>Why it matters</h4>
+        <p>Pakistan has faced repeated balance-of-payments crises. When dollars going out persistently exceed dollars coming in, reserves fall, the rupee weakens and the country turns to the IMF.</p>
+      </aside>
+      <div class="wide">
+        <h3>Map of the accounts</h3>
+        <p>Select any box to see what it records and its FY26 value for Pakistan.</p>
+        <div class="bopmap" id="bopmap"></div>
+        <div class="sheet nodeinfo" id="nodeinfo" aria-live="polite"></div>
+      </div>
+    </div>
+    <h3>Jama or naam</h3>
+    <p>For each transaction, decide whether it brings dollars into Pakistan (credit) or sends them out (debit).</p>
+    <div class="quiz sheet" id="q-c1"></div>
+  </section>
+
+  <!-- ================= CHAPTER 2 ================= -->
+  <section class="view" id="v-c2" aria-labelledby="h-c2">
+    <div class="chap-head"><span class="no">2</span><h2 id="h-c2">The current account</h2><p>Goods, services, primary income and secondary income, with Pakistan's numbers.</p></div>
+    <div class="lesson">
+      <div>
+        <p>The current account is Pakistan's day-to-day external earning and spending. It has four parts.</p>
+        <h4>Goods</h4>
+        <p>Physical products crossing the border. Pakistan sells textiles, rice, leather goods and surgical instruments; it buys crude oil and fuel, LNG, machinery, vehicles, palm oil and chemicals. In FY26 goods imports of $64.5bn were more than double goods exports of $30.8bn, a deficit of $33.7bn.</p>
+        <h4>Services</h4>
+        <p>Work done for or by foreigners: freight and transport, travel (including Hajj and Umrah), telecoms and computer services, insurance and government services. Services exports rose to $10.0bn in FY26 from $8.5bn in FY25, which cut the services deficit to $1.9bn.</p>
+        <h4>Primary income</h4>
+        <p>Payments for the use of capital and labour: interest on foreign loans, profits and dividends of foreign-owned firms, and wages of people working abroad for less than a year. Pakistan received $1.2bn and paid $9.7bn in FY26. This $8.5bn deficit is the running cost of past borrowing and foreign investment.</p>
+        <h4>Secondary income</h4>
+        <p>One-way transfers with nothing given in return. Workers' remittances dominate: a record <b>$41.6bn</b> in FY26, more than all goods exports. With other transfers, the surplus reached $43.7bn.</p>
+      </div>
+      <aside class="margin">
+        <h4>Trade balance or current account?</h4>
+        <p>News reports often quote the trade deficit from Pakistan Bureau of Statistics customs data. The SBP's BoP records payments, so its goods figures differ: PBS put FY26 imports at $69.8bn, SBP at $64.5bn.</p>
+        <h4>Who sends the remittances</h4>
+        <p>Saudi Arabia and the UAE are the two largest sources, followed by the UK and the US. In September 2026 Saudi Arabia alone sent $899m.</p>
+      </aside>
+      <div class="wide">
+        <figure>
+          <figcaption>How the four parts add up to the current account</figcaption>
+          <div class="seg" role="group" aria-label="Choose period" id="wfSeg">
+            <button aria-pressed="false" data-p="fy25">FY25</button>
+            <button aria-pressed="true" data-p="fy26">FY26</button>
+            <button aria-pressed="false" data-p="q1">Jul–Sep 2026</button>
+          </div>
+          <svg class="chart" id="wf" viewBox="0 0 760 330" role="img" aria-labelledby="wfDesc"><desc id="wfDesc">Waterfall chart of Pakistan's current account components</desc></svg>
+          <div class="legend"><span><i style="background:var(--in)"></i>Adds dollars (surplus)</span><span><i style="background:var(--out)"></i>Drains dollars (deficit)</span><span><i style="background:var(--total)"></i>Current account balance</span></div>
+          <p class="fignote" id="wfNote"></p>
+          <details class="data"><summary>See the numbers</summary><div id="wfTable"></div></details>
+        </figure>
+      </div>
+    </div>
+    <h3>Four boxes of the current account</h3>
+    <p>Place each transaction in the right part of the current account.</p>
+    <div class="quiz sheet" id="q-c2"></div>
+  </section>
+
+  <!-- ================= CHAPTER 3 ================= -->
+  <section class="view" id="v-c3" aria-labelledby="h-c3">
+    <div class="chap-head"><span class="no">3</span><h2 id="h-c3">The capital and financial accounts</h2><p>How a current account gap gets paid for.</p></div>
+    <div class="lesson">
+      <div>
+        <p>When the current account is in deficit, Pakistan spends more foreign currency than it earns. The gap is covered by investment and borrowing from abroad, or by drawing down the State Bank's reserves.</p>
+        <h4>Capital account</h4>
+        <p>Small for Pakistan: $0.13bn in FY26. It records capital transfers, such as a creditor forgiving a loan or a donor paying to rebuild flood-damaged bridges, and purchases of non-produced assets, such as land bought for an embassy.</p>
+        <h4>Financial account</h4>
+        <p>This account records changes in Pakistan's foreign assets and liabilities. A <span class="term">net inflow</span> means foreigners added more claims on Pakistan (investment and loans) than Pakistanis added abroad.</p>
+        <ul class="plain">
+          <li><span class="term">Direct investment</span>: a lasting stake of 10% or more in a firm, such as a foreign company building a plant or buying a local business. Net inflow in FY26: $1.45bn, about 0.3% of GDP.</li>
+          <li><span class="term">Portfolio investment</span>: shares and bonds below the 10% threshold, including the government's Eurobonds and Sukuk. FY26 saw a net outflow of $1.18bn: redemptions and sales by foreign holders exceeded new issues.</li>
+          <li><span class="term">Other investment</span>: loans from the World Bank, ADB, China and commercial banks, deposits placed by friendly countries, rollovers and trade credit. Net inflow in FY26: $1.77bn.</li>
+          <li><span class="term">Reserve assets</span>: the State Bank's foreign currency, gold and SDRs. They rose by $3.66bn in FY26.</li>
+        </ul>
+        <h4>Where the IMF goes</h4>
+        <p>In the SBP's table, IMF lending appears as <span class="term">use of Fund credit and loans</span>, inside a block called <span class="term">reserves and related items</span>, because it goes straight to the State Bank's reserves. Net IMF lending was $1.82bn in FY26.</p>
+      </div>
+      <aside class="margin">
+        <h4>The Eurobond quarter</h4>
+        <p>On 3 September 2026 Pakistan sold $3bn of Eurobonds in two tranches, its largest international bond issue in a single deal, against about $6bn of orders. That one deal explains most of the $2.94bn portfolio inflow in July–September 2026.</p>
+        <h4>Other recent borrowing</h4>
+        <p>A $750m three-year Eurobond in April 2026 and Pakistan's first Panda bond, sold in China's market, in May 2026.</p>
+      </aside>
+      <div class="wide">
+        <h3>How the gap was financed</h3>
+        <p>Net inflows in US$ billion. A minus sign means money left.</p>
+        <div id="finTable"></div>
+        <p class="fignote">Source: SBP Summary Balance of Payments (BPM6), September 2026 release. Components may not add to the total because small items (financial derivatives) are omitted. SBP prints the financial account with the opposite sign; chapter 4 explains why.</p>
+      </div>
+    </div>
+    <h3>Entries below the current account</h3>
+    <p>Where in the capital and financial accounts does each transaction belong?</p>
+    <div class="quiz sheet" id="q-c3"></div>
+  </section>
+
+  <!-- ================= CHAPTER 4 ================= -->
+  <section class="view" id="v-c4" aria-labelledby="h-c4">
+    <div class="chap-head"><span class="no">4</span><h2 id="h-c4">The balancing identity</h2><p>Double entry, the overall balance, and how to read the SBP's signs.</p></div>
+    <div class="lesson">
+      <div>
+        <p>The BoP is a double-entry system: every transaction is recorded twice, once as a credit and once as a debit. Suppose a towel mill in Faisalabad ships $1m of towels to a buyer in Spain.</p>
+        <ul class="plain">
+          <li>Entry one: <span class="in"><b>+$1m</b></span> goods exports, in the current account.</li>
+          <li>Entry two: the buyer pays into the mill's dollar account, so the bank's claims on the rest of the world rise by $1m. That increase in Pakistan's foreign assets is recorded in the financial account.</li>
+        </ul>
+        <p>Because each transaction has a matching entry, the accounts must add up. The State Bank presents the result like this:</p>
+        <p style="font:600 1.12rem/1.5 var(--slab);background:#fff;border:1px solid var(--rule-2);padding:12px 16px">Current account + Capital account + Net financial inflows + Errors and omissions = <span style="white-space:nowrap">Overall balance</span></p>
+        <p>The overall balance, plus any IMF lending, equals the change in the State Bank's reserves. A deficit has to be met from reserves or from the IMF; a surplus adds to reserves.</p>
+      </div>
+      <aside class="margin">
+        <h4>Reading the SBP's signs</h4>
+        <p>The SBP follows BPM6, which measures the financial account as assets acquired minus liabilities incurred. So when foreigners invest in or lend to Pakistan, the number is <b>negative</b>. FY26's −2,029 means a net inflow of $2.03bn.</p>
+        <p>The table's <b>Overall Balance</b> line uses the same convention: a minus sign there means reserves went up. The next line, <b>Reserves and Related Items</b>, repeats the figure with a plus sign.</p>
+      </aside>
+      <div class="wide">
+        <h3>The identity with real numbers</h3>
+        <div class="seg" role="group" aria-label="Choose period" id="eqSeg">
+          <button aria-pressed="false" data-p="fy25">FY25</button>
+          <button aria-pressed="true" data-p="fy26">FY26</button>
+          <button aria-pressed="false" data-p="q1">Jul–Sep 2026</button>
+        </div>
+        <div class="eq" id="eq"></div>
+        <p id="eqNote" style="max-width:72ch"></p>
+      </div>
+    </div>
+    <h3>Balancing the books</h3>
+    <p>Use the identity to answer each question.</p>
+    <div class="quiz sheet" id="q-c4"></div>
+  </section>
+
+  <!-- ================= CHAPTER 5 ================= -->
+  <section class="view" id="v-c5" aria-labelledby="h-c5">
+    <div class="chap-head"><span class="no">5</span><h2 id="h-c5">Pakistan's external position in late 2026</h2><p>Where things stand, how Pakistan got here, and what to watch.</p></div>
+    <div class="strip" aria-label="Key figures">
+      <div><div class="sv out">−$0.39bn</div><div class="sl">Current account, FY26 (revised), about 0.1% of GDP</div></div>
+      <div><div class="sv out">−$0.87bn</div><div class="sl">Current account, Jul–Sep 2026 (provisional)</div></div>
+      <div><div class="sv in">$41.6bn</div><div class="sl">Workers' remittances, FY26, a record</div></div>
+      <div><div class="sv">$21.56bn</div><div class="sl">SBP reserves, week to 30 Oct 2026</div></div>
+      <div><div class="sv">12%</div><div class="sl">SBP policy rate from 27 Oct 2026, up from 11.5%</div></div>
+    </div>
+    <div class="lesson">
+      <div>
+        <h4>A history of boom and bust</h4>
+        <p>Pakistan's current account has swung hard. Fast growth pulls in imports, the deficit balloons, reserves drain and the country turns to the IMF. That happened in FY18, when the deficit hit a record $19.2bn, and again in FY22 ($17.5bn) as oil prices spiked. By 3 February 2023 the State Bank's reserves had fallen to $2.92bn.</p>
+        <p>Import controls, a weaker rupee, high interest rates and IMF support then compressed the deficit. In FY25 the current account showed a surplus of $1.84bn, its first annual surplus in over a decade.</p>
+      </div>
+      <aside class="margin">
+        <h4>The IMF programme</h4>
+        <p>A 37-month, $7bn Extended Fund Facility was approved on 25 September 2024. A $1.4bn climate facility (RSF) was added in May 2025. The third review released about $1.3bn in May 2026. A staff-level agreement on the fourth review, reached in October 2026, would release about $1.21bn more once the IMF Board approves it, taking total disbursements to about $5.7bn.</p>
+      </aside>
+      <div class="wide">
+        <figure>
+          <figcaption>Current account balance, FY18 to FY26 (US$ billion)</figcaption>
+          <svg class="chart" id="hist" viewBox="0 0 760 320" role="img" aria-labelledby="histDesc"><desc id="histDesc">Bar chart of Pakistan's annual current account balance from FY18 to FY26</desc></svg>
+          <p class="fignote">Fiscal years end in June. FY18 to FY23 from SBP figures as published by SBP and the Express Tribune (FY20 and FY21 after revision); FY24 to FY26 from the September 2026 release. SBP revises past years, so other sources may show slightly different values.</p>
+          <details class="data"><summary>See the numbers</summary><div id="histTable"></div></details>
+        </figure>
+      </div>
+      <div>
+        <h4>FY26: near balance, held up by remittances</h4>
+        <p>In FY26 goods imports grew 9% while goods exports fell 5%, so the goods deficit widened by $6.9bn to $33.7bn. Record remittances and stronger services exports absorbed almost all of it, leaving a deficit of $0.39bn.</p>
+        <h4>FY27 so far: imports running ahead</h4>
+        <p>In July–September 2026 goods imports rose 14.3% and exports 7.7%, so the current account deficit reached $0.87bn in one quarter. Remittances (up 14% to $10.9bn) and services exports (up 23%) cushioned the gap. Topline Securities expects a deficit of $2–3bn for the full year, 0.4–0.6% of GDP.</p>
+      </div>
+      <aside class="margin">
+        <h4>What to watch</h4>
+        <p><b>Oil.</b> Petroleum imports were $16.9bn in FY26 (PBS), about a quarter of the import bill. The SBP raised rates in October 2026, citing the Middle East conflict keeping energy prices high.</p>
+        <p><b>Imports as growth returns.</b> Each recovery so far has widened the deficit.</p>
+        <p><b>Interest and profits.</b> Payments abroad cost about $9.7bn a year.</p>
+        <p><b>FDI.</b> At $1.45bn net it covers little of the financing need, so much of it is borrowed.</p>
+      </aside>
+      <div class="wide">
+        <figure>
+          <figcaption>Where FY26's dollars came from and where they went (US$ billion)</figcaption>
+          <svg class="chart" id="flows" viewBox="0 0 760 360" role="img" aria-labelledby="flowsDesc"><desc id="flowsDesc">Two bar panels comparing current account credits and debits in FY26</desc></svg>
+          <p class="fignote">Current account only. Source: SBP, FY26 revised.</p>
+        </figure>
+        <figure>
+          <figcaption>State Bank reserves at selected dates (US$ billion)</figcaption>
+          <svg class="chart" id="resv" viewBox="0 0 760 300" role="img" aria-labelledby="resvDesc"><desc id="resvDesc">State Bank of Pakistan reserves at four dates from February 2023 to October 2026</desc></svg>
+          <p class="fignote">SBP-held liquid reserves in the reported week. The gold line marks three months of imports of goods and services at the FY26 pace ($6.37bn a month). Points are selected weeks, so the lines between them are a guide only.</p>
+        </figure>
+      </div>
+    </div>
+    <h3>Reading Pakistan's data</h3>
+    <p>Answer from the figures in this chapter.</p>
+    <div class="quiz sheet" id="q-c5"></div>
+  </section>
+
+  <!-- ================= CHAPTER 6 ================= -->
+  <section class="view" id="v-c6" aria-labelledby="h-c6">
+    <div class="chap-head"><span class="no">6</span><h2 id="h-c6">The governor's desk</h2><p>Run FY27 yourself: July 2026 to June 2027.</p></div>
+    <p style="max-width:76ch">The sandbox starts from FY26's actual figures, so with every slider at its default you get FY26 again. Move the sliders to see how trade, remittances and financing change the current account and the reserves at the end of June 2027.</p>
+    <div class="desk">
+      <div>
+        <div class="presets" id="presets" role="group" aria-label="Scenarios"></div>
+        <div class="sliders" id="sliders"></div>
+        <p class="fignote" style="margin-top:14px">A simplified teaching model. Petroleum is set at 26% of goods imports (PBS: $16.9bn in FY26). Services imports move with non-oil imports. Primary income, other transfers, the capital account and errors and omissions stay at FY26 values. Reserves start from SBP's $18.5bn at end-June 2026.</p>
+      </div>
+      <div>
+        <div class="sheet" style="padding:16px 18px">
+          <div id="sbOut"></div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Governor's challenge</h3>
+    <p style="max-width:76ch">Three shocks will hit Pakistan during FY27. For each, choose a response. Every choice has a cost. You pass a test for each of these at the end: reserves of at least three months of imports, GDP growth of 3% or more, and inflation pressure no worse than elevated. Each test passed adds $0.3bn to your game reserves the first time you finish.</p>
+    <div class="sheet" id="gov"></div>
+
+    <h3>Talking points for class</h3>
+    <ul class="plain" style="max-width:76ch">
+      <li>Remittances exceeded goods exports in FY26. Is a current account balanced by remittances as safe as one balanced by exports?</li>
+      <li>Reserves rose to $21.6bn by October 2026 partly through Eurobond borrowing. How should we judge reserves built with borrowed money?</li>
+      <li>Import restrictions closed the deficit in FY23 but cut growth. Why do they tend to fail as a long-run fix?</li>
+      <li>Primary income outflows of about $8.5bn a year are the cost of past borrowing. What would reduce them?</li>
+    </ul>
+  </section>
+
+  <!-- ================= GLOSSARY & SOURCES ================= -->
+  <section class="view" id="v-gl" aria-labelledby="h-gl">
+    <div class="chap-head"><span class="no" aria-hidden="true">§</span><h2 id="h-gl">Glossary and sources</h2><p>Terms used in this guide, and where every figure comes from.</p></div>
+    <h3>Glossary</h3>
+    <dl class="gloss" id="gloss"></dl>
+    <h3>Sources</h3>
+    <p>Figures were checked on 12 November 2026. FY26 values are SBP revised figures; July–September 2026 values are provisional and may change.</p>
+    <ol class="src">
+      <li><a href="https://www.sbp.org.pk/assets/document/Balancepayment_BPM6.pdf">State Bank of Pakistan, Summary Balance of Payments as per BPM6, September 2026 release</a>: all FY25, FY26 and July–September 2026 BoP figures, FY24 current account and FY26 GDP.</li>
+      <li><a href="https://tribune.com.pk/story/2635297/bop-swings-to-439b-deficit">Express Tribune, 17 Oct 2026, "BoP swings to $4.39b deficit"</a>: September 2026 overall balance and reserve assets, Q1 FY27 growth rates.</li>
+      <li><a href="https://www.app.com.pk/?p=1242474">APP, 9 Jul 2026</a>: FY26 workers' remittances; <a href="https://www.app.com.pk/?p=1289187">APP, 9 Oct 2026</a>: Q1 FY27 remittances and source countries.</li>
+      <li><a href="https://mettisglobal.news/SBP-reserves-rise-39m-to-216bn-64824">Mettis Global, 5 Nov 2026</a>: SBP reserves of $21.56bn for the week ended 30 Oct 2026.</li>
+      <li><a href="https://english.aaj.tv/news/amp/330463972">Aaj News, Jul 2026</a>: SBP reserves of $18.5bn at end-FY26.</li>
+      <li><a href="https://www.dawn.com/news/amp/1736221">Dawn, 9 Feb 2023</a>: SBP reserves of $2.9bn, a little over two weeks of imports.</li>
+      <li><a href="https://www.brecorder.com/news/amp/40393429">Business Recorder, 20 Nov 2025</a>: SBP reserves of $14.55bn on 14 Nov 2025.</li>
+      <li><a href="https://www.sbp.org.pk/assets/documents/press-release/PR-26-Oct-2026.pdf">SBP Monetary Policy Statement, 26 Oct 2026</a>: policy rate raised to 12%, energy prices and the Middle East conflict.</li>
+      <li><a href="https://tribune.com.pk/story/2627207/pakistan-raises-3b-in-largest-ever-international-bond-transaction">Express Tribune, 3 Sep 2026</a>: $3bn dual-tranche Eurobond; <a href="https://www.thenews.pk/story/1435420-pakistan-raises-record-3bn-via-eurobond-dual-tranche-issuance">The News, 3 Sep 2026</a>: April 2026 $750m Eurobond.</li>
+      <li><a href="https://www.imf.org/-/media/files/publications/cr/2026/english/1pakea2026001.pdf">IMF Country Report 26/101, May 2026</a>: third EFF review; <a href="https://www.arabnews.pk/pakistan/imf-reaches-12-billion-deal-with-pakistan-flags-middle-east-impact-on-growth-3003528">Arab News, Oct 2026</a>: fourth-review staff-level agreement.</li>
+      <li><a href="https://pkrevenue.com/pakistan-reports-5-76-increase-in-petroleum-products-imports-during-fy26/">PkRevenue, Jul 2026 (PBS data)</a>: FY26 petroleum imports of $16.86bn; <a href="https://propakistani.pk/2026/07/16/exports-fall-imports-hit-4-year-high-at-worst-possible-time/">ProPakistani, 16 Jul 2026</a>: PBS FY26 trade totals.</li>
+      <li><a href="https://bloompakistan.com/?p=179815">Bloom Pakistan, Oct 2026</a>: Topline Securities' FY27 current account expectation.</li>
+      <li><a href="https://www.thenews.pk/print/1424771-sbp-chief-expects-ca-balance-to-remain-in-surplus-in-fy26">The News, Jul 2026</a>: FY26 GDP growth estimate of about 3.7%, used as the challenge's starting point.</li>
+      <li>Historical current account: <a href="https://www.sbp.org.pk/publications/bop/BOPFY19/Review.pdf">SBP BoP Review FY19</a> (FY18, FY19); <a href="https://tribune.com.pk/story/2312120/entertainment">Express Tribune 2021</a> and <a href="https://tribune.com.pk/story/2297069/entertainment">2021 revision report</a> (FY20); <a href="https://tribune.com.pk/story/2368217/entertainment">Express Tribune 2022</a> (FY21); <a href="https://tribune.com.pk/story/2426837/entertainment">Express Tribune 2023</a> (FY22); <a href="https://tribune.com.pk/story/2481132/entertainment">Express Tribune 2024</a> (FY23).</li>
+    </ol>
+    <div class="btnrow"><button class="btn ghost" id="resetBtn">Reset the game</button></div>
+  </section>
+
+  </main>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== DATA (US$ million, SBP BPM6, Sept 2026 release) ===================== */
+const D = {
+  fy25:{label:"FY25", gx:32343, gm:59146, sx:8450, sm:11286, pc:999, pd:9837, sc:40906, sb:40315, rem:38300, ca:1838, ka:168, faIn:1585, di:2462, pi:-720, oi:-159, eo:153, ob:3744, ra:5177, imf:1433},
+  fy26:{label:"FY26", gx:30836, gm:64527, sx:10047, sm:11938, pc:1217, pd:9714, sc:44223, sb:43688, rem:41585, ca:-391, ka:131, faIn:2029, di:1450, pi:-1176, oi:1770, eo:65, ob:1834, ra:3656, imf:1822},
+  q1:  {label:"Jul–Sep 2026", gx:8454, gm:17784, sx:2719, sm:3550, pc:244, pd:2564, sc:11725, sb:11607, rem:10875, ca:-874, ka:27, faIn:4160, di:714, pi:2935, oi:517, eo:-195, ob:3118, ra:3110, imf:-8}
+};
+/* faIn, di, pi, oi are NET INFLOWS (the SBP prints the BPM6 sign, i.e. the negative of these). */
+const HIST = [["FY18",-19.2],["FY19",-13.4],["FY20",-4.4],["FY21",-2.8],["FY22",-17.5],["FY23",-3.3],["FY24",-2.1],["FY25",1.8],["FY26",-0.4]];
+const RES = [{d:"2023-02-03",v:2.92,l:"3 Feb 2023"},{d:"2025-11-14",v:14.55,l:"14 Nov 2025"},{d:"2026-06-30",v:18.5,l:"End-June 2026"},{d:"2026-10-30",v:21.56,l:"30 Oct 2026"}];
+const MONTHLY_IMPORTS = (64527+11938)/12/1000; // FY26 goods + services, US$ bn per month = 6.372
+const START = 2.92, GAIN = 0.5, LOSS = 0.2, GOAL = 3*MONTHLY_IMPORTS;
+
+/* ===================== helpers ===================== */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const MINUS = "−";
+function f1(x,d=1){ const s=Math.abs(x).toFixed(d); return (x<0 && +s!==0?MINUS:"")+s; }
+function sg(x,d=1){ const s=Math.abs(x).toFixed(d); return (+s===0?"":(x<0?MINUS:"+"))+s; }
+function bn(m,d=2){ return f1(m/1000,d); }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent,text){ const e=document.createElementNS(NS,tag); for(const k in attrs){ const v=String(attrs[k]); if((k==="fill"||k==="stroke")&&v.indexOf("var(")===0) e.style[k]=v; else e.setAttribute(k,v); } if(text!=null) e.textContent=text; if(parent) parent.appendChild(e); return e; }
+function niceTicks(min,max,count){ const span=max-min; const raw=span/count; const mag=Math.pow(10,Math.floor(Math.log10(raw))); const n=raw/mag; const step=(n<1.5?1:n<3?2:n<7?5:10)*mag; const lo=Math.floor(min/step)*step, hi=Math.ceil(max/step)*step; const t=[]; for(let v=lo; v<=hi+1e-9; v+=step) t.push(+v.toFixed(6)); return t; }
+
+/* tooltip */
+const tip = $("#tip");
+function showTip(html,ev){ tip.innerHTML=html; tip.style.opacity=1; moveTip(ev); }
+function moveTip(ev){ const pad=14; let x=ev.clientX+pad, y=ev.clientY+pad; const r=tip.getBoundingClientRect(); if(x+r.width>innerWidth-8) x=ev.clientX-r.width-pad; if(y+r.height>innerHeight-8) y=ev.clientY-r.height-pad; tip.style.left=x+"px"; tip.style.top=y+"px"; }
+function hideTip(){ tip.style.opacity=0; }
+function bindTip(node,html){ node.addEventListener("mouseenter",e=>showTip(html,e)); node.addEventListener("mousemove",moveTip); node.addEventListener("mouseleave",hideTip); }
+
+/* ===================== STATE ===================== */
+const KEY="bopquest-pakistan-v1";
+let S = {score:START, res:{}, view:"intro", gov:{done:false,bestStars:0}};
+function load(){ try{ const t=localStorage.getItem(KEY); if(t){ const o=JSON.parse(t); if(o && typeof o.score==="number") S=Object.assign(S,o); } }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
+
+/* ===================== METER ===================== */
+const MAXBAR = 24;
+function rankFor(m){ return m<1?"Crisis desk":m<2?"Stabiliser":m<3?"Reserve builder":"Governor's adviser"; }
+function drawTicks(){
+  const box=$("#mticks"); box.innerHTML="";
+  [1,2,3].forEach(k=>{ const v=k*MONTHLY_IMPORTS; const d=document.createElement("div"); d.className="tick"+(k===3?" goal":""); d.style.left=(v/MAXBAR*100)+"%"; d.innerHTML="<span>"+(k===3?"3 months":k)+"</span>"; box.appendChild(d); });
+}
+function updateMeter(delta){
+  const v=S.score, m=v/MONTHLY_IMPORTS;
+  $("#mval").textContent="$"+v.toFixed(2)+"bn";
+  $("#mcap").textContent="Your SBP reserves: "+m.toFixed(1)+" months of imports";
+  const fill=$("#mfill"); fill.style.width=Math.min(100,v/MAXBAR*100)+"%";
+  fill.style.backgroundColor = m>=3? "var(--in)" : m>=2 ? "#6A8FB8" : m>=1 ? "#B8786C" : "var(--out)";
+  $("#rank").innerHTML="<b>"+rankFor(m)+"</b>Goal: 3 months ($"+GOAL.toFixed(1)+"bn)";
+  if(delta){ const t=$("#toast"); t.textContent=(delta>0?"+$":MINUS+"$")+Math.abs(delta).toFixed(1)+"bn"; t.style.background=delta>0?"var(--in-wash)":"var(--out-wash)"; t.style.color=delta>0?"var(--in)":"var(--out)"; t.style.left=Math.min(88,v/MAXBAR*100)+"%"; t.classList.remove("show"); void t.offsetWidth; t.classList.add("show"); }
+}
+function addScore(d){ S.score=Math.max(0,+(S.score+d).toFixed(2)); save(); updateMeter(d); }
+
+/* ===================== NAVIGATION ===================== */
+const VIEWS=[["intro","0","Start"],["c1","1","The national ledger"],["c2","2","Current account"],["c3","3","Capital and financial accounts"],["c4","4","The balancing identity"],["c5","5","Pakistan now"],["c6","6","Governor's desk"],["gl","§","Glossary and sources"]];
+const QUIZ_CH=["c1","c2","c3","c4","c5"];
+function chapterStatus(id){
+  if(id==="c6") return S.gov.done? "★".repeat(S.gov.bestStars)||"done" : "";
+  if(!QUIZ[id]) return "";
+  const items=QUIZ[id]; const n=items.filter(it=>S.res[it.id]).length; if(!n) return "";
+  const ok=items.filter(it=>S.res[it.id]&&S.res[it.id].ok).length;
+  return n===items.length? ok+"/"+items.length : n+" of "+items.length;
+}
+function buildNav(){
+  const toc=$("#toc"); toc.innerHTML=""; const mob=$("#mobnav"); mob.innerHTML="";
+  VIEWS.forEach(([id,n,l],i)=>{
+    if(id==="gl"){ const s=document.createElement("li"); s.innerHTML='<div class="sep"></div>'; toc.appendChild(s); }
+    const li=document.createElement("li"); const b=document.createElement("button"); b.dataset.go=id;
+    b.innerHTML='<span class="n">'+n+'</span><span class="l">'+l+'</span><span class="ck">'+chapterStatus(id)+'</span>';
+    if(S.view===id) b.setAttribute("aria-current","page");
+    li.appendChild(b); toc.appendChild(li);
+    const mb=document.createElement("button"); mb.dataset.go=id; mb.textContent=(id==="intro"||id==="gl")?l:(n+". "+l); if(S.view===id) mb.setAttribute("aria-current","page"); mob.appendChild(mb);
+  });
+}
+const RENDERED={};
+function go(id,quiet){
+  if(!$("#v-"+id)) id="intro";
+  S.view=id; save();
+  $$(".view").forEach(v=>v.classList.toggle("on",v.id==="v-"+id));
+  buildNav();
+  if(!RENDERED[id]){ RENDERED[id]=true; (INIT[id]||function(){})(); }
+  window.scrollTo(0,0);
+  const h=$("#v-"+id+" h1, #v-"+id+" h2"); if(h && !quiet){ h.setAttribute("tabindex","-1"); h.focus({preventScroll:true}); }
+}
+document.addEventListener("click",e=>{ const g=e.target.closest("[data-go]"); if(g){ e.preventDefault(); go(g.dataset.go); } });
+
+/* ===================== QUIZZES ===================== */
+const CR=[{t:"Credit (jama)",s:"dollars come in"},{t:"Debit (naam)",s:"dollars go out"}];
+const CA4=[{t:"Goods"},{t:"Services"},{t:"Primary income"},{t:"Secondary income"}];
+const FIN=[{t:"Capital account"},{t:"Direct investment"},{t:"Portfolio investment"},{t:"Other investment"},{t:"Reserves and IMF"}];
+const QUIZ={
+ c1:[
+  {id:"c1a",q:"A sports-goods maker in Sialkot ships footballs to a buyer in Germany.",o:CR,a:0,x:"An export of goods. Euros or dollars flow to Pakistan, so it is a credit in the current account."},
+  {id:"c1b",q:"A refinery in Karachi pays for a cargo of crude oil from Saudi Arabia.",o:CR,a:1,x:"An import of goods. Dollars leave Pakistan, so it is a debit. Petroleum was about a quarter of Pakistan's import bill in FY26."},
+  {id:"c1c",q:"A software engineer in Dubai sends money to her parents in Mardan.",o:CR,a:0,x:"A workers' remittance, recorded as a credit in secondary income. Remittances were Pakistan's largest single source of dollars in FY26 at $41.6bn."},
+  {id:"c1d",q:"A foreign-owned telecom company sends its annual dividend to its parent abroad.",o:CR,a:1,x:"Profits and dividends paid to foreign owners are a debit in primary income."},
+  {id:"c1e",q:"A student from Lahore pays tuition fees to a university in the UK.",o:CR,a:1,x:"Pakistan is buying an education service from abroad, so dollars go out. It is a debit in services (BPM6 records it under travel)."},
+  {id:"c1f",q:"A freelance designer in Islamabad is paid by a client in the United States.",o:CR,a:0,x:"An export of services, a credit. Services exports passed $10bn in FY26."},
+  {id:"c1g",q:"The government pays interest to holders of its Eurobonds.",o:CR,a:1,x:"Interest on external debt is a debit in primary income. Pakistan paid $9.7bn of primary income abroad in FY26."},
+  {id:"c1h",q:"A Chinese company builds a new factory in a special economic zone using its own funds.",o:CR,a:0,x:"Foreign direct investment brings dollars in. It is recorded in the financial account as a net inflow (an increase in Pakistan's liabilities to foreigners)."}
+ ],
+ c2:[
+  {id:"c2a",q:"Basmati rice is shipped from Karachi to a buyer in the UAE.",o:CA4,a:0,x:"Goods: a physical product crossing the border. Rice is one of Pakistan's main food exports."},
+  {id:"c2b",q:"Pakistan imports a cargo of LNG from Qatar.",o:CA4,a:0,x:"Goods. LNG is part of the petroleum group, though LNG imports fell 36% in FY26 as crude imports rose."},
+  {id:"c2c",q:"A foreign shipping line is paid to carry a container from Shanghai to Karachi.",o:CA4,a:1,x:"Services (transport). The freight charge is a service bought from a non-resident, a debit."},
+  {id:"c2d",q:"Pilgrims pay for hotels and transport in Makkah during Umrah.",o:CA4,a:1,x:"Services (travel). Spending by Pakistani travellers abroad is an import of travel services."},
+  {id:"c2e",q:"A Lahore IT firm earns fees from a software contract with a US bank.",o:CA4,a:1,x:"Services (computer services). Pakistan's services exports rose 23% in July–September 2026."},
+  {id:"c2f",q:"The government pays interest on a commercial loan from Chinese banks.",o:CA4,a:2,x:"Primary income: a payment for the use of foreign capital. The loan itself was recorded in the financial account when it came in; the interest goes here."},
+  {id:"c2g",q:"A foreign oil and gas company repatriates profits from its Pakistani operations.",o:CA4,a:2,x:"Primary income: profits and dividends earned by foreign investors are investment income paid abroad."},
+  {id:"c2h",q:"A worker settled in Manchester sends money to his family in Mirpur.",o:CA4,a:3,x:"Secondary income: a workers' remittance, a transfer with nothing given in return. The UK is one of the largest remittance sources."},
+  {id:"c2i",q:"A foreign aid agency sends cash grants to buy food and shelter for flood victims.",o:CA4,a:3,x:"Secondary income: a current transfer for consumption. A grant to build lasting assets, such as bridges, goes in the capital account (chapter 3)."},
+  {id:"c2j",q:"A Pakistani engineer on a six-month contract in Qatar is paid his wages there.",o:CA4,a:2,x:"Primary income (compensation of employees). Because he is away for less than a year he stays a resident of Pakistan, so his wages count as income earned abroad."}
+ ],
+ c3:[
+  {id:"c3a",q:"Pakistan sells $3bn of Eurobonds to international investors in September 2026.",o:FIN,a:2,x:"Portfolio investment: bonds held by foreign investors. This deal explains most of the $2.94bn portfolio inflow in July–September 2026."},
+  {id:"c3b",q:"A foreign fund buys a 2% stake in a company listed on the Pakistan Stock Exchange.",o:FIN,a:2,x:"Portfolio investment: below the 10% threshold, so it does not give lasting control."},
+  {id:"c3c",q:"A Gulf telecom group buys 60% of a Pakistani mobile operator.",o:FIN,a:1,x:"Direct investment: a stake of 10% or more that gives lasting influence over the firm."},
+  {id:"c3d",q:"The Asian Development Bank disburses a programme loan to the government.",o:FIN,a:3,x:"Other investment: loans from multilateral, bilateral and commercial lenders sit here."},
+  {id:"c3e",q:"A friendly country rolls over its $3bn deposit held at the State Bank.",o:FIN,a:3,x:"Other investment: deposits placed at the SBP are loans to Pakistan's central bank. A rollover avoids an outflow when the deposit matures."},
+  {id:"c3f",q:"A foreign government forgives part of a loan Pakistan owes it.",o:FIN,a:0,x:"Capital account: debt forgiveness is a capital transfer."},
+  {id:"c3g",q:"A donor pays for the reconstruction of bridges destroyed by floods.",o:FIN,a:0,x:"Capital account: an investment grant to build lasting assets is a capital transfer."},
+  {id:"c3h",q:"The IMF disburses about $1.3bn to the State Bank after a programme review (May 2026).",o:FIN,a:4,x:"Reserves and IMF: the SBP records IMF lending as use of Fund credit, in the reserves and related items block."}
+ ],
+ c4:[
+  {id:"c4a",q:"FY25: current account +$1.84bn, capital account +$0.17bn, net financial inflows +$1.59bn, errors and omissions +$0.15bn. What was the overall balance?",o:[{t:"+$3.74bn"},{t:"+$0.57bn"},{t:MINUS+"$3.74bn"},{t:"+$1.84bn"}],a:0,x:"1.84 + 0.17 + 1.59 + 0.15 \u2248 +3.74 (3.744 with unrounded figures). Add the IMF's $1.43bn and reserve assets rose by $5.18bn in FY25."},
+  {id:"c4b",q:"FY26: current account "+MINUS+"$0.39bn, capital account +$0.13bn, net financial inflows +$2.03bn, errors and omissions +$0.07bn. What was the overall balance?",o:[{t:MINUS+"$0.39bn"},{t:MINUS+"$2.22bn"},{t:"+$1.83bn"},{t:"+$2.62bn"}],a:2,x:MINUS+"0.39 + 0.13 + 2.03 + 0.07 \u2248 +1.83 (1.834 with unrounded figures). The current account deficit was covered by inflows, with money to spare."},
+  {id:"c4c",q:"Reserve assets rose by $3.66bn in FY26, but the overall balance was only +$1.83bn. Where did the other $1.82bn come from?",o:[{t:"Workers' remittances"},{t:"Net IMF lending"},{t:"Errors and omissions"},{t:"A rise in the gold price"}],a:1,x:"Net IMF lending of $1.82bn sits below the overall balance in the SBP table (use of Fund credit). 1.83 + 1.82 \u2248 3.66. Remittances are already inside the current account."},
+  {id:"c4d",q:"July–September 2026: current account "+MINUS+"$0.87bn, yet the overall balance was +$3.12bn. What made the difference?",o:[{t:"A $3bn Eurobond and other inflows: net financial inflows of $4.16bn"},{t:"A surge in goods exports"},{t:"Errors and omissions of +$4bn"},{t:"The capital account"}],a:0,x:MINUS+"0.87 + 0.03 + 4.16 "+MINUS+" 0.20 = +3.12. The September Eurobond drove a $2.94bn portfolio inflow."},
+  {id:"c4e",q:"A September 2026 headline said the balance of payments “swung to a $4.39bn deficit”. The same SBP table shows reserve assets rose by $4.38bn that month. What is the best reading?",o:[{t:"Pakistan lost $4.39bn of reserves in September"},{t:"The current account deficit was $4.39bn"},{t:"SBP prints the overall balance with the BPM6 sign: "+MINUS+"4,390 there is a surplus that added to reserves"},{t:"SBP made an arithmetic error"}],a:2,x:"In SBP's layout a negative Overall Balance means reserves went up; the Reserves and Related Items line shows the same figure with a plus sign. The September current account deficit was only $0.36bn."}
+ ],
+ c5:[
+  {id:"c5a",q:"In FY26, which single source brought more dollars into Pakistan than all goods exports combined?",o:[{t:"Foreign direct investment"},{t:"Workers' remittances"},{t:"IMF lending"},{t:"Services exports"}],a:1,x:"Remittances were $41.6bn against goods exports of $30.8bn."},
+  {id:"c5b",q:"The goods deficit widened to $33.7bn in FY26, yet the current account deficit was only $0.39bn. What mainly offset it?",o:[{t:"A services surplus"},{t:"FDI inflows"},{t:"The secondary income surplus of $43.7bn"},{t:"IMF disbursements"}],a:2,x:"Secondary income, mostly remittances, covered the goods gap. Services were in deficit, and FDI and IMF money are in the financial account, outside the current account."},
+  {id:"c5c",q:"In which fiscal year did Pakistan record its largest current account deficit in the chart?",o:[{t:"FY18"},{t:"FY19"},{t:"FY22"},{t:"FY26"}],a:0,x:"FY18, at about $19.2bn. FY22 came close at $17.5bn."},
+  {id:"c5d",q:"What does the primary income deficit of about $8.5bn a year mainly pay for?",o:[{t:"Oil imports"},{t:"Interest on external debt and profits sent home by foreign investors"},{t:"Hajj and Umrah travel"},{t:"Remittances sent abroad by foreigners in Pakistan"}],a:1,x:"Primary income is the return on capital and labour. Pakistan pays far more interest and profit abroad ($9.7bn) than it receives ($1.2bn)."},
+  {id:"c5e",q:"SBP reserves were $21.56bn on 30 October 2026. Pakistan imported about $6.4bn of goods and services a month in FY26. Roughly how many months of imports do the reserves cover?",o:[{t:"About 1.5 months"},{t:"About 3.4 months"},{t:"About 6 months"},{t:"About 12 months"}],a:1,x:"21.56 ÷ 6.37 ≈ 3.4 months, just above the three-month benchmark. At the faster July–September import pace it is closer to three months."},
+  {id:"c5f",q:"Why did the current account slip back into deficit in July–September 2026?",o:[{t:"Remittances fell sharply"},{t:"Services exports collapsed"},{t:"Goods imports grew 14.3% while exports grew 7.7%, widening the goods deficit to $9.3bn"},{t:"The IMF stopped lending"}],a:2,x:"Remittances rose 14% and services exports 23%. The goods gap was the problem, as imports picked up with growth and high energy prices."}
+ ]
+};
+
+let practice={}; // chapter -> {i, res}
+function quizState(ch){ return practice[ch] || null; }
+function renderQuiz(ch){
+  const root=$("#q-"+ch); const items=QUIZ[ch]; const pr=quizState(ch);
+  const resOf = it => pr ? pr.res[it.id] : S.res[it.id];
+  const firstOpen = items.findIndex(it=>!resOf(it));
+  if(firstOpen===-1){ return renderSummary(ch); }
+  const idx = firstOpen, it=items[idx];
+  const dots = items.map((x,j)=>{ const r=resOf(x); return '<i class="'+(r?(r.ok?"ok":"no"):(j===idx?"cur":""))+'" title="Entry '+(j+1)+'"></i>'; }).join("");
+  const many = it.o.length>3 && it.o.some(o=>o.t.length>40);
+  root.innerHTML=(pr?'<p class="practice-note">Practice round: no effect on your reserves.</p>':'')+
+   '<div class="qcard"><div class="qprog"><span>Entry '+(idx+1)+' of '+items.length+'</span><span class="qdots" aria-hidden="true">'+dots+'</span></div>'+
+   '<p class="qtext">'+esc(it.q)+'</p><div class="opts'+(many?" wide1":"")+'" role="group" aria-label="Answer options">'+
+   it.o.map((o,k)=>'<button class="opt" data-k="'+k+'">'+esc(o.t)+(o.s?'<small>'+esc(o.s)+'</small>':'')+'</button>').join("")+
+   '</div><div class="feedback" aria-live="polite"></div><div class="btnrow"><button class="btn nextq" hidden>'+(idx===items.length-1?"See your results":"Next entry")+'</button></div></div>';
+  $$(".opt",root).forEach(b=>b.addEventListener("click",()=>{
+    const k=+b.dataset.k, ok=k===it.a;
+    if(pr) pr.res[it.id]={k,ok}; else { S.res[it.id]={k,ok}; addScore(ok?GAIN:-LOSS); buildNav(); }
+    $$(".opt",root).forEach(x=>{ x.disabled=true; const kk=+x.dataset.k; if(kk===it.a) x.classList.add("right"); else if(kk===k) x.classList.add("wrong"); });
+    $(".feedback",root).innerHTML='<div class="fb '+(ok?"ok":"no")+'"><b>'+(ok?"Correct.":"Not quite.")+'</b> '+(pr?"":(ok?"+$0.5bn to reserves. ":MINUS+"$0.2bn from reserves. "))+esc(it.x)+'</div>';
+    const nb=$(".nextq",root); nb.hidden=false; nb.focus();
+    nb.onclick=()=>renderQuiz(ch);
+  }));
+}
+function renderSummary(ch){
+  const root=$("#q-"+ch), items=QUIZ[ch], pr=quizState(ch);
+  const resOf = it => pr ? pr.res[it.id] : S.res[it.id];
+  const ok=items.filter(it=>resOf(it).ok).length, bad=items.length-ok;
+  const net=ok*GAIN-bad*LOSS;
+  const nextIdx=VIEWS.findIndex(v=>v[0]===ch)+1, next=VIEWS[nextIdx];
+  root.innerHTML='<div class="summary">'+(pr?'<p class="practice-note">Practice round complete.</p>':'')+
+   '<p class="big">'+ok+' of '+items.length+' correct</p>'+
+   (pr?'':'<p>Net effect on your reserves: <b class="'+(net>=0?"in":"out")+'">'+(net>=0?"+":MINUS)+'$'+Math.abs(net).toFixed(1)+'bn</b>.</p>')+
+   '<div class="btnrow">'+(next?'<button class="btn" data-go="'+next[0]+'">Continue to '+(next[0]==="gl"?"the glossary":"chapter "+next[1])+'</button>':'')+
+   '<button class="btn ghost" id="pr-'+ch+'">Practise again (no score)</button></div>'+
+   '<div class="review">'+items.map((it,j)=>{ const r=resOf(it); return '<details><summary><span class="mk '+(r.ok?"in":"out")+'">'+(r.ok?"✓":"✗")+'</span><span>'+esc(it.q)+'</span></summary><div class="exp">'+(r.ok?"":"Your answer: "+esc(it.o[r.k].t)+". ")+'Answer: <b>'+esc(it.o[it.a].t)+'</b>. '+esc(it.x)+'</div></details>'; }).join("")+'</div></div>';
+  $("#pr-"+ch).addEventListener("click",()=>{ practice[ch]={res:{}}; renderQuiz(ch); });
+}
+
+/* ===================== CHAPTER 1: map ===================== */
+const NODES={
+  ca:{s:MINUS+"$0.39bn",t:"Current account",v:"FY26: "+MINUS+"$0.39bn (deficit)",d:"Pakistan's earning and spending on goods, services, income and transfers. A deficit means it spent more foreign currency than it earned.",c:"out"},
+  goods:{s:MINUS+"$33.69bn",t:"Goods",v:"FY26: exports $30.84bn, imports $64.53bn, balance "+MINUS+"$33.69bn",d:"Physical products crossing the border: textiles and rice out; oil, LNG, machinery, vehicles and palm oil in.",c:"out"},
+  services:{s:MINUS+"$1.89bn",t:"Services",v:"FY26: exports $10.05bn, imports $11.94bn, balance "+MINUS+"$1.89bn",d:"Transport, travel (including Hajj and Umrah), IT and telecoms, insurance and government services.",c:"out"},
+  primary:{s:MINUS+"$8.50bn",t:"Primary income",v:"FY26: received $1.22bn, paid $9.71bn, balance "+MINUS+"$8.50bn",d:"Interest, profits, dividends and short-term wages. Mostly the cost of Pakistan's external debt and foreign-owned firms.",c:"out"},
+  secondary:{s:"+$43.69bn",t:"Secondary income",v:"FY26: +$43.69bn, of which workers' remittances $41.59bn",d:"One-way transfers with nothing given back, above all money sent home by Pakistanis working abroad.",c:"in"},
+  ka:{s:"+$0.13bn",t:"Capital account",v:"FY26: +$0.13bn",d:"Capital transfers such as debt forgiveness or grants to build lasting assets, plus trade in non-produced assets such as land for embassies.",c:"in"},
+  fa:{s:"$2.03bn net inflow",t:"Financial account",v:"FY26: net inflow $2.03bn (SBP prints "+MINUS+"2,029)",d:"Changes in Pakistan's foreign assets and liabilities: investment, loans and deposits. The SBP shows a net inflow as a negative number.",c:"in"},
+  di:{s:"$1.45bn net inflow",t:"Direct investment",v:"FY26: net inflow $1.45bn",d:"A lasting stake of 10% or more in an enterprise, such as a foreign firm building or buying a business in Pakistan.",c:"in"},
+  pi:{s:"$1.18bn net outflow",t:"Portfolio investment",v:"FY26: net outflow $1.18bn",d:"Shares and bonds below the 10% threshold, including government Eurobonds and Sukuk. In FY26 more money left than came in.",c:"out"},
+  oi:{s:"$1.77bn net inflow",t:"Other investment",v:"FY26: net inflow $1.77bn",d:"Loans from multilateral, bilateral and commercial lenders, deposits by friendly countries, rollovers and trade credit.",c:"in"},
+  ra:{s:"+$3.66bn",t:"Reserve assets",v:"FY26: rose by $3.66bn",d:"The State Bank's foreign currency, gold and SDRs, which absorb whatever the other accounts leave over. IMF lending of $1.82bn sits next to them in the SBP table.",c:"in"},
+  eo:{s:"+$0.07bn",t:"Net errors and omissions",v:"FY26: +$0.07bn",d:"The statistical gap left because not every transaction is captured. It keeps the double-entry system in balance.",c:"in"}
+};
+function initMap(){
+  const m=$("#bopmap");
+  const nb=(k,cls)=>'<button class="node '+cls+'" data-node="'+k+'" aria-pressed="false"><span class="nm">'+NODES[k].t+'</span><span class="nv '+NODES[k].c+'">'+NODES[k].s+'</span></button>';
+  m.innerHTML='<div class="mapcol">'+nb("ca","top")+nb("goods","sub")+nb("services","sub")+nb("primary","sub")+nb("secondary","sub")+'</div>'+
+    '<div class="mapcol">'+nb("ka","top")+'<p class="fignote" style="padding:4px 10px">Tiny for Pakistan. Records capital transfers and non-produced assets.</p></div>'+
+    '<div class="mapcol">'+nb("fa","top")+nb("di","sub")+nb("pi","sub")+nb("oi","sub")+nb("ra","sub")+'</div>'+
+    '<div class="maprow"><div class="mapcol">'+nb("eo","top")+'</div></div>';
+  const show=k=>{ $$(".node",m).forEach(n=>n.setAttribute("aria-pressed",String(n.dataset.node===k))); const N=NODES[k]; $("#nodeinfo").innerHTML='<h4>'+N.t+'</h4><p style="margin:0">'+N.d+'</p><p class="fig '+N.c+'">'+N.v+'</p>'; };
+  $$(".node",m).forEach(n=>n.addEventListener("click",()=>show(n.dataset.node)));
+  show("ca");
+}
+
+/* ===================== CHAPTER 2: waterfall ===================== */
+function drawWaterfall(pk){
+  const p=D[pk], svg=$("#wf"); clearSvg(svg);
+  const W=760,H=330,m={l:56,r:18,t:22,b:54};
+  const items=[
+    {k:"Goods",v:(p.gx-p.gm)/1000,tip:"Exports $"+bn(p.gx)+"bn<br>Imports $"+bn(p.gm)+"bn"},
+    {k:"Services",v:(p.sx-p.sm)/1000,tip:"Exports $"+bn(p.sx)+"bn<br>Imports $"+bn(p.sm)+"bn"},
+    {k:"Primary income",v:(p.pc-p.pd)/1000,tip:"Received $"+bn(p.pc)+"bn<br>Paid $"+bn(p.pd)+"bn"},
+    {k:"Secondary income",v:p.sb/1000,tip:"Workers' remittances $"+bn(p.rem)+"bn<br>Other transfers, net $"+bn(p.sb-p.rem)+"bn"}
+  ];
+  let run=0; items.forEach(it=>{ it.from=run; run+=it.v; it.to=run; });
+  const ca=p.ca/1000;
+  items.push({k:"Current account",v:ca,from:0,to:ca,total:true,tip:"Sum of the four parts"});
+  const vals=items.flatMap(i=>[i.from,i.to]).concat([0]);
+  const ticks=niceTicks(Math.min(...vals),Math.max(...vals),6);
+  const y0=ticks[0], y1=ticks[ticks.length-1];
+  const Y=v=>m.t+(y1-v)/(y1-y0)*(H-m.t-m.b);
+  const band=(W-m.l-m.r)/items.length, bw=Math.min(58,band*.42);
+  ticks.forEach(t=>{ el("line",{x1:m.l,x2:W-m.r,y1:Y(t),y2:Y(t),class:t===0?"zero":"grid"},svg); el("text",{x:m.l-8,y:Y(t)+4,"text-anchor":"end"},svg,f1(t,0)); });
+  el("text",{x:m.l-8,y:12,"text-anchor":"end"},svg,"US$ bn");
+  items.forEach((it,i)=>{
+    const cx=m.l+band*i+band/2, top=Y(Math.max(it.from,it.to)), bot=Y(Math.min(it.from,it.to));
+    const col=it.total?"var(--total)":(it.v>=0?"var(--in)":"var(--out)");
+    el("rect",{x:cx-bw/2,y:top,width:bw,height:Math.max(2,bot-top),rx:3,fill:col},svg);
+    if(i<items.length-1 && !items[i+1].total){ el("line",{x1:cx+bw/2,x2:cx+band-bw/2,y1:Y(it.to),y2:Y(it.to),stroke:"#8E9A92","stroke-width":1},svg); }
+    const below = it.v<0;
+    const ly = below? bot+16 : top-7;
+    el("text",{x:cx,y:Math.min(H-m.b-4,Math.max(14,ly)),"text-anchor":"middle",class:"lbl"},svg,sg(it.v,1));
+    const words=it.k.split(" ");
+    words.forEach((w,j)=>el("text",{x:cx,y:H-m.b+20+j*15,"text-anchor":"middle"},svg,w));
+    const hit=el("rect",{x:cx-band/2,y:m.t,width:band,height:H-m.t-m.b,class:"hit"},svg);
+    bindTip(hit,"<b>"+it.k+", "+p.label+"</b><br>"+(it.total?"Balance ":"Net ")+sg(it.v,2)+"bn<br>"+it.tip);
+  });
+  const notes={fy25:"FY25: remittances of $38.3bn covered a goods deficit of $26.8bn and more, giving a surplus of $1.84bn.",fy26:"FY26: a $33.7bn goods deficit and $8.5bn of interest and profits paid abroad, nearly offset by $43.7bn of transfers.",q1:"July–September 2026 is one quarter, so the bars are roughly a quarter of a full year's size. The goods deficit ($9.3bn) outran remittances."};
+  $("#wfNote").textContent=notes[pk];
+  $("#wfTable").innerHTML='<table class="t"><thead><tr><th>US$ billion</th><th>Credit (in)</th><th>Debit (out)</th><th>Balance</th></tr></thead><tbody>'+
+   '<tr><td>Goods</td><td>'+bn(p.gx)+'</td><td>'+bn(p.gm)+'</td><td>'+bn(p.gx-p.gm)+'</td></tr>'+
+   '<tr><td>Services</td><td>'+bn(p.sx)+'</td><td>'+bn(p.sm)+'</td><td>'+bn(p.sx-p.sm)+'</td></tr>'+
+   '<tr><td>Primary income</td><td>'+bn(p.pc)+'</td><td>'+bn(p.pd)+'</td><td>'+bn(p.pc-p.pd)+'</td></tr>'+
+   '<tr><td>Secondary income</td><td>'+bn(p.sc)+'</td><td>'+bn(p.sc-p.sb)+'</td><td>'+bn(p.sb)+'</td></tr>'+
+   '<tr class="sub"><td>of which workers\' remittances</td><td>'+bn(p.rem)+'</td><td></td><td></td></tr>'+
+   '<tr class="sum"><td>Current account</td><td>'+bn(p.gx+p.sx+p.pc+p.sc)+'</td><td>'+bn(p.gm+p.sm+p.pd+(p.sc-p.sb))+'</td><td>'+bn(p.ca)+'</td></tr></tbody></table>';
+}
+function segBind(segId,fn){ const seg=$("#"+segId); if(seg.dataset.bound) return; seg.dataset.bound="1"; $$("button",seg).forEach(b=>b.addEventListener("click",()=>{ $$("button",seg).forEach(x=>x.setAttribute("aria-pressed",String(x===b))); fn(b.dataset.p); })); }
+
+/* ===================== CHAPTER 3: financing table ===================== */
+function finTable(){
+  const row=(l,k,cls)=>'<tr'+(cls?' class="'+cls+'"':'')+'><td>'+l+'</td>'+["fy25","fy26","q1"].map(p=>'<td>'+bn(D[p][k])+'</td>').join("")+'</tr>';
+  $("#finTable").innerHTML='<table class="t"><thead><tr><th>Net inflow, US$ billion</th><th>FY25</th><th>FY26</th><th>Jul–Sep 2026</th></tr></thead><tbody>'+
+   row("Current account balance","ca")+row("Capital account","ka")+row("Direct investment","di","sub")+row("Portfolio investment","pi","sub")+row("Other investment","oi","sub")+
+   row("Financial account, net inflow","faIn")+row("Errors and omissions","eo")+row("Overall balance","ob","sum")+row("Net IMF lending","imf")+row("Change in reserve assets","ra","sum")+'</tbody></table>';
+}
+
+/* ===================== CHAPTER 4: identity ===================== */
+function drawEq(pk){
+  const p=D[pk];
+  const t=(k,v,cls)=>'<div class="t'+(cls?" "+cls:"")+'"><span class="k">'+k+'</span><span class="v '+(v<0?"out":"in")+'">'+sg(v/1000,2)+'</span></div>';
+  $("#eq").innerHTML=t("Current account",p.ca)+'<span class="op">+</span>'+t("Capital account",p.ka)+'<span class="op">+</span>'+t("Net financial inflows",p.faIn)+'<span class="op">+</span>'+t("Errors and omissions",p.eo)+'<span class="op">=</span>'+t("Overall balance",p.ob,"res")+'<span class="op">+</span>'+t("Net IMF lending",p.imf)+'<span class="op">=</span>'+t("Change in reserves",p.ra,"res");
+  const notes={
+    fy25:"FY25 (US$ bn). The SBP table prints the financial account as "+MINUS+"1,585 and the overall balance as "+MINUS+"3,744. Both minus signs mean money came in and reserves grew.",
+    fy26:"FY26 (US$ bn). The SBP table prints the financial account as "+MINUS+"2,029 and the overall balance as "+MINUS+"1,834. Reserves still rose despite a current account deficit.",
+    q1:"July–September 2026 (US$ bn). The financial account, printed as "+MINUS+"4,160, was swollen by the $3bn Eurobond. IMF net lending was close to zero this quarter."};
+  $("#eqNote").textContent=notes[pk];
+}
+
+/* ===================== CHAPTER 5: charts ===================== */
+function clearSvg(svg){ Array.from(svg.childNodes).forEach(n=>{ if(n.nodeName!=="desc") svg.removeChild(n); }); }
+function drawHist(){
+  const svg=$("#hist"); clearSvg(svg); const W=760,H=320,m={l:52,r:16,t:22,b:40};
+  const ticks=[-25,-20,-15,-10,-5,0,5], y0=-25,y1=5;
+  const Y=v=>m.t+(y1-v)/(y1-y0)*(H-m.t-m.b);
+  const band=(W-m.l-m.r)/HIST.length, bw=Math.min(46,band*.55);
+  ticks.forEach(t=>{ el("line",{x1:m.l,x2:W-m.r,y1:Y(t),y2:Y(t),class:t===0?"zero":"grid"},svg); el("text",{x:m.l-8,y:Y(t)+4,"text-anchor":"end"},svg,f1(t,0)); });
+  el("text",{x:m.l-8,y:12,"text-anchor":"end"},svg,"US$ bn");
+  const labelled={FY18:1,FY22:1,FY25:1,FY26:1};
+  HIST.forEach(([yr,v],i)=>{
+    const cx=m.l+band*i+band/2, top=Y(Math.max(0,v)), bot=Y(Math.min(0,v));
+    el("rect",{x:cx-bw/2,y:top,width:bw,height:Math.max(2,bot-top),rx:3,fill:v>=0?"var(--in)":"var(--out)"},svg);
+    el("text",{x:cx,y:H-m.b+18,"text-anchor":"middle"},svg,yr);
+    if(labelled[yr]) el("text",{x:cx,y:v<0?bot+16:top-7,"text-anchor":"middle",class:"lbl"},svg,sg(v,1));
+    const hit=el("rect",{x:cx-band/2,y:m.t,width:band,height:H-m.t-m.b,class:"hit"},svg);
+    bindTip(hit,"<b>"+yr+"</b><br>Current account "+sg(v,1)+"bn<br>"+(v>=0?"Surplus":"Deficit"));
+  });
+  $("#histTable").innerHTML='<table class="t"><thead><tr><th>Fiscal year</th>'+HIST.map(h=>'<th>'+h[0]+'</th>').join("")+'</tr></thead><tbody><tr><td>Current account, US$ bn</td>'+HIST.map(h=>'<td>'+sg(h[1],1)+'</td>').join("")+'</tr></tbody></table>';
+}
+function drawFlows(){
+  const svg=$("#flows"); clearSvg(svg); const W=760,H=360;
+  const ins=[["Workers' remittances",41.585],["Goods exports",30.836],["Services exports",10.047],["Other transfers in",2.638],["Income received",1.217]];
+  const outs=[["Goods imports",64.527],["Services imports",11.938],["Interest and profits paid",9.714],["Transfers out",0.535]];
+  const lx=190, rx=W-60, X=v=>lx+v/70*(rx-lx), rowH=28;
+  const panel=(title,rows,y,col)=>{
+    el("text",{x:16,y:y,class:"lbl"},svg,title);
+    rows.forEach(([k,v],i)=>{ const yy=y+14+i*rowH; el("text",{x:lx-10,y:yy+14,"text-anchor":"end"},svg,k); el("rect",{x:lx,y:yy+3,width:Math.max(2,X(v)-lx),height:16,rx:3,fill:col},svg); el("text",{x:X(v)+6,y:yy+15,class:"lbl"},svg,v.toFixed(1)); const hit=el("rect",{x:0,y:yy,width:W,height:rowH,class:"hit"},svg); bindTip(hit,"<b>"+k+"</b><br>$"+v.toFixed(2)+"bn in FY26"); });
+    return y+14+rows.length*rowH;
+  };
+  let y=panel("Dollars in: credits, total $86.3bn",ins,24,"var(--in)");
+  y=panel("Dollars out: debits, total $86.7bn",outs,y+30,"var(--out)");
+  [0,10,20,30,40,50,60,70].forEach(t=>{ el("line",{x1:X(t),x2:X(t),y1:H-30,y2:H-24,class:"axis"},svg); el("text",{x:X(t),y:H-10,"text-anchor":"middle"},svg,t); });
+  el("line",{x1:lx,x2:rx,y1:H-30,y2:H-30,class:"axis"},svg);
+}
+function drawReserves(){
+  const svg=$("#resv"); clearSvg(svg); const W=760,H=300,m={l:52,r:110,t:24,b:40};
+  const t0=new Date("2023-01-01").getTime(), t1=new Date("2026-12-31").getTime();
+  const X=d=>m.l+(new Date(d).getTime()-t0)/(t1-t0)*(W-m.l-m.r);
+  const y0=0,y1=25, Y=v=>m.t+(y1-v)/(y1-y0)*(H-m.t-m.b);
+  [0,5,10,15,20,25].forEach(t=>{ el("line",{x1:m.l,x2:W-m.r,y1:Y(t),y2:Y(t),class:t===0?"zero":"grid"},svg); el("text",{x:m.l-8,y:Y(t)+4,"text-anchor":"end"},svg,t); });
+  ["2023","2024","2025","2026"].forEach(yr=>{ const x=X(yr+"-01-01"); el("line",{x1:x,x2:x,y1:H-m.b,y2:H-m.b+5,class:"axis"},svg); el("text",{x:x+4,y:H-m.b+18},svg,yr); });
+  el("text",{x:m.l-8,y:12,"text-anchor":"end"},svg,"US$ bn");
+  el("line",{x1:m.l,x2:W-m.r,y1:Y(GOAL),y2:Y(GOAL),stroke:"var(--thread)","stroke-width":2},svg);
+  el("text",{x:W-m.r+6,y:Y(GOAL)+4,class:"lbl"},svg,"3 months");
+  el("text",{x:W-m.r+6,y:Y(GOAL)+19},svg,"of imports");
+  let d=""; RES.forEach((r,i)=>{ d+=(i?"L":"M")+X(r.d)+" "+Y(r.v); });
+  el("path",{d:d,fill:"none",stroke:"var(--in)","stroke-width":2,"stroke-opacity":.45},svg);
+  RES.forEach((r,i)=>{ const cx=X(r.d), cy=Y(r.v);
+    el("circle",{cx,cy,r:6,fill:"var(--in)",stroke:"var(--sheet)","stroke-width":2},svg);
+    const L=[{a:"start",dx:12,vy:-8,dy:10},{a:"end",dx:-12,vy:-11,dy:-26},{a:"start",dx:10,vy:22,dy:36},{a:"end",dx:-12,vy:-11,dy:-26}][i];
+    el("text",{x:cx+L.dx,y:cy+L.vy,"text-anchor":L.a,class:"lbl"},svg,"$"+r.v.toFixed(2)+"bn");
+    el("text",{x:cx+L.dx,y:cy+L.dy,"text-anchor":L.a},svg,r.l);
+    const hit=el("circle",{cx,cy,r:16,class:"hit"},svg); bindTip(hit,"<b>"+r.l+"</b><br>SBP reserves $"+r.v.toFixed(2)+"bn<br>"+(r.v/MONTHLY_IMPORTS).toFixed(1)+" months of FY26 imports");
+  });
+}
+
+/* ===================== CHAPTER 6: sandbox model ===================== */
+const BASE={gx:30.836,gm:64.527,sx:10.047,sm:11.938,prim:-8.497,secOther:2.103,rem:41.585,ka:0.131,eo:0.064,gdp:452.357,res0:18.5};
+const OIL_SHARE=0.26;
+const DEF={gX:0,gM:0,oil:0,gS:0,gR:0,fdi:1.45,borrow:0.58,imf:1.82,primAdj:0};
+function model(p){
+  const gx=BASE.gx*(1+p.gX/100);
+  const gm=BASE.gm*((1-OIL_SHARE)*(1+p.gM/100)+OIL_SHARE*(1+p.oil/100));
+  const sx=BASE.sx*(1+p.gS/100), sm=BASE.sm*(1+p.gM/100);
+  const rem=BASE.rem*(1+p.gR/100);
+  const goods=gx-gm, serv=sx-sm, prim=BASE.prim+(p.primAdj||0), sec=BASE.secOther+rem;
+  const ca=goods+serv+prim+sec;
+  const fin=p.fdi+p.borrow;
+  const overall=ca+BASE.ka+fin+BASE.eo;
+  const rawRes=BASE.res0+overall+p.imf;
+  const reserves=Math.max(0,rawRes);
+  const cover=reserves/((gm+sm)/12);
+  return {gx,gm,sx,sm,rem,goods,serv,prim,sec,ca,fin,overall,reserves,rawRes,cover,caPct:ca/BASE.gdp*100};
+}
+const SL=[
+  {k:"gX",l:"Goods exports",min:-15,max:25,step:1,u:"%",h:"Growth on FY26's $30.8bn"},
+  {k:"gM",l:"Non-oil imports (and services imports)",min:-20,max:25,step:1,u:"%",h:"Growth driven by domestic demand"},
+  {k:"oil",l:"Oil and LNG import prices",min:-30,max:60,step:1,u:"%",h:"Applies to the petroleum share of imports"},
+  {k:"gS",l:"Services exports",min:-10,max:35,step:1,u:"%",h:"Growth on FY26's $10.0bn"},
+  {k:"gR",l:"Workers' remittances",min:-15,max:20,step:1,u:"%",h:"Growth on FY26's $41.6bn"},
+  {k:"fdi",l:"Direct investment, net inflow",min:0,max:5,step:0.01,u:"bn",h:"FY26: $1.45bn"},
+  {k:"borrow",l:"Bonds and loans, net of repayments",min:-4,max:8,step:0.01,u:"bn",h:"Portfolio plus other investment. FY26: $0.58bn"},
+  {k:"imf",l:"Net IMF lending",min:0,max:3,step:0.01,u:"bn",h:"FY26: $1.82bn"}
+];
+const PRESETS=[
+  {n:"FY26 replay",p:{}},
+  {n:"Jul–Sep 2026 growth rates",p:{gX:8,gM:14,oil:15,gS:23,gR:14,fdi:1.5,borrow:3,imf:1.2},note:"Applies July–September growth rates to the whole year, with the $3bn Eurobond. Analysts expect a wider deficit of $2–3bn; this model keeps remittances and services exports growing at their strong first-quarter pace all year."},
+  {n:"2022-style squeeze",p:{gX:0,gM:15,oil:50,gS:0,gR:0,fdi:1.0,borrow:-2,imf:0},note:"Oil up 50%, imports up 15%, markets closed to new borrowing and no IMF money. FY22's actual deficit was $17.5bn."},
+  {n:"Export breakthrough",p:{gX:20,gM:5,gS:30,gR:5,fdi:2.5,borrow:0.58,imf:1.2},note:"A hypothetical year of strong export growth with modest import growth."}
+];
+let SB=Object.assign({},DEF);
+function fmtSl(s,v){ return s.u==="%"? (v>0?"+":v<0?MINUS:"")+Math.abs(v)+"%" : (v<0?MINUS:"")+"$"+Math.abs(v).toFixed(2)+"bn"; }
+function initSandbox(){
+  const box=$("#sliders");
+  box.innerHTML=SL.map(s=>'<div class="sl-row"><label for="sl-'+s.k+'"><span>'+s.l+'</span><output id="o-'+s.k+'"></output></label><input type="range" id="sl-'+s.k+'" min="'+s.min+'" max="'+s.max+'" step="'+s.step+'"><div class="hint">'+s.h+'</div></div>').join("");
+  SL.forEach(s=>{ const i=$("#sl-"+s.k); i.value=SB[s.k]; i.addEventListener("input",()=>{ SB[s.k]=+i.value; syncSandbox(); }); });
+  $("#presets").innerHTML=PRESETS.map((p,i)=>'<button data-pre="'+i+'">'+p.n+'</button>').join("");
+  $$("#presets button").forEach(b=>b.addEventListener("click",()=>{ SB=Object.assign({},DEF,PRESETS[+b.dataset.pre].p); SL.forEach(s=>$("#sl-"+s.k).value=SB[s.k]); syncSandbox(PRESETS[+b.dataset.pre].n,PRESETS[+b.dataset.pre].note); }));
+  syncSandbox();
+}
+function coverVerdict(r){
+  if(r.rawRes<=0) return ["var(--out)","Reserves exhausted.","Pakistan cannot pay for imports or meet debt payments without emergency financing. This is how default risk builds."];
+  if(r.cover<1) return ["var(--out)","Crisis zone.","Under a month of imports, close to February 2023, when the SBP held about two weeks' worth."];
+  if(r.cover<2) return ["#B8786C","Fragile.","The rupee would be under heavy pressure and lenders would demand IMF support."];
+  if(r.cover<3) return ["#6A8FB8","Below the benchmark.","Reserves cover imports for a while, but short of the three months the SBP is aiming for."];
+  return ["var(--in)","Benchmark met.","At least three months of imports covered. Check how much of it is borrowed."];
+}
+function syncSandbox(label,note){
+  SL.forEach(s=>$("#o-"+s.k).textContent=fmtSl(s,SB[s.k]));
+  const r=model(SB), b=model(DEF);
+  const row=(l,a,c,cls)=>'<tr'+(cls?' class="'+cls+'"':'')+'><td>'+l+'</td><td>'+f1(a,2)+'</td><td class="'+(c<0?"out":"")+'">'+f1(c,2)+'</td></tr>';
+  const v=coverVerdict(r);
+  const pct=Math.min(100,r.cover/6*100);
+  $("#sbOut").innerHTML=(label?'<p class="fignote" style="margin:0 0 4px"><b>Scenario: '+esc(label)+'.</b> '+(note?esc(note):'')+'</p>':'')+
+   '<table class="t"><thead><tr><th>US$ billion</th><th>FY26 actual</th><th>Your FY27</th></tr></thead><tbody>'+
+   row("Goods exports",BASE.gx,r.gx,"sub")+row("Goods imports",BASE.gm,r.gm,"sub")+row("Goods balance",b.goods,r.goods)+
+   row("Services balance",b.serv,r.serv)+row("Primary income",b.prim,r.prim)+row("Secondary income",b.sec,r.sec)+
+   row("Current account",b.ca,r.ca,"sum")+row("Capital account and errors",BASE.ka+BASE.eo,BASE.ka+BASE.eo)+row("Net financial inflows",b.fin,r.fin)+
+   row("Overall balance",b.overall,r.overall,"sum")+row("Net IMF lending",DEF.imf,SB.imf)+'</tbody></table>'+
+   '<p style="margin:10px 0 0">Current account: <b class="'+(r.ca<0?"out":"in")+'">'+sg(r.caPct,2)+'% of GDP</b> (FY26 GDP).</p>'+
+   '<p style="margin:2px 0 0">SBP reserves at end-June 2027: <b style="font:700 1.35rem var(--slab)">$'+r.reserves.toFixed(1)+'bn</b>, or <b>'+r.cover.toFixed(1)+' months</b> of imports.</p>'+
+   '<div class="gauge" aria-hidden="true"><div class="gtrack"><div class="gfill" style="width:'+pct+'%;background:'+v[0]+'"></div><div class="gbench" style="left:50%"></div></div><div class="gmarks"><span style="left:0%">0</span><span style="left:16.7%">1</span><span style="left:33.3%">2</span><span style="left:50%">3 months</span><span style="left:66.7%">4</span><span style="left:83.3%">5</span><span style="left:98%">6</span></div></div>'+
+   '<div class="verdict" style="border-left-color:'+v[0]+'"><b>'+v[1]+'</b> '+v[2]+'</div>';
+}
+
+/* ===================== CHAPTER 6: governor's challenge ===================== */
+const INFL=["","Low","Moderate","Elevated","High","Severe"];
+const SHOCKS=[
+  {id:"oil",t:"Energy shock",good:false,d:"The Middle East conflict keeps oil and LNG prices 30% above last year's average.",e:{oil:30},
+   r:[{t:"Pass higher fuel prices on to consumers and raise the policy rate by 100 bp",h:"Cuts fuel and import demand, slows growth",e:{gM:-3,oil:-5,growth:-0.4}},
+      {t:"Freeze fuel prices with a budget subsidy",h:"Shields households, but breaks the IMF fiscal target",e:{gM:1,growth:0.2,infl:-1,imf:-1.2}},
+      {t:"Ration letters of credit for non-essential imports",h:"Quick fall in imports, but factories run short of inputs",e:{gM:-10,gX:-3,growth:-1.5,infl:1,imf:-1.2}}]},
+  {id:"exp",t:"Export orders fall",good:false,d:"Weak demand in Europe and the US cuts textile orders: goods exports fall 6%.",e:{gX:-6},
+   r:[{t:"Let the rupee depreciate by about 7%",h:"Makes exports cheaper and imports dearer, adds to inflation",e:{gX:4,gM:-3,infl:1}},
+      {t:"Hold the rupee steady by selling dollars",h:"No price shock, but an overvalued rupee and an IMF breach",e:{gX:-2,gM:2,imf:-1.2}},
+      {t:"Give exporters relief on energy tariffs",h:"Helps exporters at a fiscal cost",e:{gX:2,growth:0.2}}]},
+  {id:"rem",t:"Remittances wobble",good:false,d:"A Gulf slowdown and a wider gap between the open-market and interbank rates push remittances 8% below last year as some money moves to informal channels.",e:{gR:-8},
+   r:[{t:"Close the exchange-rate gap and cut transfer fees",h:"Pulls money back into formal channels",e:{gR:5}},
+      {t:"Borrow $1.5bn through a new Sukuk",h:"Fills the gap now, adds to interest costs",e:{borrow:1.5,primAdj:-0.1}},
+      {t:"Wait and see",h:"No cost now",e:{}}]},
+  {id:"debt",t:"Repayment wall",good:false,d:"$2bn of commercial loans fall due and lenders are slow to refinance.",e:{borrow:-2},
+   r:[{t:"Ask friendly countries to roll over their deposits",h:"Buys time; the debt is still there",e:{borrow:1.5}},
+      {t:"Repay from reserves",h:"Keeps credibility, drains reserves",e:{}},
+      {t:"Refinance with a Panda bond in China",h:"New lenders, new interest bill",e:{borrow:1.5,primAdj:-0.05}}]},
+  {id:"it",t:"IT export boom",good:true,d:"Good news: services exports grow 25% as IT and freelancing orders surge.",e:{gS:25},
+   r:[{t:"Bank the windfall and keep policy unchanged",h:"Reserves benefit in full",e:{}},
+      {t:"Cut the policy rate by 100 bp to support growth",h:"Faster growth pulls in imports and adds to inflation",e:{growth:0.5,gM:3,infl:1}},
+      {t:"Use it to prepay expensive short-term debt",h:"Less borrowing now, lower interest later",e:{borrow:-1,primAdj:0.1}}]}
+];
+let G=null;
+function newGov(){
+  const deck=SHOCKS.slice(); for(let i=deck.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [deck[i],deck[j]]=[deck[j],deck[i]]; }
+  G={p:Object.assign({},DEF),growth:3.7,infl:2,round:0,deck:deck.slice(0,3),phase:"shock",log:[]};
+}
+function applyEff(e){ for(const k in e){ if(k==="growth") G.growth=+(G.growth+e[k]).toFixed(2); else if(k==="infl") G.infl=Math.max(1,Math.min(5,G.infl+e[k])); else if(k==="imf") G.p.imf=Math.max(0,+(G.p.imf+e[k]).toFixed(2)); else G.p[k]=+((G.p[k]||0)+e[k]).toFixed(3); } }
+function statusLine(){
+  const r=model(G.p);
+  return '<div class="statusline"><div><div class="sv '+(r.ca<0?"out":"in")+'">'+sg(r.ca,2)+'</div><div class="sl">Current account, US$ bn</div></div>'+
+   '<div><div class="sv">'+r.cover.toFixed(1)+' mo</div><div class="sl">Reserves $'+r.reserves.toFixed(1)+'bn at end-June 2027</div></div>'+
+   '<div><div class="sv">'+G.growth.toFixed(1)+'%</div><div class="sl">GDP growth</div></div>'+
+   '<div><div class="sv">'+INFL[G.infl]+'</div><div class="sl">Inflation pressure</div></div></div>';
+}
+function renderGov(){
+  const root=$("#gov");
+  if(!G){
+    root.innerHTML='<p>You start from FY26: growth of about 3.7%, reserves heading for '+model(DEF).cover.toFixed(1)+' months of imports, moderate inflation pressure.</p>'+
+     (S.gov.done?'<p>Best result so far: <span class="stars">'+"★".repeat(S.gov.bestStars)+"☆".repeat(3-S.gov.bestStars)+'</span></p>':'')+
+     '<button class="btn" id="govStart">'+(S.gov.done?"Play again":"Take the governor's chair")+'</button>';
+    $("#govStart").onclick=()=>{ newGov(); renderGov(); };
+    return;
+  }
+  if(G.round>=3) return renderGovEnd();
+  const sh=G.deck[G.round];
+  if(G.phase==="shock"){ applyEff(sh.e); G.phase="choose"; }
+  root.innerHTML='<div class="round"><p class="qprog"><span>Shock '+(G.round+1)+' of 3</span></p>'+
+   '<div class="shock'+(sh.good?" good":"")+'"><h4>'+sh.t+'</h4><p style="margin:0">'+esc(sh.d)+'</p></div>'+
+   '<p style="margin:0 0 2px;font-weight:700">Where FY27 is heading now</p>'+statusLine()+
+   '<p style="margin:14px 0 8px;font-weight:700">Your response</p><div class="resp">'+sh.r.map((x,i)=>'<button class="opt" data-r="'+i+'">'+esc(x.t)+'<small>'+esc(x.h)+'</small></button>').join("")+'</div>'+
+   '<div class="feedback" aria-live="polite"></div><div class="btnrow"><button class="btn" id="govNext" hidden>'+(G.round===2?"See the year's result":"Next shock")+'</button></div></div>';
+  $$(".resp .opt",root).forEach(b=>b.addEventListener("click",()=>{
+    const ch=sh.r[+b.dataset.r], before=model(G.p);
+    applyEff(ch.e); G.log.push(sh.t+": "+ch.t);
+    $$(".resp .opt",root).forEach(x=>{ x.disabled=true; if(x===b) x.classList.add("picked"); });
+    const after=model(G.p);
+    $(".feedback",root).innerHTML='<div class="fb ok"><b>Decision recorded.</b> Current account moves from '+sg(before.ca,2)+' to '+sg(after.ca,2)+'bn; reserves end the year at '+after.cover.toFixed(1)+' months of imports.</div>'+statusLine();
+    const n=$("#govNext"); n.hidden=false; n.focus(); n.onclick=()=>{ G.round++; G.phase="shock"; renderGov(); };
+  }));
+}
+function renderGovEnd(){
+  const root=$("#gov"), r=model(G.p);
+  const tests=[["Reserves of at least 3 months of imports",r.cover>=3,r.cover.toFixed(1)+" months"],["GDP growth of 3% or more",G.growth>=3,G.growth.toFixed(1)+"%"],["Inflation pressure no worse than elevated",G.infl<=3,INFL[G.infl]]];
+  const stars=tests.filter(t=>t[1]).length;
+  let bonusTxt="";
+  if(!S.gov.done){ S.gov.done=true; S.gov.bestStars=stars; save(); if(stars) { addScore(stars*0.3); } bonusTxt=stars? "+$"+(stars*0.3).toFixed(1)+"bn added to your game reserves." : "No bonus this time."; }
+  else { if(stars>S.gov.bestStars){ S.gov.bestStars=stars; save(); } bonusTxt="Replays do not change your reserves."; }
+  buildNav();
+  root.innerHTML='<p class="stars" aria-label="'+stars+' of 3 tests passed">'+"★".repeat(stars)+"☆".repeat(3-stars)+'</p>'+
+   '<p class="summary"><span class="big">'+stars+' of 3 tests passed</span></p><p>'+bonusTxt+'</p>'+statusLine()+
+   '<table class="t"><tbody>'+tests.map(t=>'<tr><td>'+t[0]+'</td><td>'+t[2]+'</td><td class="'+(t[1]?"pass":"fail")+'">'+(t[1]?"Passed":"Missed")+'</td></tr>').join("")+'</tbody></table>'+
+   '<h4>Your decisions</h4><ul class="plain">'+G.log.map(l=>'<li>'+esc(l)+'</li>').join("")+'</ul>'+
+   '<p class="fignote">Pakistan\'s policymakers face the same three-way pull: protecting reserves usually costs growth, and protecting growth usually costs reserves or price stability. Borrowing buys time but adds to the interest bill in primary income.</p>'+
+   '<div class="btnrow"><button class="btn" id="govAgain">Play again with new shocks</button><button class="btn ghost" id="govLoad">Open this result in the sandbox</button></div>';
+  $("#govAgain").onclick=()=>{ newGov(); renderGov(); };
+  $("#govLoad").onclick=()=>{ SB=Object.assign({},G.p); SL.forEach(s=>$("#sl-"+s.k).value=SB[s.k]); syncSandbox("Your challenge result"); $("#sliders").scrollIntoView({behavior:"smooth"}); };
+}
+
+/* ===================== GLOSSARY ===================== */
+const GLOSS=[
+ ["Balance of payments (BoP)","A record of all economic transactions between a country's residents and the rest of the world over a period."],
+ ["Resident","A person, firm or institution whose main economic interest lies in the country. Usually someone living there for a year or more, whatever their nationality."],
+ ["Credit and debit","Credits (jama) bring foreign currency in; debits (naam) send it out. Every transaction is recorded as both, so the accounts balance."],
+ ["Current account","Trade in goods and services plus primary and secondary income. Its balance shows whether a country earns more foreign currency than it spends."],
+ ["Trade balance","Exports minus imports of goods. Often quoted from PBS customs data, which differ from the SBP's payment-based figures."],
+ ["Primary income","Income from capital and labour across borders: interest, profits, dividends and short-term wages."],
+ ["Secondary income","Current transfers with nothing given in return, mainly workers' remittances and grants for consumption."],
+ ["Workers' remittances","Money sent home by Pakistanis living and working abroad. A record $41.6bn in FY26."],
+ ["Capital account","Capital transfers such as debt forgiveness and investment grants, and trade in non-produced assets."],
+ ["Financial account","Changes in a country's foreign financial assets and liabilities: direct, portfolio and other investment, and reserve assets."],
+ ["Direct investment (FDI)","A lasting stake of 10% or more in an enterprise in another country."],
+ ["Portfolio investment","Cross-border holdings of shares and bonds below the 10% threshold, including Eurobonds and Sukuk."],
+ ["Other investment","Loans, deposits, trade credit and similar claims not counted elsewhere."],
+ ["Reserve assets","Foreign currency, gold and SDRs held by the central bank and available to pay for imports or debt."],
+ ["Use of Fund credit","Net lending from the IMF. The SBP shows it in the reserves and related items block."],
+ ["Overall balance","Current account + capital account + net financial inflows + errors and omissions. Positive means reserves are rising (before IMF lending)."],
+ ["Net errors and omissions","The balancing item that captures transactions the statistics miss."],
+ ["Import cover","Reserves divided by monthly imports of goods and services. Three months is a common benchmark."],
+ ["BPM6","The IMF's sixth Balance of Payments Manual, which the SBP has used since 2013. It measures the financial account as assets minus liabilities, so net inflows appear as negative numbers."],
+ ["Eurobond, Sukuk, Panda bond","Government bonds sold abroad: a Eurobond in foreign currency on international markets, a Sukuk in Shariah-compliant form, a Panda bond in yuan in China's market."],
+ ["Rollover","Agreement by a lender to extend a loan or deposit when it matures, so no payment leaves the country."]
+];
+function initGloss(){ $("#gloss").innerHTML=GLOSS.map(g=>'<dt>'+esc(g[0])+'</dt><dd>'+esc(g[1])+'</dd>').join(""); }
+
+/* ===================== INIT ===================== */
+const INIT={
+  c1(){ initMap(); renderQuiz("c1"); },
+  c2(){ drawWaterfall("fy26"); segBind("wfSeg",drawWaterfall); renderQuiz("c2"); },
+  c3(){ finTable(); renderQuiz("c3"); },
+  c4(){ drawEq("fy26"); segBind("eqSeg",drawEq); renderQuiz("c4"); },
+  c5(){ drawHist(); drawFlows(); drawReserves(); renderQuiz("c5"); },
+  c6(){ initSandbox(); renderGov(); },
+  gl(){ initGloss(); }
+};
+$("#startBtn").addEventListener("click",()=>{
+  const firstOpen=QUIZ_CH.find(ch=>QUIZ[ch].some(it=>!S.res[it.id]));
+  go(firstOpen || "c6");
+});
+$("#resetBtn").addEventListener("click",function(){
+  if(!this.dataset.armed){ this.dataset.armed="1"; this.textContent="Click again to erase all progress"; const b=this; setTimeout(()=>{ delete b.dataset.armed; b.textContent="Reset the game"; },5000); return; }
+  delete this.dataset.armed; this.textContent="Reset the game";
+  S={score:START,res:{},view:"intro",gov:{done:false,bestStars:0}}; practice={}; G=null; save();
+  for(const k in RENDERED) delete RENDERED[k];
+  updateMeter(); go("intro");
+});
+load(); drawTicks(); updateMeter();
+if(Object.keys(S.res).length){ $("#startBtn").textContent="Continue where you left off"; }
+go(S.view||"intro",true);
+})();
+</script>
+</body>
+</html>
