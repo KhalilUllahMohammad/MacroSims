@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>DAD–DAS Simulator (Mankiw Ch. 14)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#fafaf7;--card:#fff;--tx:#1f2328;--mut:#5f6670;--bd:#d9d9d2;--das:#1f6feb;--dad:#d9480f;--gh:#9aa0a6;--hl:#fff3bf}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181c;--card:#1f2227;--tx:#e8e8e6;--mut:#a0a6ad;--bd:#383c43;--das:#6aa6ff;--dad:#ff9a62;--gh:#6b7078;--hl:#4a4320}}
+:root[data-theme="dark"]{--bg:#16181c;--card:#1f2227;--tx:#e8e8e6;--mut:#a0a6ad;--bd:#383c43;--das:#6aa6ff;--dad:#ff9a62;--gh:#6b7078;--hl:#4a4320}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:0}.sub{color:var(--mut);margin:4px 0 12px;font-size:13px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+button{font:inherit;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px 12px;cursor:pointer}
+button.on{background:var(--tx);color:var(--bg)}
+section{display:none}section.on{display:block}
+.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:12px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--tx);font:11px system-ui,sans-serif}
+.m{color:var(--mut);font-size:13px}.das{color:var(--das);font-weight:600}.dad{color:var(--dad);font-weight:600}
+code,.eq{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--bg);border-radius:6px;padding:3px 6px;display:block;margin:4px 0;overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid var(--bd);padding:4px 6px;text-align:left}
+tr.act td{background:var(--hl)}
+.row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px}.row label{width:150px}.row input[type=range]{flex:1}.row b{width:44px;text-align:right}
+.spk{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+@media(max-width:700px){.spk{grid-template-columns:1fr 1fr}}
+.story{background:var(--bg);border-left:4px solid var(--dad);padding:8px 10px;border-radius:6px;margin-top:8px}
+</style></head><body><div class="wrap">
+<h1>DAD–DAS Simulator</h1>
+<p class="sub">Mankiw, <i>Macroeconomics</i> Ch. 14 · Parameters from the slides: Ȳ=100, π*=2, α=1, ρ=2, φ=0.25, θπ=0.5, θY=0.5 ⇒ A = αθπ/(1+αθY) = 0.33, B = 1/(1+αθY) = 0.67</p>
+<nav class="tabs"><button data-t="b" class="on">1 · Build the curves</button><button data-t="s">2 · Shifters</button><button data-t="c">3 · Scenarios</button></nav>
+
+<section id="b" class="on"><div class="grid"><div class="card"><div id="sb"></div></div>
+<div class="card"><div id="bt"></div><div style="margin-top:10px"><button id="bp">◀ Back</button> <button id="bn">Next ▶</button></div></div></div></section>
+
+<section id="s"><div class="grid"><div class="card"><div id="ss"></div><div class="m"><span class="das">━ DAS</span> · <span class="dad">━ DAD</span> · dashed = baseline (Ȳ=100, π<sub>t−1</sub>=2, v=0, π*=2, ε=0)</div></div>
+<div class="card"><b>Move a shifter, watch the curve</b><div id="sl"></div><button id="sr">Reset</button><table style="margin-top:8px" id="st"></table><div class="story" id="so"></div></div></div></section>
+
+<section id="c"><div class="grid"><div class="card"><div id="sc"></div><div class="m"><span class="das">━ DAS</span> · <span class="dad">━ DAD</span> · dashed = previous period · dots = path of equilibrium</div></div>
+<div class="card"><div class="tabs" id="scb"></div><div id="cs"></div>
+<div class="row"><label>Period</label><input type="range" id="pk" min="0" max="15" value="1"><b id="pl"></b></div>
+<div><button id="pm">◀</button> <button id="pn">▶</button> <button id="pp">▶▶ Play</button></div>
+<div id="ci"></div></div></div><div class="spk" id="spk"></div></section>
+</div>
+<script>
+const $=s=>document.querySelector(s),f=n=>(+n).toFixed(2),d=n=>(n>=0?'+':'−')+Math.abs(n).toFixed(2);
+const P={a:1,rho:2,phi:.25,tp:.5,ty:.5},A=P.a*P.tp/(1+P.a*P.ty),B=1/(1+P.a*P.ty);
+function solve(Yb,pp,v,e,ps){const y=(-A*(pp+v-ps)+B*e)/(1+A*P.phi),pi=pp+P.phi*y+v,i=pi+P.rho+P.tp*(pi-ps)+P.ty*y;return{Y:Yb+y,pi,i,r:i-pi}}
+const X=y=>60+(y-94)/12*480,Y=p=>360-p/7*340,base={Yb:100,pp:2,v:0,e:0,ps:2};
+function line(c,k,gh){const g=y=>k=='das'?c.pp+c.v+P.phi*(y-c.Yb):c.ps+(c.Yb-y+B*c.e)/A;
+return `<line x1="${X(94)}" y1="${Y(g(94))}" x2="${X(106)}" y2="${Y(g(106))}" stroke="var(--${k})" stroke-width="${gh?1.8:3.2}" ${gh?'stroke-dasharray="6 5" opacity=".6"':''} clip-path="url(#cp)"/>`}
+function draw(el,o){const c=o.cur,sh=o.show||{das:1,dad:1};let s=`<svg viewBox="0 0 560 410"><defs><clipPath id="cp"><rect x="60" y="20" width="480" height="340"/></clipPath></defs>`;
+for(let y=94;y<=106;y+=2)s+=`<line x1="${X(y)}" x2="${X(y)}" y1="360" y2="364" stroke="var(--gh)"/><text x="${X(y)}" y="376" text-anchor="middle">${y}</text>`;
+for(let p=0;p<=7;p++)s+=`<line x1="56" x2="60" y1="${Y(p)}" y2="${Y(p)}" stroke="var(--gh)"/><text x="52" y="${Y(p)+4}" text-anchor="end">${p}</text>`;
+s+=`<rect x="60" y="20" width="480" height="340" fill="none" stroke="var(--bd)"/><text x="300" y="400" text-anchor="middle">Output, Y</text><text x="14" y="190" transform="rotate(-90 14 190)" text-anchor="middle">Inflation, π (%)</text>`;
+s+=`<line x1="${X(c.Yb)}" x2="${X(c.Yb)}" y1="20" y2="360" stroke="var(--gh)" stroke-dasharray="2 4"/><text x="${X(c.Yb)+3}" y="32">Ȳ</text><line x1="60" x2="540" y1="${Y(c.ps)}" y2="${Y(c.ps)}" stroke="var(--gh)" stroke-dasharray="2 4"/><text x="64" y="${Y(c.ps)-4}">π*</text>`;
+if(o.ghost){if(sh.das)s+=line(o.ghost,'das',1);if(sh.dad)s+=line(o.ghost,'dad',1)}
+if(sh.das){s+=line(c,'das');s+=`<text x="${X(105.9)}" y="${Math.max(30,Y(c.pp+c.v+P.phi*(105.9-c.Yb)))-6}" text-anchor="end" style="fill:var(--das);font-weight:700">DAS</text>`}
+if(sh.dad){s+=line(c,'dad');const x=Math.min(105.5,Math.max(94.5,c.Yb+B*c.e-A*(6.3-c.ps)));s+=`<text x="${X(x)+6}" y="${Y(6.3)}" style="fill:var(--dad);font-weight:700">DAD</text>`}
+if(o.trail)s+=`<polyline fill="none" stroke="var(--tx)" stroke-width="1" opacity=".5" points="${o.trail.map(t=>X(t.Y)+','+Y(t.pi)).join(' ')}"/>`+o.trail.slice(0,-1).map(t=>`<circle cx="${X(t.Y)}" cy="${Y(t.pi)}" r="3" fill="var(--gh)"/>`).join('');
+if(o.pt){const e=solve(c.Yb,c.pp,c.v,c.e,c.ps);s+=`<circle cx="${X(e.Y)}" cy="${Y(e.pi)}" r="6" fill="var(--tx)"/><text x="${X(e.Y)+9}" y="${Y(e.pi)-7}" style="font-weight:700">${o.lab||'E'} (Y=${f(e.Y)}, π=${f(e.pi)})</text>`}
+$(el).innerHTML=s+'</svg>'}
+document.querySelectorAll('.tabs:first-of-type button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs:first-of-type button,section').forEach(x=>x.classList.remove('on'));b.classList.add('on');$('#'+b.dataset.t).classList.add('on')});
+
+/* ---------- 1. Build ---------- */
+const steps=[
+{t:'Five ingredients',h:`<p class="m">DAD–DAS has five equations and five endogenous variables (Y, π, r, i, Eπ).</p>
+<code>Demand (IS): Y = Ȳ − α(r − ρ) + ε</code><code>Fisher: r = i − Eₜπₜ₊₁</code><code>Phillips: π = Eₜ₋₁π + φ(Y − Ȳ) + v</code><code>Adaptive exp.: Eₜπₜ₊₁ = πₜ</code><code>Policy rule: i = π + ρ + θπ(π − π*) + θY(Y − Ȳ)</code>
+<p>Next we combine them in two groups: <span class="das">supply side → DAS</span> and <span class="dad">demand side → DAD</span>.</p>`,s:{}},
+{t:'DAS: Phillips curve + adaptive expectations',h:`<p>Start with the Phillips curve and substitute adaptive expectations (expected inflation = last period’s inflation):</p>
+<code>πₜ = πₜ₋₁ + φ(Yₜ − Ȳₜ) + vₜ</code>
+<p><span class="das">Slope:</span> upward (φ = 0.25). Higher output ⇒ demand-pull inflation.<br><span class="das">Position</span> is set by three things you know at the start of the period: <b>πₜ₋₁</b> (momentum), <b>vₜ</b> (cost-push shock) and <b>Ȳₜ</b> (it crosses Ȳ at height πₜ₋₁ + v).</p>`,s:{das:1}},
+{t:'DAD: IS + Fisher + monetary rule',h:`<p>Put r = i − π into the demand equation, then replace i with the policy rule:</p>
+<code>Y = Ȳ − α[ θπ(π − π*) + θY(Y − Ȳ) ] + ε</code><p>Solve for Y:</p><code>Y = Ȳ − A(π − π*) + Bε<br>A = αθπ/(1+αθY) = ${f(A)}, B = 1/(1+αθY) = ${f(B)}</code>
+<p><span class="dad">Why downward?</span> Higher π ⇒ central bank raises i by more than π (θπ > 0) ⇒ higher real rate ⇒ lower demand. No dynamics: it just links Y and π measured at the same time.<br><span class="dad">Position</span> is set by <b>Ȳ</b>, <b>π*</b> and <b>ε</b>.</p>`,s:{dad:1}},
+{t:'Short-run equilibrium',h:`<p>Each period the economy sits where DAD and DAS cross. That fixes Y and π; then r = i − π and i follow from the rule.</p>
+<p><b>Long-run equilibrium</b> (ε = v = 0, π stable ⇒ πₜ = πₜ₋₁):</p><code>Y = Ȳ · π = π* · r = ρ = 2 · i = ρ + π* = 4</code>
+<p>The curves cross exactly at (Ȳ, π*). Shocks or growth move the curves off this point; the next two tabs show how.</p>`,s:{das:1,dad:1},pt:1}];
+let bs=0;function rb(){const s=steps[bs];$('#bt').innerHTML=`<div class="m">Step ${bs+1} of ${steps.length}</div><h3 style="margin:2px 0 8px">${s.t}</h3>`+s.h;draw('#sb',{cur:base,show:s.s,pt:s.pt,lab:'A'});$('#bp').disabled=!bs;$('#bn').disabled=bs==steps.length-1}
+$('#bp').onclick=()=>{bs--;rb()};$('#bn').onclick=()=>{bs++;rb()};rb();
+
+/* ---------- 2. Shifters ---------- */
+const defs=[['dY','Natural output change, ΔȲ',-4,4,.5,0],['pp','Prev. inflation, πₜ₋₁',0,5,.25,2],['v','Inflation shock, v',-2,3,.25,0],['ps','Target inflation, π*',1,4,.25,2],['e','Demand shock, ε',-4,4,.5,0]];
+const V={};function mk(){$('#sl').innerHTML=defs.map(x=>`<div class="row"><label>${x[1]}</label><input type="range" id="i_${x[0]}" min="${x[2]}" max="${x[3]}" step="${x[4]}" value="${x[5]}"><b id="o_${x[0]}"></b></div>`).join('');defs.forEach(x=>$('#i_'+x[0]).oninput=rs);rs()}
+function rs(){defs.forEach(x=>{V[x[0]]=+$('#i_'+x[0]).value;$('#o_'+x[0]).textContent=V[x[0]]});
+const c={Yb:100+V.dY,pp:V.pp,v:V.v,e:V.e,ps:V.ps};draw('#ss',{cur:c,ghost:base,pt:1});
+const R=[['ΔȲ ↑','dY',`DAS <b>right</b> ${d(V.dY)} · DAD <b>right</b> ${d(V.dY)}`],['πₜ₋₁ ↑','pp',`DAS <b>up</b> ${d(V.pp-2)}`],['v > 0','v',`DAS <b>up</b> ${d(V.v)}`],['π* ↑','ps',`DAD <b>up</b> ${d(V.ps-2)}`],['ε > 0','e',`DAD <b>right</b> ${d(B*V.e)} (= B·ε)`]];
+const z={dY:0,pp:2,v:0,ps:2,e:0};
+$('#st').innerHTML='<tr><th>Shifter</th><th>Effect</th></tr>'+R.map(r=>`<tr class="${V[r[1]]!=z[r[1]]?'act':''}"><td>${r[0]}</td><td>${r[2]}</td></tr>`).join('');
+const e=solve(c.Yb,c.pp,c.v,c.e,c.ps),e0=solve(100,2,0,0,2);$('#so').innerHTML=`New equilibrium: Y = ${f(e.Y)} (${d(e.Y-e0.Y)}), π = ${f(e.pi)} (${d(e.pi-e0.pi)}).<br><span class="m">Try: ΔȲ alone → Y moves, π does not. ε alone → both rise. v alone → π up, Y down.</span>`}
+$('#sr').onclick=()=>{defs.forEach(x=>$('#i_'+x[0]).value=x[5]);rs()};mk();
+
+/* ---------- 3. Scenarios ---------- */
+const SC={nat:['↑ Natural output',3,.5,5,'ΔȲ'],dem:['+ Demand shock',3,.5,6,'ε'],sup:['− Supply shock (π shock)',2,.5,4,'v']};
+const S={sc:'nat',size:3,dur:1,k:1,t:null};
+function sim(sc,size,dur){const o=[];let pp=2;for(let k=0;k<=15;k++){const on=k>=1&&k<=dur,Yb=100+(sc=='nat'&&k>=1?size:0),v=sc=='sup'&&on?size:0,e=sc=='dem'&&on?size:0,s=solve(Yb,pp,v,e,2);o.push({k,Yb,pp,v,e,ps:2,...s});pp=s.pi}return o}
+function story(R,k){const c=R[k],sc=S.sc;if(!k)return'Long-run equilibrium: no shocks, so Y = Ȳ, π = π* = 2, r = ρ = 2, i = 4. Press ▶ to hit the economy.';
+const act=sc=='nat'||k<=S.dur,first=k==1,done=Math.abs(c.Y-c.Yb)<.03&&Math.abs(c.pi-2)<.03;
+if(sc=='nat')return first?'Ȳ rises: <b>DAS and DAD both shift right by exactly ΔȲ</b>. The intersection slides horizontally: Y jumps to the new Ȳ while π, r and i do not change. Growth is not inflationary because supply and demand expand together.':'Nothing left to adjust: π<sub>t−1</sub> is unchanged, so both curves stay put and the economy sits at the new long-run equilibrium (B).';
+if(sc=='dem'){if(act&&first)return'Positive demand shock (e.g. ↑G, ↑C, ↑I, ↓T): <b>DAD shifts right by B·ε</b>; DAS has not moved yet. Boom: Y > Ȳ and π rises above target. The central bank raises r, which is why DAD moves by Bε &lt; ε.';
+if(act)return'Shock persists: DAD stays right, but last period’s higher inflation pushes <b>DAS up</b> each period, so inflation keeps climbing while the output boom fades.';
+if(done)return'Back to the original long-run equilibrium: Y = Ȳ, π = π*, r = ρ.';
+return k==S.dur+1?'Shock is over, DAD returns, but <b>DAS stays up</b> because π<sub>t−1</sub> is high (expectations adapt slowly). Output falls below Ȳ (recession) while inflation is still above target.':'Each period inflation falls, so expected inflation falls and DAS slides down. Output recovers toward Ȳ along DAD.'}
+if(act&&first)return'Negative supply shock (v > 0, e.g. oil, drought): <b>DAS shifts up by v</b>; DAD does not move. Stagflation: π jumps and Y falls. The central bank raises r in response to the inflation gap, moving the economy up-left along DAD.';
+if(act)return'Shock persists, and expectations rise too: DAS moves up again by the extra inflation carried over from last period.';
+if(done)return'Back at A: a one-time inflation shock has no permanent effect on Y or π.';
+return k==S.dur+1?'Shock gone (v = 0), but <b>DAS does not fall back to its original place</b>: it sits at π<sub>t−1</sub>, which is still high. Inflation stays above target and output below Ȳ.':'Each period lower inflation lowers expectations, DAS shifts down, π falls and Y rises along DAD until A is reached.'}
+function rc(){const R=sim(S.sc,S.size,S.dur),k=S.k,c=R[k],p=R[Math.max(0,k-1)],e=solve(c.Yb,c.pp,c.v,c.e,2);
+draw('#sc',{cur:c,ghost:k?p:null,trail:R.slice(0,k+1),pt:1,lab:k?'t'+(k>1?'+'+(k-1):''):'A'});
+$('#pl').textContent=k?(k==1?'t':'t+'+(k-1)):'t−1';$('#pk').value=k;
+const sh=k?`<tr><td class="das">DAS</td><td>up ${d(c.pp+c.v-p.pp-p.v)} · right ${d(c.Yb-p.Yb)}</td></tr><tr><td class="dad">DAD</td><td>up ${d(0)} · right ${d(c.Yb+B*c.e-p.Yb-B*p.e)}</td></tr>`:'';
+const rw=(n,a,b)=>`<tr><td>${n}</td><td>${f(a)}</td><td>${k?d(a-b):'–'}</td></tr>`;
+$('#ci').innerHTML=`<table style="margin-top:8px"><tr><th>Shifts vs. prev. period</th><th></th></tr>${sh||'<tr><td colspan=2 class="m">–</td></tr>'}</table>
+<code>DAS: π = ${f(c.pp)} + ${f(c.v)} + ${P.phi}(Y − ${f(c.Yb)})</code><code>DAD: Y = ${f(c.Yb)} − ${f(A)}(π − 2) + ${f(B)}·${f(c.e)}</code>
+<table style="margin-top:8px"><tr><th>Variable</th><th>Value</th><th>Δ prev.</th></tr>${rw('Output Y',e.Y,p.Y)}${rw('Inflation π',e.pi,p.pi)}${rw('Real rate r',e.r,p.r)}${rw('Nominal rate i',e.i,p.i)}</table><div class="story">${story(R,k)}</div>`;
+const sp=(t,key,b)=>{const v=R.map(r=>r[key]),bs=R.map(r=>b=='Yb'?r.Yb:b);let all=v.concat(bs),lo=Math.min(...all),hi=Math.max(...all);if(hi-lo<1){const m=(hi+lo)/2;lo=m-.5;hi=m+.5}const q=(hi-lo)*.15;lo-=q;hi+=q;const W=260,H=120,x=i=>34+i/15*218,y=u=>H-18-(u-lo)/(hi-lo)*(H-40),pl=a=>a.map((u,i)=>x(i)+','+y(u)).join(' ');
+return`<div class="card" style="padding:6px"><svg viewBox="0 0 ${W} ${H}"><text x="6" y="12" style="font-weight:700">${t}</text><polyline fill="none" stroke="var(--gh)" stroke-dasharray="4 3" points="${pl(bs)}"/><polyline fill="none" stroke="var(--dad)" stroke-width="2" points="${pl(v)}"/><line x1="${x(k)}" x2="${x(k)}" y1="20" y2="${H-18}" stroke="var(--tx)" opacity=".4"/><circle cx="${x(k)}" cy="${y(v[k])}" r="4" fill="var(--tx)"/><text x="30" y="${y(hi-q)+4}" text-anchor="end">${hi.toFixed(1)}</text><text x="30" y="${y(lo+q)+4}" text-anchor="end">${lo.toFixed(1)}</text><text x="${W/2}" y="${H-4}" text-anchor="middle">period (shock at 1)</text></svg></div>`};
+$('#spk').innerHTML=sp('Output Y','Y','Yb')+sp('Inflation π','pi',2)+sp('Real rate r','r',2)+sp('Nominal rate i','i',4)}
+function mc(){const s=S.sc,x=SC[s];$('#cs').innerHTML=`<div class="row"><label>Size (${x[4]})</label><input type="range" id="sz" min="${x[2]}" max="${x[3]}" step=".5" value="${S.size}"><b id="szo">${S.size}</b></div><div class="row"><label>Duration (periods)</label><input type="range" id="du" min="1" max="6" value="${S.dur}" ${s=='nat'?'disabled':''}><b id="duo">${s=='nat'?'∞':S.dur}</b></div>`;
+$('#sz').oninput=e=>{S.size=+e.target.value;$('#szo').textContent=S.size;rc()};$('#du').oninput=e=>{S.dur=+e.target.value;$('#duo').textContent=S.dur;rc()};
+document.querySelectorAll('#scb button').forEach(b=>b.classList.toggle('on',b.dataset.s==s));rc()}
+$('#scb').innerHTML=Object.keys(SC).map(k=>`<button data-s="${k}">${SC[k][0]}</button>`).join('');
+document.querySelectorAll('#scb button').forEach(b=>b.onclick=()=>{S.sc=b.dataset.s;S.size=SC[S.sc][1];S.dur=1;S.k=1;stop();mc()});
+function stop(){clearInterval(S.t);S.t=null;$('#pp').textContent='▶▶ Play'}
+$('#pk').oninput=e=>{S.k=+e.target.value;rc()};$('#pm').onclick=()=>{S.k=Math.max(0,S.k-1);rc()};$('#pn').onclick=()=>{S.k=Math.min(15,S.k+1);rc()};
+$('#pp').onclick=()=>{if(S.t)return stop();S.k=0;rc();$('#pp').textContent='■ Stop';S.t=setInterval(()=>{if(S.k>=15)return stop();S.k++;rc()},1100)};
+mc();
+</script></body></html>
