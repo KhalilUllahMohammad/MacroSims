@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DAD–DAS Simulator · The Dynamic AD–AS Model</title>
+<style>
+:root{
+  --bg:#f4f3ee; --surface:#ffffff; --surface-2:#f8f7f3; --border:#e0ded6; --grid:#ecebe4; --axis:#b4b2a9;
+  --text:#1b1b19; --text-2:#55544e; --text-3:#83827a;
+  --dad:#257de0; --das:#f47230; --path:#6a4ce2; --aqua:#00a383;
+  --ok:#0b7a1f; --okbg:#e8f4ea; --bad:#c23334; --badbg:#fbeaea; --hl:#fff4d4;
+  --btn:#1b1b19; --btn-text:#ffffff;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --math: "Cambria Math", Cambria, "STIX Two Math", "STIX Two Text", "Latin Modern Math", "Times New Roman", serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#111111; --surface:#1a1a1a; --surface-2:#212121; --border:#333333; --grid:#272727; --axis:#5c5c5c;
+    --text:#efefef; --text-2:#ababab; --text-3:#808080;
+    --dad:#338ced; --das:#e76624; --path:#9887ef; --aqua:#00a888;
+    --ok:#4cc964; --okbg:#15301a; --bad:#eb6263; --badbg:#3a1c1c; --hl:#37301a;
+    --btn:#efefef; --btn-text:#111111;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1420px;margin:0 auto;padding:18px 20px 40px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:14px}
+.brand{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);font-weight:600}
+h1{font-size:26px;line-height:1.2;margin:4px 0 2px;letter-spacing:-.01em}
+.sub{color:var(--text-2);margin:0;font-size:14px}
+nav.tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:5px}
+nav.tabs button{border:0;background:transparent;color:var(--text-2);font:inherit;font-weight:600;font-size:14px;padding:8px 14px;border-radius:8px;cursor:pointer}
+nav.tabs button .n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);font-size:11px;margin-right:6px}
+nav.tabs button.on{background:var(--btn);color:var(--btn-text)}
+nav.tabs button.on .n{background:transparent;border-color:currentColor}
+.tab{display:none}
+.tab.on{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
+.card h3{margin:0 0 8px;font-size:16px}
+.card h4{margin:14px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.card-head h3{margin:0}
+button{font:inherit;cursor:pointer}
+.btn{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;padding:6px 12px;font-size:14px;font-weight:600}
+.btn:hover{border-color:var(--axis)}
+.btn.primary{background:var(--btn);color:var(--btn-text);border-color:var(--btn)}
+.btn.small{padding:3px 9px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:default}
+.eq{font-family:var(--math);font-style:italic;white-space:nowrap}
+.eq sub,.eq sup{font-size:.72em}
+.eq .ob{text-decoration:overline;text-decoration-thickness:.06em;text-underline-offset:0}
+.muted{color:var(--text-3)}
+.hint{font-size:13px;color:var(--text-2)}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--sans)}
+.chart-wrap{position:relative}
+/* svg classes */
+polyline{fill:none}
+.gridline{stroke:var(--grid);stroke-width:1}
+.axisline{stroke:var(--axis);stroke-width:1}
+.tick{fill:var(--text-3);font-size:11px;font-variant-numeric:tabular-nums}
+.axlabel{fill:var(--text-2);font-size:12px;font-weight:600}
+text.end{text-anchor:end}
+text.mid{text-anchor:middle}
+.sub-t{font-size:10px}
+.curve{fill:none;stroke-width:2.5;stroke-linecap:round}
+.curve.dad{stroke:var(--dad)}
+.curve.das{stroke:var(--das)}
+.curve.helper{stroke:var(--path)}
+.curve.aqua{stroke:var(--aqua)}
+.curve.prev{stroke-width:2;opacity:.33}
+.curve.faint{stroke-width:1.5;opacity:.16}
+.curve.ghost{stroke:var(--axis);stroke-width:1.5}
+.ref{stroke:var(--text-3);stroke-width:1;opacity:.55}
+.reflabel{fill:var(--text-3);font-size:12px;font-weight:600}
+.proj{stroke:var(--text-3);stroke-width:1;stroke-dasharray:1.5 3;opacity:.8}
+.clabel{fill:var(--text);font-size:13px;font-weight:700}
+.clabel.muted{fill:var(--text-3);font-weight:600}
+.tag{fill:var(--text-2);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.pt{fill:var(--path);stroke:var(--surface);stroke-width:2}
+.pt.ink{fill:var(--text)}
+.pt.soft{fill:var(--axis)}
+.pt.dad{fill:var(--dad)}
+.pt.das{fill:var(--das)}
+.pt.aqua{fill:var(--aqua)}
+.ptlabel{fill:var(--text);font-size:13px;font-weight:700}
+.trail{fill:none;stroke:var(--path);stroke-width:1.5;opacity:.5}
+.arrow line{stroke-width:2;stroke-linecap:round}
+.arrow.dad line{stroke:var(--dad)} .arrow.dad polygon{fill:var(--dad)}
+.arrow.das line{stroke:var(--das)} .arrow.das polygon{fill:var(--das)}
+.arrow.ink line{stroke:var(--text-2)} .arrow.ink polygon{fill:var(--text-2)}
+.arrow.faint line{stroke:var(--axis);stroke-width:1.2} .arrow.faint polygon{fill:var(--axis)}
+.gapline{stroke:var(--path);stroke-width:3;opacity:.35}
+.series{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;stroke:var(--path)}
+.series.dad{stroke:var(--dad)} .series.das{stroke:var(--das)} .series.ink{stroke:var(--text-2)} .series.aqua{stroke:var(--aqua)}
+.series.future{opacity:.18}
+.end-dot{fill:var(--path);stroke:var(--surface);stroke-width:2}
+.end-dot.dad{fill:var(--dad)} .end-dot.das{fill:var(--das)} .end-dot.ink{fill:var(--text-2)} .end-dot.aqua{fill:var(--aqua)}
+.hair{stroke:var(--text-3);stroke-width:1}
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--text-2);margin:6px 0 2px}
+.legend span.k{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:18px;height:0;border-top:3px solid var(--text-3);border-radius:2px;vertical-align:middle}
+.sw.dad{border-color:var(--dad)} .sw.das{border-color:var(--das)} .sw.helper{border-color:var(--path)} .sw.aqua{border-color:var(--aqua)}
+.sw.ghost{border-color:var(--axis);border-top-width:2px}
+.sw.prev.dad{border-color:var(--dad);opacity:.35} .sw.prev.das{border-color:var(--das);opacity:.35}
+.sw.dot{width:10px;height:10px;border:0;border-radius:50%;background:var(--path)}
+.sw.dot.ink{background:var(--text)}
+/* sliders */
+.sliders{display:grid;grid-template-columns:1fr;gap:4px}
+.sl{display:grid;grid-template-columns:minmax(150px,1.1fr) minmax(120px,1.4fr) 56px;align-items:center;gap:10px;padding:3px 0;font-size:14px}
+.sl-name{display:flex;flex-direction:column;line-height:1.2}
+.sl-name .eq{font-size:16px}
+.sl-desc{font-size:12px;color:var(--text-3)}
+.sl input{width:100%;accent-color:var(--text)}
+.sl output{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+.sl.changed .sl-desc{color:var(--text)}
+/* build tab */
+.steps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.pill{border:1px solid var(--border);background:var(--surface);color:var(--text-2);border-radius:999px;padding:5px 12px 5px 6px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px}
+.pill .num{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);font-size:11px}
+.pill.on{background:var(--btn);color:var(--btn-text);border-color:var(--btn)}
+.pill.on .num{background:transparent;border-color:currentColor}
+.pill.key .num{border-color:var(--das)}
+.build-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:16px;align-items:start}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);font-weight:600}
+.build-left h2{font-size:21px;margin:4px 0 12px;line-height:1.25}
+.eqcard{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin:0 0 12px;text-align:center}
+.eqname{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);font-weight:700;margin-bottom:4px}
+.eqbig{font-size:25px;overflow-x:auto;padding:2px 0}
+.eqbig .eq{white-space:nowrap}
+dl.terms{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0 0 12px;font-size:14px}
+dl.terms dt{text-align:right;font-size:16px}
+dl.terms dd{margin:0;color:var(--text-2)}
+.build-left p{margin:0 0 10px}
+.deriv{border-top:1px solid var(--border);margin-top:12px;padding-top:10px}
+.deriv-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.deriv-head h4{margin:0}
+ol.dlines{margin:8px 0 0;padding-left:22px}
+.dline{padding:5px 0;border-bottom:1px dashed var(--border);transition:opacity .25s}
+.dline.hidden{display:none}
+.dline .dl-eq{font-size:17.5px;display:block;overflow-x:auto}
+.dline .dl-note{font-size:12.5px;color:var(--text-3)}
+.dline.final .dl-eq{font-weight:700}
+.think{margin-top:14px;background:var(--surface-2);border:1px solid var(--border);border-left:4px solid var(--path);border-radius:10px;padding:10px 12px}
+.think-tag{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--text-3);margin-right:4px}
+.think-q{margin-bottom:8px}
+.think-a{margin-top:8px;color:var(--text)}
+.readout{font-size:14px;margin:6px 0 10px;padding:9px 12px;background:var(--surface-2);border-radius:10px;border:1px solid var(--border)}
+.readout table{border-collapse:collapse;width:100%;font-size:14px}
+.readout td{padding:2px 6px;font-variant-numeric:tabular-nums}
+.readout td.r{text-align:right}
+.readout tr.tot td{border-top:1px solid var(--border);font-weight:700}
+.status{display:inline-block;margin-top:6px;font-size:13px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--surface);border:1px solid var(--border)}
+.step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0 4px}
+.chain .lk{border:1px solid var(--border);border-radius:8px;padding:5px 9px;font-size:13.5px;background:var(--surface);transition:background .25s,border-color .25s}
+.chain .lk.lit{background:var(--hl);border-color:var(--das)}
+.chain .ar{color:var(--text-3)}
+.boxnote{font-size:13.5px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin:8px 0}
+.warn{border-left:4px solid var(--bad)}
+.advance{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:8px 0}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:var(--text-2)}
+/* shift tab */
+.shift-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);gap:16px;align-items:start}
+.shift-grid2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+table.sum{border-collapse:collapse;width:100%;font-size:14px}
+table.sum th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);padding:6px 8px;border-bottom:1px solid var(--border)}
+table.sum td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+table.sum tr.on td{background:var(--hl)}
+table.sum tr.sec td{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);font-weight:700;background:var(--surface-2)}
+table.sum td.dash{color:var(--text-3)}
+.ro-line{margin:3px 0}
+.ro-line .sw{margin-right:6px}
+.qz-top{display:flex;justify-content:space-between;font-size:13px;color:var(--text-3);font-weight:600}
+.qz-q{font-size:16px;font-weight:600;margin:8px 0 10px}
+.qz-choices{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.qz-c{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;padding:7px 10px;text-align:left;font-size:13.5px}
+.qz-c:hover:not(:disabled){border-color:var(--axis)}
+.qz-c.right{background:var(--okbg);border-color:var(--ok)}
+.qz-c.wrong{background:var(--badbg);border-color:var(--bad)}
+.qz-c:disabled{cursor:default}
+.qz-fb{margin-top:10px;padding:10px 12px;border-radius:10px;font-size:14px;background:var(--surface-2);border:1px solid var(--border)}
+.qz-fb.ok{border-left:4px solid var(--ok)} .qz-fb.no{border-left:4px solid var(--bad)}
+.qz-nav{display:flex;justify-content:space-between;margin-top:10px}
+/* dynamic tab */
+.scen-bar{margin-bottom:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chip{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px;text-align:left}
+.chip small{display:block;font-weight:500;color:var(--text-3);font-size:12px}
+.chip.on{background:var(--btn);color:var(--btn-text);border-color:var(--btn)}
+.chip.on small{color:inherit;opacity:.75}
+.scen-controls{display:grid;grid-template-columns:1fr 1fr;gap:4px 36px;align-items:start}
+details.adv{grid-column:1/-1;border-top:1px solid var(--border);padding-top:8px;margin-top:4px}
+details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--text-2)}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.dyn-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,1fr);gap:16px;align-items:start}
+.player{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px}
+.player .per{font-weight:700;font-size:15px;min-width:110px}
+.player input[type=range]{flex:1;min-width:120px;accent-color:var(--text)}
+.exo{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.exo>span{font-size:13px;border:1px solid var(--border);border-radius:999px;padding:2px 10px;color:var(--text-3)}
+.exo>span.on{color:var(--text);background:var(--hl);border-color:var(--das);font-weight:600}
+.side{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+.side-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.side-head h3{margin:0;font-size:18px}
+.phase{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--border);border-radius:6px;padding:1px 7px;margin-left:6px;color:var(--text-2);vertical-align:middle}
+table.vars{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0 10px;font-variant-numeric:tabular-nums}
+table.vars th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-weight:700}
+table.vars th:first-child{text-align:left}
+table.vars td{padding:4px 6px;border-bottom:1px solid var(--border);text-align:right}
+table.vars td:first-child{text-align:left}
+table.vars .nm{font-size:12px;color:var(--text-3);margin-left:4px;font-style:normal;font-family:var(--sans)}
+.chg{font-weight:600}
+.narr h5{margin:10px 0 3px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}
+.narr p{margin:0 0 6px}
+.narr ul{margin:0 0 6px;padding-left:18px}
+.narr li{margin:2px 0}
+.note{margin-top:10px;padding:9px 12px;border-radius:10px;background:var(--hl);font-size:14px}
+.pred{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--surface-2)}
+.pred .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0}
+.pred .row .lab{min-width:96px;font-weight:600}
+.pred .opt{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;padding:4px 10px;font-size:13.5px}
+.pred .opt.sel{background:var(--btn);color:var(--btn-text);border-color:var(--btn)}
+.fb{padding:8px 12px;border-radius:10px;margin-bottom:8px;font-size:14px;border:1px solid var(--border)}
+.fb.ok{background:var(--okbg);border-color:var(--ok)} .fb.no{background:var(--badbg);border-color:var(--bad)}
+details.take{margin-top:12px;border-top:1px solid var(--border);padding-top:8px}
+details.take ul{margin:6px 0 0;padding-left:18px;font-size:14px}
+details.take li{margin:4px 0}
+.irf-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.irf{position:relative}
+.irf-t{font-size:13px;font-weight:700}
+.irf-v{font-size:12px;color:var(--text-3);font-variant-numeric:tabular-nums;min-height:18px}
+.tip{position:absolute;pointer-events:none;background:var(--text);color:var(--bg);font-size:12px;padding:3px 7px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-130%);font-variant-numeric:tabular-nums;display:none;z-index:5}
+footer{margin-top:22px;font-size:12.5px;color:var(--text-3)}
+@media (max-width:1100px){
+  .build-grid,.shift-grid,.shift-grid2,.dyn-grid,.scen-controls{grid-template-columns:1fr}
+  .irf-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .side{position:static;max-height:none}
+}
+@media (max-width:640px){
+  .qz-choices{grid-template-columns:1fr}
+  .sl{grid-template-columns:1fr 1fr 48px}
+  h1{font-size:21px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand">Macroeconomics simulator · Mankiw, Chapter 15</div>
+      <h1>The Dynamic AD–AS Model (DAD–DAS)</h1>
+      <p class="sub">Build the curves from five equations, learn what shifts them, then step through shocks period by period.</p>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="on" data-tab="build" role="tab"><span class="n">1</span>Build the curves</button>
+      <button data-tab="shift" role="tab"><span class="n">2</span>What shifts them</button>
+      <button data-tab="dyn" role="tab"><span class="n">3</span>Dynamic scenarios</button>
+    </nav>
+  </header>
+
+  <!-- ============ TAB 1: BUILD ============ -->
+  <section class="tab on" id="tab-build">
+    <div class="steps" id="stepPills"></div>
+    <div class="build-grid">
+      <div class="card build-left" id="buildLeft"></div>
+      <div class="card">
+        <div class="chart-wrap"><svg id="buildSvg" role="img" aria-label="Diagram for the current step"></svg></div>
+        <div class="legend" id="buildLegend"></div>
+        <div class="readout" id="buildReadout"></div>
+        <div class="sliders" id="buildSliders"></div>
+        <div id="buildExtra"></div>
+      </div>
+    </div>
+    <div class="step-nav">
+      <button class="btn" id="stepPrev">◀ Previous step</button>
+      <button class="btn primary" id="stepNext">Next step ▶</button>
+    </div>
+  </section>
+
+  <!-- ============ TAB 2: SHIFTERS ============ -->
+  <section class="tab" id="tab-shift">
+    <div class="shift-grid">
+      <div class="card">
+        <div class="card-head"><h3>Move a shifter and watch the curves</h3><button class="btn small" id="shReset">Reset all</button></div>
+        <div class="chart-wrap"><svg id="shSvg" role="img" aria-label="DAD and DAS curves"></svg></div>
+        <div class="legend">
+          <span class="k"><span class="sw dad"></span>DAD after the change</span>
+          <span class="k"><span class="sw das"></span>DAS after the change</span>
+          <span class="k"><span class="sw ghost"></span>curves before the change</span>
+          <span class="k"><span class="sw dot ink"></span>A = before, B = new short-run equilibrium</span>
+        </div>
+        <div class="readout" id="shReadout"></div>
+      </div>
+      <div class="card">
+        <h4 style="margin-top:0">Shifters of DAS only</h4>
+        <div class="sliders" id="shDAS"></div>
+        <h4>Shifters of DAD only</h4>
+        <div class="sliders" id="shDAD"></div>
+        <h4>Shifts both curves</h4>
+        <div class="sliders" id="shBoth"></div>
+        <details style="margin-top:12px">
+          <summary>Slope parameters (rotate rather than shift)</summary>
+          <div class="sliders" id="shSlope" style="margin-top:6px"></div>
+        </details>
+      </div>
+    </div>
+    <div class="shift-grid2">
+      <div class="card">
+        <h3>Summary: slopes and shifts</h3>
+        <table class="sum" id="shTable"></table>
+        <p class="hint" style="margin:10px 0 0">A change in <span class="eq">Y<sub>t</sub></span> or <span class="eq">π<sub>t</sub></span> themselves is a movement <i>along</i> a curve. Everything else in a curve's equation shifts it. Rows light up when you move their slider.</p>
+      </div>
+      <div class="card">
+        <h3>Which shifter is it? Event quiz</h3>
+        <div id="quiz"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3: DYNAMICS ============ -->
+  <section class="tab" id="tab-dyn">
+    <div class="card scen-bar">
+      <div class="chips" id="scChips"></div>
+      <div class="scen-controls">
+        <div class="sliders" id="scSize"></div>
+        <div class="sliders" id="scDur"></div>
+        <details class="adv">
+          <summary>Central bank and model parameters</summary>
+          <div class="presets">
+            <button class="btn small" data-preset="slides">Slide values (θ<sub>π</sub> = 0.5, θ<sub>Y</sub> = 0.5)</button>
+            <button class="btn small" data-preset="hawk">Inflation hawk (θ<sub>π</sub> = 1.5, θ<sub>Y</sub> = 0.1)</button>
+            <button class="btn small" data-preset="dove">Output dove (θ<sub>π</sub> = 0.1, θ<sub>Y</sub> = 1.5)</button>
+          </div>
+          <div class="sliders" id="scParams"></div>
+          <p class="hint">Slides 87–89: a hawk (large θ<sub>π</sub>) makes DAD flat, so a supply shock hits output hard but inflation little. A dove (large θ<sub>Y</sub>) makes DAD steep: output is protected but inflation rises a lot and stays high.</p>
+          <label class="chk"><input type="checkbox" id="showAll"> Show every past period's curves</label>
+        </details>
+      </div>
+    </div>
+
+    <div class="dyn-grid">
+      <div class="card">
+        <div class="player">
+          <button class="btn small" id="pReset" title="Back to the start (period t−1)">⏮</button>
+          <button class="btn small" id="pBack" title="Previous period (←)">◀ Back</button>
+          <button class="btn small primary" id="pNext" title="Next period (→)">Next ▶</button>
+          <button class="btn small" id="pPlay">▶ Play</button>
+          <button class="btn small" id="pEnd" title="Jump to the last period">⏭</button>
+          <input type="range" id="pScrub" min="1" max="10" step="1" value="1" aria-label="Period">
+          <span class="per" id="pLabel">Period t−1</span>
+        </div>
+        <div class="exo" id="exoRow"></div>
+        <div class="chart-wrap"><svg id="dynSvg" role="img" aria-label="DAD–DAS diagram for the current period"></svg></div>
+        <div class="legend">
+          <span class="k"><span class="sw dad"></span>DAD this period</span>
+          <span class="k"><span class="sw das"></span>DAS this period</span>
+          <span class="k"><span class="sw prev dad"></span><span class="sw prev das"></span>last period</span>
+          <span class="k"><span class="sw ghost"></span>starting curves (t−1)</span>
+          <span class="k"><span class="sw dot"></span>path of short-run equilibria</span>
+        </div>
+      </div>
+      <div class="card side">
+        <div class="side-head">
+          <h3 id="sideTitle">Period t−1</h3>
+          <label class="chk"><input type="checkbox" id="predictMode"> Predict before each step</label>
+        </div>
+        <div class="hint" id="scoreLine"></div>
+        <table class="vars" id="varTable"></table>
+        <div class="narr" id="narr"></div>
+        <details class="take" id="take"><summary>What to remember from this scenario</summary><ul id="takeList"></ul></details>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-head">
+        <h3>Impulse responses: the same story over time</h3>
+        <label class="chk"><input type="checkbox" id="showFuture"> Show the whole path in advance</label>
+      </div>
+      <div class="irf-row" id="irfRow"></div>
+      <p class="hint" style="margin:8px 0 0">Gray lines are long-run values (Ȳ, π*, ρ and ρ + π*). Hover a chart to read any period. Parameter values follow the lecture slides: Ȳ = 100, π* = 2, α = 1, ρ = 2, φ = 0.25, θ<sub>π</sub> = θ<sub>Y</sub> = 0.5, so Y − Ȳ is the percentage gap from natural output.</p>
+    </div>
+  </section>
+
+  <footer>Model: Mankiw, <i>Macroeconomics</i>, Ch. 15, “A Dynamic Model of Economic Fluctuations”. The five equations and the parameter values are those in the lecture slides.</footer>
+</div>
+
+<noscript><p style="padding:20px">This simulator needs JavaScript.</p></noscript>
+
+<script>
+(function(){
+'use strict';
+/* ================= helpers ================= */
+const $=(s,r)=>(r||document).querySelector(s), $$=(s,r)=>[...(r||document).querySelectorAll(s)];
+const NS='http://www.w3.org/2000/svg'; let UID=0;
+const MIN='−';
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag); if(attrs) for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e;}
+function svgText(parent,x,y,str,cls){const t=el('text',{x,y,class:cls||''},parent); t.textContent=str; return t;}
+function clean(v){return Math.abs(v)<5e-10?0:v;}
+function f(v,d){d=d===undefined?2:d; v=clean(v); return (v<0?MIN:'')+Math.abs(v).toFixed(d);}
+function fs(v,d){d=d===undefined?2:d; v=clean(v); return (v>0?'+':v<0?MIN:'')+Math.abs(v).toFixed(d);}
+function fop(v,d){v=clean(v); return (v<0?' '+MIN+' ':' + ')+Math.abs(v).toFixed(d===undefined?2:d);}
+function math(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/_\{([^}]*)\}/g,'<sub>$1</sub>')
+    .replace(/_([A-Za-z0-9α-ω])/g,'<sub>$1</sub>')
+    .replace(/\^\{([^}]*)\}/g,'<sup>$1</sup>')
+    .replace(/Ȳ/g,'<span class="ob">Y</span>');
+}
+function M(s){return '<span class="eq">'+math(s)+'</span>';}
+function niceTicks(a,b,n){
+  n=n||5; const span=b-a; if(span<=0) return [a];
+  let step=Math.pow(10,Math.floor(Math.log10(span/n))); const err=span/n/step;
+  if(err>=7.5) step*=10; else if(err>=3.5) step*=5; else if(err>=1.5) step*=2;
+  const out=[]; for(let v=Math.ceil(a/step-1e-9)*step; v<=b+1e-9; v+=step) out.push(+v.toFixed(10));
+  return out;
+}
+function fmtTick(v){v=+(+v).toFixed(2); return (v<0?MIN:'')+Math.abs(v);}
+function labOf(k){const d=k-2; return d===0?'t':(d>0?'t+'+d:'t'+MIN+(-d));}
+function labHTML(k){const d=k-2; return '<span class="eq">'+(d===0?'t':(d>0?'t + '+d:'t '+MIN+' '+(-d)))+'</span>';}
+function letter(k){return String.fromCharCode(64+Math.max(1,k));}
+function gapText(g){return Math.abs(g)<0.005?'equal to':(g>0?f(g)+'% above':f(-g)+'% below');}
+
+/* ================= model ================= */
+const BASE={alpha:1,rho:2,phi:0.25,thPi:0.5,thY:0.5};
+function AB(p){const A=p.alpha*p.thPi/(1+p.alpha*p.thY), B=1/(1+p.alpha*p.thY); return {A,B};}
+function solve(p,x,piPrev){
+  const {A,B}=AB(p);
+  const pi=(piPrev+p.phi*A*x.piStar+p.phi*B*x.eps+x.nu)/(1+p.phi*A);
+  const Y=x.Ybar-A*(pi-x.piStar)+B*x.eps;
+  const i=pi+p.rho+p.thPi*(pi-x.piStar)+p.thY*(Y-x.Ybar);
+  return {pi,Y,i,r:i-pi,A,B};
+}
+function dasPi(p,c,Y){return c.piPrev+p.phi*(Y-c.Ybar)+c.nu;}
+function dadY(p,c,pi){const {A,B}=AB(p); return c.Ybar-A*(pi-c.piStar)+B*c.eps;}
+
+/* ================= plotting ================= */
+function makePlot(svg,o){
+  const W=o.W, H=o.H, m=Object.assign({l:46,r:16,t:30,b:40},o.m||{});
+  svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.innerHTML='';
+  const pw=W-m.l-m.r, ph=H-m.t-m.b, x0=o.x[0], x1=o.x[1], y0=o.y[0], y1=o.y[1];
+  const X=v=>m.l+(v-x0)/(x1-x0)*pw, Y=v=>m.t+ph-(v-y0)/(y1-y0)*ph;
+  const uid='cp'+(++UID);
+  const defs=el('defs',null,svg), cp=el('clipPath',{id:uid},defs); el('rect',{x:m.l,y:m.t,width:pw,height:ph},cp);
+  const ax=el('g',null,svg);
+  if(!o.noY){
+    const yt=o.yTicks||niceTicks(y0,y1,o.ny||5);
+    yt.forEach(t=>{const yy=Y(t); if(yy<m.t-0.5||yy>m.t+ph+0.5) return;
+      el('line',{x1:m.l,x2:m.l+pw,y1:yy,y2:yy,class:'gridline'},ax); svgText(ax,m.l-7,yy+4,fmtTick(t),'tick end');});
+    el('line',{x1:m.l,x2:m.l,y1:m.t,y2:m.t+ph,class:'axisline'},ax);
+  }
+  const xt=o.xTicks||niceTicks(x0,x1,o.nx||6);
+  xt.forEach(t=>{const v=typeof t==='object'?t.v:t, lab=typeof t==='object'?t.l:fmtTick(t), xx=X(v);
+    if(xx<m.l-0.5||xx>m.l+pw+0.5) return;
+    el('line',{x1:xx,x2:xx,y1:m.t+ph,y2:m.t+ph+4,class:'axisline'},ax); svgText(ax,xx,m.t+ph+16,lab,'tick mid');});
+  el('line',{x1:m.l,x2:m.l+pw,y1:m.t+ph,y2:m.t+ph,class:'axisline'},ax);
+  if(o.xLabel) svgText(ax,m.l+pw,H-5,o.xLabel,'axlabel end');
+  if(o.yLabel) svgText(ax,4,15,o.yLabel,'axlabel');
+  const g=el('g',{'clip-path':'url(#'+uid+')'},svg), top=el('g',null,svg);
+  return {X,Y,x0,x1,y0,y1,m,pw,ph,W,H,g,top,svg,labels:[]};
+}
+function clip(P,x1,y1,x2,y2){
+  const xmin=P.m.l,xmax=P.m.l+P.pw,ymin=P.m.t,ymax=P.m.t+P.ph; let t0=0,t1=1; const dx=x2-x1,dy=y2-y1;
+  const pp=[-dx,dx,-dy,dy], qq=[x1-xmin,xmax-x1,y1-ymin,ymax-y1];
+  for(let i=0;i<4;i++){
+    if(pp[i]===0){ if(qq[i]<0) return null; }
+    else{ const t=qq[i]/pp[i]; if(pp[i]<0){ if(t>t1) return null; if(t>t0) t0=t; } else { if(t<t0) return null; if(t<t1) t1=t; } }
+  }
+  return [x1+t0*dx,y1+t0*dy,x1+t1*dx,y1+t1*dy];
+}
+function lineData(P,ax,ay,bx,by,cls){const s=clip(P,P.X(ax),P.Y(ay),P.X(bx),P.Y(by)); if(!s) return null; el('line',{x1:s[0],y1:s[1],x2:s[2],y2:s[3],class:cls},P.g); return s;}
+function dasLine(P,p,c,cls){const w=(P.x1-P.x0)*4, a=P.x0-w, b=P.x1+w; return lineData(P,a,dasPi(p,c,a),b,dasPi(p,c,b),cls);}
+function dadLine(P,p,c,cls){const w=(P.y1-P.y0)*4, a=P.y0-w, b=P.y1+w; return lineData(P,dadY(p,c,a),a,dadY(p,c,b),b,cls);}
+function inside(P,pt){const x=P.X(pt[0]),y=P.Y(pt[1]); return x>=P.m.l+2&&x<=P.m.l+P.pw-2&&y>=P.m.t+2&&y<=P.m.t+P.ph-2;}
+function addLabel(P,x,y,main,sub,cls,anchor,force){
+  const w=main.length*7.4+(sub?sub.length*5.6+2:0)+4, h=15;
+  const bx=anchor==='end'?x-w:anchor==='mid'?x-w/2:x;
+  const box={x:bx,y:y-h+3,w,h};
+  if(!force && P.labels.some(b=>!(box.x+box.w<b.x||b.x+b.w<box.x||box.y+box.h<b.y||b.y+b.h<box.y))) return false;
+  P.labels.push(box);
+  const t=el('text',{x,y,class:(cls||'')+(anchor==='end'?' end':anchor==='mid'?' mid':'')},P.top);
+  const a=el('tspan',null,t); a.textContent=main;
+  if(sub){const s=el('tspan',{dy:4,class:'sub-t'},t); s.textContent=sub;}
+  return true;
+}
+function curveLabel(P,seg,kind,main,sub,cls,force){
+  if(!seg) return false;
+  const R=P.m.l+P.pw, T=P.m.t, B=P.m.t+P.ph; let x,y,anchor;
+  if(kind==='das'){ x=seg[2]-4; y=seg[3]-9; anchor='end'; if(y<T+12){ y=T+15; x=seg[2]-12; } }
+  else { x=seg[0]+7; y=seg[1]-8; anchor='start'; if(x>R-48){ x=seg[0]-8; anchor='end'; } if(y>B-4) y=B-6; if(y<T+12) y=T+14; }
+  return addLabel(P,x,y,main,sub,cls||'clabel',anchor,force);
+}
+function refH(P,v,lab){const y=P.Y(v); if(y<P.m.t||y>P.m.t+P.ph) return; el('line',{x1:P.m.l,x2:P.m.l+P.pw,y1:y,y2:y,class:'ref'},P.g); if(lab) addLabel(P,P.m.l+P.pw-4,y-5,lab[0],lab[1],'reflabel','end',true);}
+function refV(P,v,lab){const x=P.X(v); if(x<P.m.l||x>P.m.l+P.pw) return; el('line',{x1:x,x2:x,y1:P.m.t,y2:P.m.t+P.ph,class:'ref'},P.g); if(lab) addLabel(P,x+4,P.m.t+12,lab[0],lab[1],'reflabel','start',true);}
+function dot(P,x,y,r,cls,title){ if(!inside(P,[x,y])) return null; const c=el('circle',{cx:P.X(x),cy:P.Y(y),r,class:cls},P.top); if(title){const t=el('title',null,c); t.textContent=title;} return c;}
+function proj(P,x,y){ if(!inside(P,[x,y])) return; const X=P.X(x),Y=P.Y(y); el('line',{x1:X,x2:X,y1:Y,y2:P.m.t+P.ph,class:'proj'},P.g); el('line',{x1:P.m.l,x2:X,y1:Y,y2:Y,class:'proj'},P.g);}
+function tags(P,x,y,xs,ys){ if(!inside(P,[x,y])) return; const X=P.X(x),Y=P.Y(y),B=P.m.t+P.ph;
+  addLabel(P,X+4,B-6,xs,'','tag','start')||addLabel(P,X-4,B-6,xs,'','tag','end')||addLabel(P,X+4,B-22,xs,'','tag','start',true);
+  addLabel(P,P.m.l+4,Y-5,ys,'','tag','start')||addLabel(P,P.m.l+4,Y+14,ys,'','tag','start',true);}
+function arrowPx(layer,x1,y1,x2,y2,cls){
+  const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy); if(L<8) return;
+  const ux=dx/L,uy=dy/L,h=Math.min(9,L*0.45),w=4.6,bx=x2-ux*h,by=y2-uy*h;
+  const g=el('g',{class:'arrow '+cls},layer);
+  el('line',{x1:x1+ux*2,y1:y1+uy*2,x2:bx,y2:by},g);
+  el('polygon',{points:x2+','+y2+' '+(bx-uy*w)+','+(by+ux*w)+' '+(bx+uy*w)+','+(by-ux*w)},g);
+}
+function polyline(P,pts,cls){ el('polyline',{points:pts.map(q=>P.X(q[0]).toFixed(1)+','+P.Y(q[1]).toFixed(1)).join(' '),class:cls},P.g);}
+function bestArrow(P,cands,avoid){
+  let best=null,bs=-1;
+  cands.forEach(ab=>{ const a=ab[0],b=ab[1]; if(!inside(P,a)||!inside(P,b)) return;
+    const mx=(P.X(a[0])+P.X(b[0]))/2, my=(P.Y(a[1])+P.Y(b[1]))/2; let dm=400;
+    const pts=[[P.X(a[0]),P.Y(a[1])],[mx,my],[P.X(b[0]),P.Y(b[1])]];
+    avoid.forEach(q=>{const qx=P.X(q[0]),qy=P.Y(q[1]); pts.forEach(t=>{dm=Math.min(dm,Math.hypot(t[0]-qx,t[1]-qy));});});
+    const edge=Math.min(mx-P.m.l,P.m.l+P.pw-mx,my-P.m.t,P.m.t+P.ph-my), sc=dm+0.5*Math.min(edge,40);
+    if(sc>bs){bs=sc; best=ab;} });
+  return best;
+}
+function shiftArrows(P,pO,cO,pN,cN,avoid){
+  avoid=(avoid||[]).slice();
+  const fr=[]; for(let q=0.06;q<0.95;q+=0.04) fr.push(q);
+  const dYb=cN.Ybar-cO.Ybar, dA=(cN.piPrev+cN.nu)-(cO.piPrev+cO.nu);
+  if(Math.abs(dYb)>1e-9||Math.abs(dA)>1e-9){
+    const b=bestArrow(P,fr.map(q=>{const Yr=P.x0+q*(P.x1-P.x0); return [[Yr,dasPi(pO,cO,Yr)],[Yr+dYb,dasPi(pN,cN,Yr+dYb)]];}),avoid);
+    if(b){ arrowPx(P.top,P.X(b[0][0]),P.Y(b[0][1]),P.X(b[1][0]),P.Y(b[1][1]),'das'); avoid.push([(b[0][0]+b[1][0])/2,(b[0][1]+b[1][1])/2]); }
+  }
+  const dPs=cN.piStar-cO.piStar, dD=(cN.Ybar+AB(pN).B*cN.eps)-(cO.Ybar+AB(pO).B*cO.eps);
+  if(Math.abs(dPs)>1e-9||Math.abs(dD)>1e-9){
+    const b=bestArrow(P,fr.map(q=>{const pr=P.y0+q*(P.y1-P.y0); return [[dadY(pO,cO,pr),pr],[dadY(pN,cN,pr+dPs),pr+dPs]];}),avoid);
+    if(b) arrowPx(P.top,P.X(b[0][0]),P.Y(b[0][1]),P.X(b[1][0]),P.Y(b[1][1]),'dad');
+  }
+}
+const YP={x:[96,104],y:[-0.5,5.5]};
+function ypPlot(svg,H){return makePlot(svg,{W:560,H:H||390,x:YP.x,y:YP.y,xLabel:'Output, Y',yLabel:'Inflation, π (%)'});}
+
+/* ================= sliders ================= */
+function fmtVal(v,d){ const dec=d.dec!==undefined?d.dec:(d.step<0.1?2:(d.step<1?2:0)); const s=d.signed?fs(v,dec):f(v,dec); return s+(d.unit||''); }
+function makeSliders(container,defs,vals,onChange){
+  container.innerHTML=''; const ctl={};
+  defs.forEach(d=>{
+    if(vals[d.id]===undefined) vals[d.id]=d.v;
+    const row=document.createElement('label'); row.className='sl';
+    row.innerHTML='<span class="sl-name">'+M(d.sym)+'<span class="sl-desc">'+d.label+'</span></span><input type="range" min="'+d.min+'" max="'+d.max+'" step="'+d.step+'" value="'+vals[d.id]+'" aria-label="'+d.label+'"><output></output>';
+    const inp=$('input',row), out=$('output',row);
+    const show=()=>{out.textContent=fmtVal(vals[d.id],d); row.classList.toggle('changed',Math.abs(vals[d.id]-d.v)>1e-9);};
+    inp.addEventListener('input',()=>{vals[d.id]=+inp.value; show(); onChange(d.id);});
+    container.appendChild(row); show();
+    ctl[d.id]={set(v){vals[d.id]=Math.min(d.max,Math.max(d.min,v)); inp.value=vals[d.id]; show();}, def:d};
+  });
+  return ctl;
+}
+
+/* ================= tabs ================= */
+$$('nav.tabs button').forEach(b=>b.addEventListener('click',()=>{
+  $$('nav.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  $$('.tab').forEach(t=>t.classList.toggle('on',t.id==='tab-'+b.dataset.tab));
+  if(b.dataset.tab==='shift') drawShift();
+  if(b.dataset.tab==='dyn') renderDyn();
+  if(b.dataset.tab==='build') redrawBuild();
+}));
+
+/* =====================================================================
+   TAB 1 — BUILD THE CURVES
+   ===================================================================== */
+function drawIS(svg,v){
+  const P=makePlot(svg,{W:560,H:390,x:[96,104],y:[-1,6],xLabel:'Output, Y',yLabel:'Real interest rate, r (%)'});
+  const rho=2,Yb=100,Yof=(a,e,r)=>Yb+e-a*(r-rho);
+  refH(P,rho,['ρ = 2','']); refV(P,Yb,['Ȳ','']);
+  if(v.alpha!==1||v.eps!==0) lineData(P,Yof(1,0,-60),-60,Yof(1,0,60),60,'curve ghost');
+  const s=lineData(P,Yof(v.alpha,v.eps,-60),-60,Yof(v.alpha,v.eps,60),60,'curve helper');
+  const Y=Yof(v.alpha,v.eps,v.r);
+  proj(P,Y,v.r); dot(P,Yb+v.eps,rho,4,'pt soft'); dot(P,Y,v.r,6,'pt');
+  curveLabel(P,s,'dad','IS','');
+  tags(P,Y,v.r,'Y = '+f(Y),'r = '+f(v.r));
+  return 'At <span class="eq">r</span> = '+f(v.r)+'%, demand is <b>Y = '+f(Y)+'</b>, '+gapText(Y-Yb)+' natural output. '+(Math.abs(v.eps)>0?'The demand shock moves the whole curve '+(v.eps>0?'right':'left')+' by '+f(Math.abs(v.eps))+'.':'');
+}
+function drawFisher(svg,v){
+  const W=560,H=210; svg.setAttribute('viewBox','0 0 '+W+' '+H); svg.innerHTML='';
+  const x0=-2,x1=10,L=34,R=526,X=q=>L+(q-x0)/(x1-x0)*(R-L),yl=112;
+  const g=el('g',null,svg);
+  el('line',{x1:L,x2:R,y1:yl,y2:yl,class:'axisline'},g);
+  for(let t=x0;t<=x1;t++){ el('line',{x1:X(t),x2:X(t),y1:yl,y2:yl+(t%2===0?6:3),class:'axisline'},g); if(t%2===0) svgText(g,X(t),yl+20,fmtTick(t)+'%','tick mid'); }
+  svgText(g,R,H-6,'Percent per year','axlabel end');
+  const r=v.i-v.Epi;
+  const ya=yl-14;
+  arrowPx(g,X(v.Epi),ya,X(v.i),ya,'ink');
+  if(Math.abs(r)<0.05) el('circle',{cx:X(v.i),cy:ya,r:3,class:'pt soft'},g);
+  const close=Math.abs(X(v.i)-X(v.Epi))<120;
+  el('circle',{cx:X(v.Epi),cy:yl,r:6,class:'pt aqua'},g);
+  el('circle',{cx:X(v.i),cy:yl,r:6,class:'pt ink'},g);
+  const t1=el('text',{x:X(v.Epi),y:yl+44,class:'clabel mid'},g); t1.textContent='Expected inflation Eπ = '+f(v.Epi,1)+'%';
+  const t2=el('text',{x:X(v.i),y:close?yl-62:yl-40,class:'clabel mid'},g); t2.textContent='Nominal rate i = '+f(v.i,1)+'%';
+  const t3=el('text',{x:(X(v.i)+X(v.Epi))/2,y:close?yl-36:ya-10,class:'tag mid'},g); t3.textContent='r = i − Eπ = '+f(r,1)+'%';
+  return 'Real interest rate: '+M('r_t = i_t − E_tπ_{t+1}')+' = '+f(v.i,1)+' − '+f(v.Epi,1)+' = <b>'+f(r,1)+'%</b>'+(r<0?' (negative: borrowers repay less in real terms than they borrowed)':'')+'.';
+}
+function drawPC(svg,v){
+  const P=ypPlot(svg); const p={phi:v.phi}, c={piPrev:v.Ep,Ybar:100,nu:v.nu};
+  refV(P,100,['Ȳ','']);
+  if(v.Ep!==2||v.nu!==0||v.phi!==0.25) dasLine(P,{phi:0.25},{piPrev:2,Ybar:100,nu:0},'curve ghost');
+  const s=dasLine(P,p,c,'curve das');
+  const pi=dasPi(p,c,v.Y);
+  proj(P,v.Y,pi); dot(P,100,v.Ep+v.nu,4,'pt soft','Expected inflation + supply shock at Y = Ȳ'); dot(P,v.Y,pi,6,'pt');
+  curveLabel(P,s,'das','Phillips curve','');
+  tags(P,v.Y,pi,'Y = '+f(v.Y),'π = '+f(pi));
+  const dp=v.phi*(v.Y-100);
+  return '<table><tr><td>Momentum inflation '+M('E_{t−1}π_t')+'</td><td class="r">'+f(v.Ep)+'</td></tr>'+
+    '<tr><td>Demand-pull inflation '+M('φ(Y_t − Ȳ_t)')+'</td><td class="r">'+fs(dp)+'</td></tr>'+
+    '<tr><td>Cost-push inflation '+M('υ_t')+'</td><td class="r">'+fs(v.nu)+'</td></tr>'+
+    '<tr class="tot"><td>Inflation '+M('π_t')+'</td><td class="r">'+f(pi)+'%</td></tr></table>';
+}
+function drawAE(svg,v){
+  const s=v.s, act=[2,2,2+s,2+0.6*s,2+0.35*s,2+0.2*s,2+0.1*s,2+0.05*s], exp=act.map((a,j)=>j===0?2:act[j-1]);
+  const lo=Math.min(0,...act,...exp), hi=Math.max(...act,...exp)+0.8;
+  const P=makePlot(svg,{W:560,H:330,x:[0.5,8.5],y:[lo,hi],xTicks:[1,2,3,4,5,6,7,8],xLabel:'Year',yLabel:'Inflation (%)'});
+  for(let j=1;j<8;j++) arrowPx(P.g,P.X(j)+6,P.Y(act[j-1]),P.X(j+1)-7,P.Y(exp[j]),'faint');
+  polyline(P,act.map((a,j)=>[j+1,a]),'series');
+  polyline(P,exp.map((a,j)=>[j+1,a]),'series aqua');
+  act.forEach((a,j)=>dot(P,j+1,a,4.5,'pt','Year '+(j+1)+': actual inflation '+f(a)+'%'));
+  exp.forEach((a,j)=>dot(P,j+1,a,4.5,'pt aqua','Year '+(j+1)+': expected inflation '+f(a)+'%'));
+  return 'In year 3 inflation jumps to '+f(act[2])+'%, but people had expected only '+f(exp[2])+'%. In year 4 they expect '+f(exp[3])+'% (last year’s rate) while actual inflation is '+f(act[3])+'%. Expectations always trail one period behind.';
+}
+function drawMP(svg,v){
+  const rho=2, iOf=pi=>pi+rho+v.thPi*(pi-v.piStar)+v.thY*v.gap;
+  const P=makePlot(svg,{W:560,H:390,x:[0,6],y:[-1,14],xLabel:'Inflation, π (%)',yLabel:'Nominal interest rate, i (%)'});
+  refV(P,v.piStar,['π*','']);
+  const s0=lineData(P,-20,-20+rho,30,30+rho,'curve ghost');
+  const s1=lineData(P,-20,iOf(-20),30,iOf(30),'curve helper');
+  const i=iOf(v.pi), base=v.pi+rho;
+  if(inside(P,[v.pi,base])&&inside(P,[v.pi,i])) el('line',{x1:P.X(v.pi),x2:P.X(v.pi),y1:P.Y(base),y2:P.Y(i),class:'gapline'},P.g);
+  dot(P,v.pi,base,4,'pt soft'); dot(P,v.pi,i,6,'pt');
+  curveLabel(P,s1,'das','policy rule','','clabel');
+  if(Math.abs(i-base)>0.3 && inside(P,[v.pi,(i+base)/2])) addLabel(P,P.X(v.pi)+8,P.Y((i+base)/2)+4,'r − ρ = '+f(i-base),'','tag','start');
+  const r=i-v.pi;
+  return M('i_t')+' = '+f(v.pi)+' + '+f(rho)+fop(v.thPi*(v.pi-v.piStar))+fop(v.thY*v.gap)+' = <b>'+f(i)+'%</b>, so '+M('r_t = i_t − π_t')+' = <b>'+f(r)+'%</b> ('+(Math.abs(r-rho)<0.005?'equal to':(r>rho?'above':'below'))+' ρ = 2%).'+(v.thPi<0?' <br><b>Warning:</b> with '+M('θ_π')+' < 0 the real rate <i>falls</i> when inflation rises — the Taylor principle is violated.':'');
+}
+function drawDASstep(svg,v){
+  const P=ypPlot(svg), p={phi:v.phi}, c={piPrev:v.piPrev,Ybar:v.Ybar,nu:v.nu}, cb={piPrev:2,Ybar:100,nu:0}, pb={phi:0.25};
+  refV(P,v.Ybar,['Ȳ','t']);
+  const moved=v.piPrev!==2||v.nu!==0||v.Ybar!==100||v.phi!==0.25;
+  if(moved) dasLine(P,pb,cb,'curve ghost');
+  const s=dasLine(P,p,c,'curve das');
+  if(moved) shiftArrows(P,Object.assign({},BASE,pb),Object.assign({piStar:2,eps:0},cb),Object.assign({},BASE,p),Object.assign({piStar:2,eps:0},c),[[v.Ybar,v.piPrev+v.nu],[100,2]]);
+  dot(P,v.Ybar,v.piPrev+v.nu,6,'pt das');
+  addLabel(P,P.X(v.Ybar)-8,P.Y(v.piPrev+v.nu)-10,'π','t−1 + υt','tag','end');
+  curveLabel(P,s,'das','DAS','t','clabel',true);
+  return 'DAS passes through '+M('(Ȳ_t, π_{t−1} + υ_t)')+' = ('+f(v.Ybar)+', '+f(v.piPrev+v.nu)+'). Slope '+M('φ')+' = '+f(v.phi)+': output 1% above natural adds '+f(v.phi)+' points to inflation.';
+}
+function drawDADstep(svg,v){
+  const P=ypPlot(svg), p={alpha:v.alpha,thPi:v.thPi,thY:v.thY,phi:0.25,rho:2}, c={piStar:v.piStar,eps:v.eps,Ybar:v.Ybar}, cb={piStar:2,eps:0,Ybar:100};
+  const {A,B}=AB(p);
+  refV(P,v.Ybar,['Ȳ','t']); refH(P,v.piStar,['π*','t']);
+  const moved=v.piStar!==2||v.eps!==0||v.Ybar!==100||v.alpha!==1||v.thPi!==0.5||v.thY!==0.5;
+  if(moved) dadLine(P,BASE,cb,'curve ghost');
+  const s=dadLine(P,p,c,'curve dad');
+  if(moved) shiftArrows(P,BASE,Object.assign({piPrev:2,nu:0},cb),p,Object.assign({piPrev:2,nu:0},c),[[v.Ybar+B*v.eps,v.piStar],[100,2]]);
+  dot(P,v.Ybar+B*v.eps,v.piStar,6,'pt dad');
+  addLabel(P,P.X(v.Ybar+B*v.eps)+9,P.Y(v.piStar)+16,'(Ȳ + Bε, π*)','','tag','start');
+  curveLabel(P,s,'dad','DAD','t','clabel',true);
+  const slope=Math.abs(A)<1e-9?'vertical (A = 0)':f(-1/A);
+  return M('A = αθ_π/(1 + αθ_Y)')+' = <b>'+f(A,3)+'</b>, '+M('B = 1/(1 + αθ_Y)')+' = <b>'+f(B,3)+'</b>. Slope of DAD in the diagram: '+M('−1/A')+' = '+slope+'.'+(v.thPi<0?'<div class="boxnote warn"><b>Taylor principle violated.</b> With '+M('θ_π')+' < 0, higher inflation lowers the real rate, demand rises and DAD slopes <i>upward</i>. US estimates: '+M('θ_π')+' = −0.14 in 1960–78 (high inflation), 0.72 under Volcker and Greenspan.</div>':'');
+}
+function drawEQ(svg,v){
+  const P=ypPlot(svg), p=BASE, c={piPrev:v.piPrev,nu:v.nu,piStar:v.piStar,eps:v.eps,Ybar:v.Ybar}, cb={piPrev:2,nu:0,piStar:2,eps:0,Ybar:100};
+  refV(P,v.Ybar,['Ȳ','t']);
+  const moved=['piPrev','nu','piStar','eps','Ybar'].some(k=>v[k]!==cb[k]);
+  if(moved){ dasLine(P,p,cb,'curve ghost'); dadLine(P,p,cb,'curve ghost'); }
+  const s1=dadLine(P,p,c,'curve dad'), s2=dasLine(P,p,c,'curve das');
+  const e=solve(p,c,v.piPrev);
+  const tr=build.trail.concat([{Y:e.Y,pi:e.pi}]);
+  if(tr.length>1){ polyline(P,tr.map(q=>[q.Y,q.pi]),'trail'); build.trail.forEach((q,j)=>dot(P,q.Y,q.pi,3.5,'pt','Period '+(j+1)+': Y = '+f(q.Y)+', π = '+f(q.pi))); }
+  if(moved) dot(P,100,2,4,'pt soft','Long-run equilibrium with slide values');
+  proj(P,e.Y,e.pi); dot(P,e.Y,e.pi,6.5,'pt ink');
+  curveLabel(P,s1,'dad','DAD','t','clabel',true); curveLabel(P,s2,'das','DAS','t','clabel',true);
+  tags(P,e.Y,e.pi,'Y = '+f(e.Y),'π = '+f(e.pi));
+  const lr=Math.abs(v.nu)<1e-9&&Math.abs(v.eps)<1e-9&&Math.abs(e.pi-v.piPrev)<0.005;
+  const st=lr?'Long-run equilibrium: no shocks and inflation is stable.':(e.Y<v.Ybar-0.005?'Short run: output below natural — a recession.':(e.Y>v.Ybar+0.005?'Short run: output above natural — a boom.':'Short run: output at natural, but inflation is still changing.'));
+  return '<table><tr><td>Output '+M('Y_t')+'</td><td class="r">'+f(e.Y)+'</td><td>Inflation '+M('π_t')+'</td><td class="r">'+f(e.pi)+'%</td></tr>'+
+    '<tr><td>Real rate '+M('r_t')+'</td><td class="r">'+f(e.r)+'%</td><td>Nominal rate '+M('i_t')+'</td><td class="r">'+f(e.i)+'%</td></tr>'+
+    '<tr><td>Expected inflation '+M('E_tπ_{t+1}')+'</td><td class="r">'+f(e.pi)+'%</td><td></td><td></td></tr></table><span class="status">'+st+'</span>';
+}
+
+const STEPS=[
+{pill:'Demand (IS)',title:'The demand for goods and services',eqName:'Equation 1 · demand',eq:'Y_t = Ȳ_t − α(r_t − ρ) + ε_t',
+ terms:[['Y_t','output (real GDP) in period t'],['Ȳ_t','natural level of output'],['α > 0','how strongly demand responds to the real interest rate'],['r_t','real interest rate'],['ρ','natural rate of interest: the long-run real rate of Ch. 3'],['ε_t','demand shock: random, zero on average; positive when C, I or G is unusually high or T unusually low']],
+ body:'<p>This is the IS curve of Ch. 10 drawn as a straight line. A real interest rate above its natural level ρ makes borrowing expensive, so investment and spending on durables fall and output drops below Ȳ. With no demand shock and r = ρ, output sits exactly at its natural level.</p><p>The demand shock '+M('ε_t')+' gathers everything that shifted the IS curve in Ch. 10: changes in autonomous consumption, investment, government purchases and taxes.</p>',
+ sliders:[{id:'r',sym:'r_t',label:'real interest rate',min:-0.5,max:5,step:0.25,v:3,unit:'%'},{id:'eps',sym:'ε_t',label:'demand shock',min:-2,max:2,step:0.25,v:0,signed:true},{id:'alpha',sym:'α',label:'interest sensitivity',min:0.25,max:2,step:0.25,v:1}],
+ draw:drawIS,legend:[['helper','IS curve (demand equation)'],['ghost','with slide values α = 1, ε = 0']],
+ think:{q:'With α = 1, the real interest rate rises from 2% to 3%. By how much does output fall?',a:'By α × 1 = 1 unit. Because Ȳ = 100, that is 1% of natural output: Y falls from 100 to 99. Drag the r slider to check. This is why the slides read Y − Ȳ as a percentage gap.'}},
+{pill:'Fisher equation',title:'The real interest rate: the Fisher equation',eqName:'Equation 2 · Fisher',eq:'r_t = i_t − E_tπ_{t+1}',
+ terms:[['r_t','ex ante (expected) real interest rate'],['i_t','nominal interest rate, set by the central bank'],['E_tπ_{t+1}','inflation expected in period t for the next period']],
+ body:'<p>Borrowers and lenders care about the inflation-adjusted cost of a loan. When the loan is made, next period’s inflation '+M('π_{t+1}')+' is not yet known, so the real rate that matters for spending decisions subtracts <i>expected</i> inflation (Ch. 4).</p>',
+ sliders:[{id:'i',sym:'i_t',label:'nominal interest rate',min:0,max:10,step:0.5,v:4,unit:'%'},{id:'Epi',sym:'E_tπ_{t+1}',label:'expected inflation',min:-1,max:8,step:0.5,v:2,unit:'%'}],
+ draw:drawFisher,legend:[],
+ think:{q:'The central bank raises i from 4% to 5%, but expected inflation rises from 2% to 3.5% at the same time. Did monetary policy get tighter?',a:'No — it got looser. The real rate fell from 2% to 1.5%. Spending responds to r, not i. That is why the policy rule in step 5 raises i by more than any rise in inflation.'}},
+{pill:'Phillips curve',title:'Inflation: the Phillips curve',eqName:'Equation 3 · Phillips curve',eq:'π_t = E_{t−1}π_t + φ(Y_t − Ȳ_t) + υ_t',
+ terms:[['π_t','inflation in period t'],['E_{t−1}π_t','inflation people expected (last period) for this period'],['φ > 0','how much inflation responds when output is away from its natural level'],['υ_t','supply (inflation) shock: random, zero on average; positive for oil-price spikes, droughts and the like']],
+ body:'<p>Inflation is high when (1) people expected it to be high — <b>momentum</b> inflation; (2) demand is strong, so output is above its natural level — <b>demand-pull</b> inflation; (3) prices jump for an outside reason such as costly imported oil or a poor harvest — <b>cost-push</b> inflation.</p><p>Move the point along the curve with the '+M('Y_t')+' slider and watch the three parts add up.</p>',
+ sliders:[{id:'Y',sym:'Y_t',label:'output this period',min:96,max:104,step:0.25,v:102},{id:'Ep',sym:'E_{t−1}π_t',label:'expected inflation',min:0,max:4,step:0.25,v:2,unit:'%'},{id:'nu',sym:'υ_t',label:'supply shock',min:-1.5,max:1.5,step:0.25,v:0,signed:true},{id:'phi',sym:'φ',label:'slope',min:0.1,max:1.5,step:0.05,v:0.25}],
+ draw:drawPC,legend:[['das','Phillips curve'],['ghost','with slide values']],
+ think:{q:'Give a real example of a positive supply shock υ for Pakistan’s economy.',a:'A jump in world oil prices (Pakistan imports most of its oil), a sharp rupee depreciation that raises import costs, or floods that destroy crops and push up food prices. Each raises inflation at any given level of output, so υ<sub>t</sub> > 0.'}},
+{pill:'Expectations',title:'Expected inflation: adaptive expectations',eqName:'Equation 4 · adaptive expectations',eq:'E_tπ_{t+1} = π_t',
+ terms:[['E_tπ_{t+1}','inflation expected for next period'],['π_t','inflation just observed']],
+ body:'<p>People expect prices to keep rising at the rate they have just seen. Example: '+M('E_{2025}π_{2026} = π_{2025}')+'.</p><p>This simple rule does two jobs in the model:</p><ul><li>In the Fisher equation, the real rate becomes '+M('r_t = i_t − π_t')+'.</li><li>Moved back one period, '+M('E_{t−1}π_t = π_{t−1}')+': last period’s inflation feeds into this period’s Phillips curve. That is the source of the model’s <b>dynamics</b>.</li></ul>',
+ sliders:[{id:'s',sym:'Δπ',label:'inflation surprise in year 3',min:-2,max:4,step:0.5,v:3,signed:true}],
+ draw:drawAE,legend:[['helper','actual inflation π'],['aqua','expected inflation Eπ (last year’s actual)']],
+ think:{q:'Inflation jumps to 5% one year and returns to 2% the next. What do people expect in the year after the jump? Are they right?',a:'They expect 5% — last year’s rate — and they are wrong, because actual inflation is 2%. Adaptive expectations lag one period behind, which gives inflation its momentum in the DAD–DAS model.'}},
+{pill:'Policy rule',title:'The central bank’s monetary policy rule',eqName:'Equation 5 · monetary policy rule',eq:'i_t = π_t + ρ + θ_π(π_t − π*_t) + θ_Y(Y_t − Ȳ_t)',
+ terms:[['i_t','nominal interest rate, set each period'],['π*_t','the central bank’s inflation target'],['θ_π > 0','response to the inflation gap'],['θ_Y > 0','response to the output (GDP) gap']],
+ body:'<p>Instead of choosing a money supply, the central bank adjusts the interest rate automatically whenever inflation or output is not where it should be. Combine the rule with '+M('r_t = i_t − π_t')+':</p><div class="eqcard" style="font-size:19px">'+M('r_t = ρ + θ_π(π_t − π*_t) + θ_Y(Y_t − Ȳ_t)')+'</div><p>The real rate rises above ρ when inflation is above target or output is above natural. <b>Taylor rule</b> example (slide 19): '+M('i = π + 2 + 0.5(π − 2) + 0.5(GDP gap)')+' — exactly our rule with ρ = 2, π* = 2, θ<sub>π</sub> = θ<sub>Y</sub> = 0.5.</p>',
+ sliders:[{id:'pi',sym:'π_t',label:'current inflation',min:0,max:6,step:0.25,v:4,unit:'%'},{id:'thPi',sym:'θ_π',label:'response to inflation gap',min:-0.5,max:2,step:0.05,v:0.5},{id:'thY',sym:'θ_Y',label:'response to output gap',min:0,max:2,step:0.05,v:0.5},{id:'gap',sym:'Y_t − Ȳ_t',label:'output gap',min:-3,max:3,step:0.25,v:0,signed:true},{id:'piStar',sym:'π*_t',label:'inflation target',min:0,max:4,step:0.25,v:2,unit:'%'}],
+ draw:drawMP,legend:[['helper','policy rule (slope 1 + θπ)'],['ghost','i = π + ρ: the rate that keeps r = ρ']],
+ think:{q:'Inflation rises from 2% to 4% with output at its natural level. With θ<sub>π</sub> = 0.5, how much does i rise? And r?',a:'i rises by (1 + θ<sub>π</sub>) × 2 = 3 points, from 4% to 7%. r rises by θ<sub>π</sub> × 2 = 1 point, from 2% to 3%. The nominal rate rises by <i>more</i> than inflation, so the real rate rises: the <b>Taylor principle</b>. Try θ<sub>π</sub> < 0 to see it fail.'}},
+{pill:'Derive DAS',key:true,title:'Developing the dynamic aggregate supply (DAS) curve',eqName:'DAS curve',eq:'π_t = π_{t−1} + φ(Y_t − Ȳ_t) + υ_t',
+ terms:null,
+ body:'<p>DAS comes from just two of the five equations: the Phillips curve and adaptive expectations. Reveal the derivation line by line.</p>',
+ deriv:[['π_t = E_{t−1}π_t + φ(Y_t − Ȳ_t) + υ_t','Phillips curve (eq. 3)'],['E_{t−1}π_t = π_{t−1}','adaptive expectations (eq. 4), moved back one period'],['π_t = π_{t−1} + φ(Y_t − Ȳ_t) + υ_t','substitute: this is the DAS curve']],
+ after:'<div class="boxnote"><b>Reading DAS.</b> It slopes upward with slope '+M('φ')+': higher output comes with higher inflation. To locate it you need three facts about the period: natural output '+M('Ȳ_t')+', last period’s inflation '+M('π_{t−1}')+' and the shock '+M('υ_t')+'. At '+M('Y_t = Ȳ_t')+' the curve passes through '+M('π_{t−1} + υ_t')+'.<br><br><b>Shifters:</b> up by the same amount when '+M('π_{t−1}')+' or '+M('υ_t')+' rises; right by the same amount when '+M('Ȳ_t')+' rises.</div>',
+ sliders:[{id:'piPrev',sym:'π_{t−1}',label:'last period’s inflation',min:0,max:4,step:0.25,v:2,unit:'%'},{id:'nu',sym:'υ_t',label:'inflation (supply) shock',min:-1.5,max:1.5,step:0.25,v:0,signed:true},{id:'Ybar',sym:'Ȳ_t',label:'natural output',min:98,max:102,step:0.25,v:100},{id:'phi',sym:'φ',label:'slope',min:0.1,max:1.5,step:0.05,v:0.25}],
+ draw:drawDASstep,legend:[['das','DAS with your settings'],['ghost','DAS with slide values']],
+ think:{q:'Inflation was 4% last year. This year output is at its natural level and there is no supply shock. What is inflation this year?',a:'4%. With Y = Ȳ and υ = 0, DAS gives π<sub>t</sub> = π<sub>t−1</sub>. Inflation has inertia: it stays where it was unless output departs from natural or a shock hits.'}},
+{pill:'Derive DAD',key:true,title:'Developing the dynamic aggregate demand (DAD) curve',eqName:'DAD curve',eq:'Y_t = Ȳ_t − A(π_t − π*_t) + Bε_t',
+ terms:null,
+ body:'<p>DAD combines the demand equation, the Fisher equation, adaptive expectations and the policy rule. Reveal the algebra one line at a time (slides 40–42).</p>',
+ deriv:[['Y_t = Ȳ_t − α(r_t − ρ) + ε_t','demand equation (eq. 1)'],['r_t = i_t − π_t','Fisher equation with adaptive expectations (eqs. 2 + 4)'],['Y_t = Ȳ_t − α(i_t − π_t − ρ) + ε_t','substitute for r'],['i_t − π_t − ρ = θ_π(π_t − π*_t) + θ_Y(Y_t − Ȳ_t)','rearranged policy rule (eq. 5)'],['Y_t = Ȳ_t − α[θ_π(π_t − π*_t) + θ_Y(Y_t − Ȳ_t)] + ε_t','substitute the policy rule'],['(1 + αθ_Y)(Y_t − Ȳ_t) = −αθ_π(π_t − π*_t) + ε_t','collect the output terms'],['Y_t = Ȳ_t − A(π_t − π*_t) + Bε_t','divide by '+M('(1 + αθ_Y)')+' and write '+M('A = αθ_π/(1 + αθ_Y)')+', '+M('B = 1/(1 + αθ_Y)')+': the DAD curve']],
+ after:'<div class="boxnote"><b>Why DAD slopes down</b> — press play to follow the chain:<div class="chain" id="chain"><span class="lk">'+M('π_t')+' ↑</span><span class="ar">→</span><span class="lk">'+M('i_t')+' ↑ by (1 + θ<sub>π</sub>)×</span><span class="ar">→</span><span class="lk">'+M('r_t')+' ↑</span><span class="ar">→</span><span class="lk">C and I ↓</span><span class="ar">→</span><span class="lk">'+M('Y_t')+' ↓</span></div><button class="btn small" id="chainBtn">▶ Play the chain</button><br><br>DAD has <b>no dynamics</b>: every variable in it is dated t. It passes through '+M('(Ȳ_t + Bε_t, π*_t)')+'.<br><b>Shifters:</b> right by '+M('ΔȲ')+' when natural output rises; right by '+M('BΔε')+' for a demand shock; up by '+M('Δπ*')+' when the target rises.</div>',
+ sliders:[{id:'piStar',sym:'π*_t',label:'inflation target',min:0,max:4,step:0.25,v:2,unit:'%'},{id:'eps',sym:'ε_t',label:'demand shock',min:-2,max:2,step:0.25,v:0,signed:true},{id:'Ybar',sym:'Ȳ_t',label:'natural output',min:98,max:102,step:0.25,v:100},{id:'alpha',sym:'α',label:'interest sensitivity',min:0.25,max:2,step:0.05,v:1},{id:'thPi',sym:'θ_π',label:'response to inflation',min:-0.5,max:2,step:0.05,v:0.5},{id:'thY',sym:'θ_Y',label:'response to output',min:0,max:2,step:0.05,v:0.5}],
+ draw:drawDADstep,legend:[['dad','DAD with your settings'],['ghost','DAD with slide values']],
+ think:{q:'A demand shock ε = 1 hits. Why does DAD shift right by only B ≈ 0.67 instead of by 1?',a:'As output rises above natural, the central bank raises the real interest rate (θ<sub>Y</sub> > 0), which chokes off part of the extra demand. The larger θ<sub>Y</sub>, the smaller B and the smaller the shift. Set θ<sub>Y</sub> = 0 and B becomes 1.'}},
+{pill:'Equilibrium',key:true,title:'Short-run equilibrium and the long run',eqName:'Equilibrium: DAD meets DAS',eq:'π_t = [π_{t−1} + φAπ*_t + φBε_t + υ_t] / (1 + φA)',
+ terms:null,
+ body:'<p>In each period the intersection of DAD and DAS fixes output and inflation; the policy rule and Fisher equation then give '+M('i_t')+' and '+M('r_t')+'. Below is the long-run equilibrium (slides 27–32).</p>',
+ derivTitle:'Long-run equilibrium',
+ deriv:[['ε_t = υ_t = 0  and  π_t = π_{t−1}','long run: no shocks, stable inflation'],['DAS ⇒ φ(Y_t − Ȳ_t) = 0 ⇒ Y_t = Ȳ_t','output at its natural level'],['demand equation ⇒ r_t = ρ','real rate at the natural rate'],['policy rule with Y_t = Ȳ_t, r_t = ρ ⇒ π_t = π*_t','inflation on target'],['E_tπ_{t+1} = π*_t  and  i_t = ρ + π*_t','expectations and the nominal rate']],
+ after:'',
+ sliders:[{id:'piPrev',sym:'π_{t−1}',label:'last period’s inflation',min:0,max:5,step:0.25,v:2,unit:'%'},{id:'nu',sym:'υ_t',label:'inflation shock',min:-1.5,max:1.5,step:0.25,v:0,signed:true},{id:'eps',sym:'ε_t',label:'demand shock',min:-2,max:2,step:0.25,v:0,signed:true},{id:'piStar',sym:'π*_t',label:'inflation target',min:0,max:4,step:0.25,v:2,unit:'%'},{id:'Ybar',sym:'Ȳ_t',label:'natural output',min:98,max:102,step:0.25,v:100}],
+ extra:'<div class="advance"><button class="btn primary" id="advBtn">Advance one period ▶</button><button class="btn" id="clrBtn">Clear path</button><label class="chk"><input type="checkbox" id="oneShot" checked> Shocks last one period</label></div><p class="hint" style="margin:0">“Advance” makes this period’s inflation next period’s '+M('π_{t−1}')+' — adaptive expectations at work. Press it repeatedly to watch the economy converge.</p>',
+ draw:drawEQ,legend:[['dad','DAD'],['das','DAS'],['ghost','long-run curves with slide values'],['dot','path as you advance']],
+ think:{q:'Set π<sub>t−1</sub> = 3% with no shocks. Is the economy in a boom or a recession this period? Then press “Advance one period” several times. What happens?',a:'A recession: DAS sits above its long-run position, so the intersection has Y below Ȳ and inflation between 2% and 3%. Each period inflation falls, expectations fall with it, DAS moves down, and output recovers toward Ȳ. The economy converges to the long-run equilibrium Y = Ȳ, π = π*.'}}
+];
+
+const build={step:0,vals:{},ctl:null,rev:1,trail:[]};
+const bLeft=$('#buildLeft'), bSvg=$('#buildSvg'), bRead=$('#buildReadout'), bSl=$('#buildSliders'), bExtra=$('#buildExtra'), bLeg=$('#buildLegend');
+function legendHTML(items){return (items||[]).map(([c,t])=>'<span class="k"><span class="sw '+(c==='dot'?'dot':c)+'"></span>'+t+'</span>').join('');}
+function renderPills(){
+  $('#stepPills').innerHTML=STEPS.map((s,i)=>'<button class="pill'+(i===build.step?' on':'')+(s.key?' key':'')+'" data-i="'+i+'"><span class="num">'+(i+1)+'</span>'+s.pill+'</button>').join('');
+  $$('#stepPills .pill').forEach(b=>b.addEventListener('click',()=>renderStep(+b.dataset.i)));
+}
+function updateReveal(){
+  const lines=$$('.dline',bLeft);
+  lines.forEach((li,j)=>{li.classList.toggle('hidden',j>=build.rev); li.classList.toggle('final',j===lines.length-1);});
+  const nb=$('#revNext'); if(nb) nb.disabled=build.rev>=lines.length;
+}
+function renderStep(i){
+  build.step=i; build.rev=1; build.trail=[]; build.vals={};
+  const s=STEPS[i]; renderPills();
+  let h='<div class="kicker">Step '+(i+1)+' of '+STEPS.length+'</div><h2>'+s.title+'</h2>';
+  h+='<div class="eqcard"><div class="eqname">'+s.eqName+'</div><div class="eqbig">'+M(s.eq)+'</div></div>';
+  if(s.terms) h+='<dl class="terms">'+s.terms.map(t=>'<dt>'+M(t[0])+'</dt><dd>'+t[1]+'</dd>').join('')+'</dl>';
+  h+=s.body;
+  if(s.deriv) h+='<div class="deriv"><div class="deriv-head"><h4>'+(s.derivTitle||'Derivation')+'</h4><div><button class="btn small" id="revNext">Show next line</button> <button class="btn small" id="revAll">Show all</button></div></div><ol class="dlines">'+s.deriv.map(d=>'<li class="dline"><span class="dl-eq">'+M(d[0])+'</span><span class="dl-note">'+d[1]+'</span></li>').join('')+'</ol></div>';
+  if(s.after) h+=s.after;
+  if(s.think) h+='<div class="think"><div class="think-q"><span class="think-tag">Think it through</span> '+s.think.q+'</div><button class="btn small" id="thinkBtn">Show answer</button><div class="think-a" hidden>'+s.think.a+'</div></div>';
+  bLeft.innerHTML=h;
+  const tb=$('#thinkBtn'); if(tb) tb.addEventListener('click',()=>{const a=$('.think-a',bLeft); a.hidden=!a.hidden; tb.textContent=a.hidden?'Show answer':'Hide answer';});
+  const rn=$('#revNext'); if(rn) rn.addEventListener('click',()=>{build.rev++; updateReveal();});
+  const ra=$('#revAll'); if(ra) ra.addEventListener('click',()=>{build.rev=99; updateReveal();});
+  const cb=$('#chainBtn'); if(cb) cb.addEventListener('click',playChain);
+  build.ctl=makeSliders(bSl,s.sliders,build.vals,()=>redrawBuild());
+  bExtra.innerHTML=s.extra||'';
+  if(i===7){
+    $('#advBtn').addEventListener('click',()=>{
+      const v=build.vals, e=solve(BASE,{piStar:v.piStar,eps:v.eps,nu:v.nu,Ybar:v.Ybar},v.piPrev);
+      build.trail.push({Y:e.Y,pi:e.pi});
+      build.ctl.piPrev.set(e.pi);
+      if($('#oneShot').checked){ build.ctl.nu.set(0); build.ctl.eps.set(0); }
+      redrawBuild();
+    });
+    $('#clrBtn').addEventListener('click',()=>{build.trail=[]; redrawBuild();});
+  }
+  bLeg.innerHTML=legendHTML(s.legend);
+  updateReveal(); redrawBuild();
+  $('#stepPrev').disabled=i===0;
+  $('#stepNext').textContent=i===STEPS.length-1?'Go to “What shifts them” ▶':'Next step ▶';
+}
+function redrawBuild(){ const s=STEPS[build.step]; bRead.innerHTML=s.draw(bSvg,build.vals)||''; }
+let chainTimer=null;
+function playChain(){
+  const lks=$$('#chain .lk'); if(!lks.length) return; clearInterval(chainTimer);
+  lks.forEach(x=>x.classList.remove('lit')); let j=0;
+  chainTimer=setInterval(()=>{ if(j<lks.length){ lks[j].classList.add('lit'); j++; } else clearInterval(chainTimer); },650);
+}
+$('#stepPrev').addEventListener('click',()=>{ if(build.step>0) renderStep(build.step-1); window.scrollTo({top:0,behavior:'smooth'}); });
+$('#stepNext').addEventListener('click',()=>{ if(build.step<STEPS.length-1){ renderStep(build.step+1); window.scrollTo({top:0,behavior:'smooth'}); } else $('nav.tabs button[data-tab="shift"]').click(); });
+
+/* =====================================================================
+   TAB 2 — SHIFTERS
+   ===================================================================== */
+const SH_DEF={
+  das:[{id:'piPrev',sym:'π_{t−1}',label:'last period’s inflation',min:0.5,max:3.5,step:0.25,v:2,unit:'%'},{id:'nu',sym:'υ_t',label:'inflation (supply) shock',min:-1.5,max:1.5,step:0.25,v:0,signed:true}],
+  dad:[{id:'piStar',sym:'π*_t',label:'inflation target',min:0.5,max:3.5,step:0.25,v:2,unit:'%'},{id:'eps',sym:'ε_t',label:'demand shock',min:-2,max:2,step:0.25,v:0,signed:true}],
+  both:[{id:'Ybar',sym:'Ȳ_t',label:'natural output',min:98,max:102,step:0.25,v:100}],
+  slope:[{id:'phi',sym:'φ',label:'DAS slope',min:0.1,max:1.5,step:0.05,v:0.25},{id:'alpha',sym:'α',label:'interest sensitivity of demand',min:0.25,max:2,step:0.05,v:1},{id:'thPi',sym:'θ_π',label:'response to inflation gap',min:0,max:2,step:0.05,v:0.5},{id:'thY',sym:'θ_Y',label:'response to output gap',min:0,max:2,step:0.05,v:0.5}]
+};
+const sh={vals:{},ctl:{}};
+function buildShiftSliders(){
+  sh.vals={}; sh.ctl={};
+  [['das','#shDAS'],['dad','#shDAD'],['both','#shBoth'],['slope','#shSlope']].forEach(([g,sel])=>Object.assign(sh.ctl,makeSliders($(sel),SH_DEF[g],sh.vals,drawShift)));
+}
+function shDefault(id){for(const g in SH_DEF) for(const d of SH_DEF[g]) if(d.id===id) return d.v;}
+function drawShift(){
+  const v=sh.vals, svg=$('#shSvg');
+  const pN={alpha:v.alpha,rho:2,phi:v.phi,thPi:v.thPi,thY:v.thY}, pB=BASE;
+  const cB={piPrev:2,nu:0,piStar:2,eps:0,Ybar:100}, cN={piPrev:v.piPrev,nu:v.nu,piStar:v.piStar,eps:v.eps,Ybar:v.Ybar};
+  const P=ypPlot(svg,420);
+  refV(P,v.Ybar,['Ȳ','t']);
+  const dasMoved=v.piPrev!==2||v.nu!==0||v.Ybar!==100||v.phi!==0.25;
+  const dadMoved=v.piStar!==2||v.eps!==0||v.Ybar!==100||v.alpha!==1||v.thPi!==0.5||v.thY!==0.5;
+  if(dasMoved) dasLine(P,pB,cB,'curve ghost');
+  if(dadMoved) dadLine(P,pB,cB,'curve ghost');
+  const s1=dadLine(P,pN,cN,'curve dad'), s2=dasLine(P,pN,cN,'curve das');
+  const eA=solve(pB,cB,2), eB=solve(pN,cN,v.piPrev);
+  shiftArrows(P,pB,cB,pN,cN,[[eA.Y,eA.pi],[eB.Y,eB.pi]]);
+  const same=Math.abs(eA.Y-eB.Y)<0.005&&Math.abs(eA.pi-eB.pi)<0.005;
+  if(!same){ proj(P,eB.Y,eB.pi); dot(P,eA.Y,eA.pi,5,'pt soft','A: before'); }
+  dot(P,eB.Y,eB.pi,6.5,'pt ink',(same?'A':'B')+': Y = '+f(eB.Y)+', π = '+f(eB.pi));
+  curveLabel(P,s1,'dad','DAD','','clabel',true); curveLabel(P,s2,'das','DAS','','clabel',true);
+  if(!same && inside(P,[eA.Y,eA.pi])) addLabel(P,P.X(eA.Y)-8,P.Y(eA.pi)+16,'A','','ptlabel','end');
+  if(inside(P,[eB.Y,eB.pi])) addLabel(P,P.X(eB.Y)+9,P.Y(eB.pi)-8,same?'A':'B','','ptlabel','start',true);
+  if(!same) tags(P,eB.Y,eB.pi,'Y = '+f(eB.Y),'π = '+f(eB.pi));
+  const {A,B}=AB(pN);
+  const dasUp=(v.piPrev+v.nu)-2, dasR=v.Ybar-100, dadR=(v.Ybar+B*v.eps)-100, dadUp=v.piStar-2;
+  const mv=(u,r,uw,rw)=>{const a=[]; if(Math.abs(r)>1e-9) a.push((r>0?rw[0]:rw[1])+' '+f(Math.abs(r))); if(Math.abs(u)>1e-9) a.push((u>0?uw[0]:uw[1])+' '+f(Math.abs(u))); return a.length?'shifted '+a.join(' and '):'no shift';};
+  $('#shReadout').innerHTML=
+    '<div class="ro-line"><span class="sw das"></span><b>DAS</b>&nbsp;'+mv(dasUp,dasR,['up','down'],['right','left'])+' · slope '+M('φ')+' = '+f(v.phi)+'</div>'+
+    '<div class="ro-line"><span class="sw dad"></span><b>DAD</b>&nbsp;'+mv(dadUp,dadR,['up','down'],['right','left'])+' · slope '+M('−1/A')+' = '+(A>1e-9?f(-1/A):'vertical')+' (A = '+f(A,3)+', B = '+f(B,3)+')</div>'+
+    '<div class="ro-line" style="margin-top:4px">'+(same?'Equilibrium stays at A: Y = '+f(eB.Y)+', π = '+f(eB.pi)+'%.':'Short-run equilibrium moves from A (Y = '+f(eA.Y)+', π = '+f(eA.pi)+'%) to <b>B (Y = '+f(eB.Y)+', π = '+f(eB.pi)+'%)</b>: r = '+f(eB.r)+'%, i = '+f(eB.i)+'%.')+'</div>';
+  renderShTable();
+}
+function renderShTable(){
+  const v=sh.vals, {B}=AB({alpha:v.alpha,thPi:v.thPi,thY:v.thY});
+  const ch=id=>Math.abs(v[id]-shDefault(id))>1e-9, d=id=>v[id]-shDefault(id);
+  const dir=(x,u,dn)=>x>0?u:dn;
+  const rows=[
+    ['sec','Shifters'],
+    ['Ybar','Natural output','Ȳ_t',()=>dir(d('Ybar'),'right','left')+' by '+f(Math.abs(d('Ybar'))),()=>dir(d('Ybar'),'right','left')+' by '+f(Math.abs(d('Ybar'))),'right by the same amount','right by the same amount'],
+    ['piPrev','Last period’s inflation','π_{t−1}',()=>dir(d('piPrev'),'up','down')+' by '+f(Math.abs(d('piPrev'))),null,'up by the same amount',null],
+    ['nu','Inflation (supply) shock','υ_t',()=>dir(v.nu,'up','down')+' by '+f(Math.abs(v.nu)),null,'up by υ (if υ > 0)',null],
+    ['piStar','Inflation target','π*_t',null,()=>dir(d('piStar'),'up','down')+' by '+f(Math.abs(d('piStar'))),null,'up by the same amount'],
+    ['eps','Demand shock','ε_t',null,()=>dir(v.eps,'right','left')+' by Bε = '+f(Math.abs(B*v.eps)),null,'right by Bε (if ε > 0)'],
+    ['sec','Slopes'],
+    ['phi','Phillips-curve slope','φ',()=>dir(d('phi'),'steeper','flatter'),null,'steeper as φ rises',null],
+    ['alpha','Interest sensitivity','α',null,()=>dir(d('alpha'),'flatter','steeper'),null,'flatter as α rises'],
+    ['thPi','Response to inflation','θ_π',null,()=>dir(d('thPi'),'flatter','steeper'),null,'flatter as θπ rises'],
+    ['thY','Response to output','θ_Y',null,()=>dir(d('thY'),'steeper','flatter'),null,'steeper as θY rises (and B smaller)']
+  ];
+  let h='<thead><tr><th>Change</th><th></th><th>DAS (slopes up)</th><th>DAD (slopes down)</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    if(r[0]==='sec'){h+='<tr class="sec"><td colspan="4">'+r[1]+'</td></tr>'; return;}
+    const on=ch(r[0]);
+    const cell=(fn,st)=>st===null?'<td class="dash">—</td>':'<td>'+(on&&fn?'<b>'+fn()+'</b>':st)+'</td>';
+    h+='<tr class="'+(on?'on':'')+'"><td>'+r[1]+'</td><td>'+M(r[2])+'</td>'+cell(r[3],r[5])+cell(r[4],r[6])+'</tr>';
+  });
+  $('#shTable').innerHTML=h+'</tbody>';
+}
+$('#shReset').addEventListener('click',()=>{buildShiftSliders(); drawShift();});
+
+const QCH=[['nu+',M('υ_t')+' ↑ → DAS shifts up'],['nu-',M('υ_t')+' ↓ → DAS shifts down'],['pp+',M('π_{t−1}')+' ↑ → DAS shifts up'],['yb+',M('Ȳ_t')+' ↑ → DAS and DAD shift right'],['eps+',M('ε_t')+' ↑ → DAD shifts right'],['eps-',M('ε_t')+' ↓ → DAD shifts left'],['ps+',M('π*_t')+' ↑ → DAD shifts up'],['ps-',M('π*_t')+' ↓ → DAD shifts down']];
+const QUIZ=[
+ {q:'World oil prices jump sharply this year. Pakistan imports most of its oil.',a:'nu+',set:{nu:1},why:'Dearer energy raises inflation at every level of output — a cost-push shock, '+M('υ_t')+' > 0. DAS shifts up by '+M('υ_t')+'. DAD does not move: nothing in its equation (Ȳ, ε, π*) changed.'},
+ {q:'The government launches a large public-investment programme financed by borrowing.',a:'eps+',set:{eps:1},why:'Higher G is a positive demand shock, '+M('ε_t')+' > 0. DAD shifts right by '+M('Bε_t')+' — by less than ε, because the central bank leans against the rise in output.'},
+ {q:'Last year inflation turned out to be 3% instead of the usual 2%.',a:'pp+',set:{piPrev:3},why:'With adaptive expectations people now expect 3% this year ('+M('E_{t−1}π_t = π_{t−1}')+'). DAS shifts up by 1 point. This is how inflation gets its momentum.'},
+ {q:'Business confidence collapses and firms postpone investment projects.',a:'eps-',set:{eps:-1},why:'Unusually low investment is a negative demand shock, '+M('ε_t')+' < 0. DAD shifts left by '+M('B|ε_t|')+'.'},
+ {q:'The central bank announces a lower inflation target: 1% instead of 2%.',a:'ps-',set:{piStar:1},why:M('π*')+' appears only in the policy rule, so only DAD moves: down by exactly 1 point. At any inflation rate the central bank now sets a higher real interest rate.'},
+ {q:'New technology permanently raises the economy’s productive capacity by 1%.',a:'yb+',set:{Ybar:101},why:'Natural output '+M('Ȳ_t')+' appears in both curves. DAS and DAD both shift right by exactly 1, so output rises with no change in inflation.'},
+ {q:'A bumper harvest and falling world commodity prices cut production costs.',a:'nu-',set:{nu:-1},why:'A favourable supply shock, '+M('υ_t')+' < 0, lowers inflation at every level of output: DAS shifts down.'},
+ {q:'Households, optimistic about the future, go on a spending spree.',a:'eps+',set:{eps:1},why:'Unusually high consumption is a positive demand shock: DAD shifts right by '+M('Bε_t')+'.'},
+ {q:'The central bank raises its inflation target from 2% to 3%.',a:'ps+',set:{piStar:3},why:'A higher target shifts DAD up by exactly 1 point: the central bank now tolerates more inflation before raising the real interest rate.'}
+];
+const qz={i:0,ans:{}};
+function renderQuiz(){
+  const q=QUIZ[qz.i], ans=qz.ans[qz.i], nAns=Object.keys(qz.ans).length, nOk=Object.keys(qz.ans).filter(k=>qz.ans[k]===QUIZ[k].a).length;
+  let h='<div class="qz-top"><span>Event '+(qz.i+1)+' of '+QUIZ.length+'</span><span>Score: '+nOk+' / '+nAns+'</span></div><p class="qz-q">'+q.q+'</p><div class="qz-choices">';
+  h+=QCH.map(c=>{let cls=''; if(ans){ if(c[0]===q.a) cls=' right'; else if(c[0]===ans) cls=' wrong'; } return '<button class="qz-c'+cls+'" data-id="'+c[0]+'"'+(ans?' disabled':'')+'>'+c[1]+'</button>';}).join('');
+  h+='</div>';
+  if(ans) h+='<div class="qz-fb '+(ans===q.a?'ok':'no')+'"><b>'+(ans===q.a?'Correct.':'Not quite.')+'</b> '+q.why+'<div style="margin-top:8px"><button class="btn small" id="qzShow">Show it on the graph</button></div></div>';
+  h+='<div class="qz-nav"><button class="btn small" id="qzPrev"'+(qz.i===0?' disabled':'')+'>◀ Previous</button><button class="btn small primary" id="qzNext"'+(qz.i===QUIZ.length-1?' disabled':'')+'>Next event ▶</button></div>';
+  const box=$('#quiz'); box.innerHTML=h;
+  $$('.qz-c',box).forEach(b=>b.addEventListener('click',()=>{qz.ans[qz.i]=b.dataset.id; renderQuiz();}));
+  const s=$('#qzShow'); if(s) s.addEventListener('click',()=>{ buildShiftSliders(); for(const k in q.set) sh.ctl[k].set(q.set[k]); drawShift(); $('#shSvg').scrollIntoView({behavior:'smooth',block:'center'}); });
+  $('#qzPrev').addEventListener('click',()=>{qz.i--; renderQuiz();});
+  $('#qzNext').addEventListener('click',()=>{qz.i++; renderQuiz();});
+}
+
+/* =====================================================================
+   TAB 3 — DYNAMIC SCENARIOS
+   ===================================================================== */
+const SCEN={
+  growth:{chip:'① Natural output rises',sub:'long-run growth: Ȳ ↑ permanently',sizeSym:'ΔȲ',sizeLabel:'rise in natural output',min:-2,max:3,step:0.25,def:1,dur:false,after:6,
+    path:(k,s)=>({Ybar:100+(k>=2?s.size:0),piStar:2,eps:0,nu:0}),shock:{get:c=>c.Ybar,title:'Natural output, Ȳ',cls:'ink',minSpan:1}},
+  demand:{chip:'② Positive demand shock',sub:'ε > 0 for several periods',sizeSym:'ε',sizeLabel:'size of the demand shock',min:-3,max:3,step:0.25,def:1,dur:true,durDef:5,durMax:8,after:20,
+    path:(k,s)=>({Ybar:100,piStar:2,eps:(k>=2&&k<2+s.dur)?s.size:0,nu:0}),shock:{get:c=>c.eps,title:'Demand shock, ε',cls:'dad',minSpan:1}},
+  supply:{chip:'③ Negative supply shock',sub:'positive inflation shock υ > 0',sizeSym:'υ',sizeLabel:'size of the inflation shock',min:-3,max:3,step:0.25,def:1,dur:true,durDef:1,durMax:5,after:20,
+    path:(k,s)=>({Ybar:100,piStar:2,eps:0,nu:(k>=2&&k<2+s.dur)?s.size:0}),shock:{get:c=>c.nu,title:'Inflation shock, υ',cls:'das',minSpan:1}},
+  target:{chip:'Bonus · Lower inflation target',sub:'stricter monetary policy (slides 79–86)',sizeSym:'Δπ*',sizeLabel:'change in the target',min:-1.5,max:1.5,step:0.25,def:-1,dur:false,after:20,
+    path:(k,s)=>({Ybar:100,piStar:2+(k>=2?s.size:0),eps:0,nu:0}),shock:{get:c=>c.piStar,title:'Inflation target, π*',cls:'dad',minSpan:1}}
+};
+const dyn={sc:'growth',sv:{size:1,dur:5},pv:{alpha:1,phi:0.25,thPi:0.5,thY:0.5},k:1,run:null,timer:null,predict:false,pending:null,ok:0,tot:0,fb:'',showAll:false,showFuture:false};
+function buildRun(){
+  const sc=SCEN[dyn.sc], p=Object.assign({},BASE,dyn.pv), s={size:dyn.sv.size,dur:sc.dur?dyn.sv.dur:0};
+  const N=3+sc.after, data=[]; let piPrev=2;
+  for(let k=0;k<N;k++){ const x=sc.path(k,s); const o=solve(p,x,piPrev); data.push(Object.assign({k,piPrev},x,o,{dasA:piPrev+x.nu,dadA:x.Ybar+o.B*x.eps})); piPrev=o.pi; }
+  // domain for the DAD–DAS diagram, fixed for the whole run
+  const ys=[],ps=[]; data.forEach(c=>{ys.push(c.Y,c.Ybar,c.dadA); ps.push(c.pi,c.dasA,c.piStar);});
+  let ylo=Math.min(...ys),yhi=Math.max(...ys),plo=Math.min(...ps),phi=Math.max(...ps);
+  let wy=Math.max(yhi-ylo,0.5)*(dyn.sc==='growth'?2.6:1.7), wp=Math.max(phi-plo,0.5)*1.7; const cy=(ylo+yhi)/2, cp=(plo+phi)/2;
+  const r=(460-70)/(660-62), A=data[0].A, kStar=A>1e-6?Math.sqrt(A/p.phi):1, kk=r*wy/wp;
+  if(kk>kStar*2.2) wp=r*wy/(kStar*2.2); else if(kk<kStar/2.2) wy=wp*(kStar/2.2)/r;
+  dyn.run={sc,p,s,N,data,dom:{x:[cy-wy/2,cy+wy/2],y:[cp-wp/2,cp+wp/2]}};
+  dyn.k=Math.min(Math.max(1,dyn.k),N-1);
+  $('#pScrub').max=N-1;
+}
+function renderChips(){
+  $('#scChips').innerHTML=Object.keys(SCEN).map(k=>'<button class="chip'+(k===dyn.sc?' on':'')+'" data-sc="'+k+'">'+SCEN[k].chip+'<small>'+SCEN[k].sub+'</small></button>').join('');
+  $$('#scChips .chip').forEach(b=>b.addEventListener('click',()=>selectScenario(b.dataset.sc)));
+}
+function selectScenario(key){
+  stopPlay(); dyn.sc=key; const sc=SCEN[key]; dyn.sv={size:sc.def,dur:sc.durDef||1}; dyn.k=1; dyn.pending=null; dyn.fb='';
+  renderChips();
+  makeSliders($('#scSize'),[{id:'size',sym:sc.sizeSym,label:sc.sizeLabel+' (from period t)',min:sc.min,max:sc.max,step:sc.step,v:sc.def,signed:true}],dyn.sv,()=>{buildRun(); renderDyn();});
+  if(sc.dur) makeSliders($('#scDur'),[{id:'dur',sym:'D',label:'number of periods the shock lasts',min:1,max:sc.durMax,step:1,v:sc.durDef,dec:0}],dyn.sv,()=>{buildRun(); renderDyn();});
+  else $('#scDur').innerHTML='<p class="hint" style="margin:6px 0">'+(key==='growth'?'The rise in natural output is permanent.':'The new target is permanent.')+'</p>';
+  buildRun(); renderDyn();
+}
+let pCtl=null;
+function buildParamSliders(){
+  pCtl=makeSliders($('#scParams'),[
+    {id:'thPi',sym:'θ_π',label:'response to inflation gap',min:0,max:2,step:0.05,v:0.5},
+    {id:'thY',sym:'θ_Y',label:'response to output gap',min:0,max:2,step:0.05,v:0.5},
+    {id:'phi',sym:'φ',label:'Phillips-curve slope',min:0.1,max:1,step:0.05,v:0.25},
+    {id:'alpha',sym:'α',label:'interest sensitivity of demand',min:0.25,max:2,step:0.05,v:1}],dyn.pv,()=>{buildRun(); renderDyn();});
+}
+$$('[data-preset]').forEach(b=>b.addEventListener('click',()=>{
+  const ps={slides:{thPi:0.5,thY:0.5,phi:0.25,alpha:1},hawk:{thPi:1.5,thY:0.1},dove:{thPi:0.1,thY:1.5}}[b.dataset.preset];
+  for(const k in ps) pCtl[k].set(ps[k]); buildRun(); renderDyn();
+}));
+
+function dynCurves(c){return {piPrev:c.piPrev,nu:c.nu,piStar:c.piStar,eps:c.eps,Ybar:c.Ybar};}
+function dasDiff(a,b){return Math.abs(a.dasA-b.dasA)>1e-6||Math.abs(a.Ybar-b.Ybar)>1e-6;}
+function dadDiff(a,b){return Math.abs(a.dadA-b.dadA)>1e-6||Math.abs(a.piStar-b.piStar)>1e-6;}
+function drawDynMain(){
+  const R=dyn.run, d=R.data, k=dyn.k, c=d[k], p=R.p;
+  const P=makePlot($('#dynSvg'),{W:660,H:460,x:R.dom.x,y:R.dom.y,xLabel:'Output, Y',yLabel:'Inflation, π (%)',m:{l:50,r:12,t:30,b:40}});
+  refV(P,c.Ybar,['Ȳ',labOf(k)]);
+  refH(P,c.piStar,['π*',labOf(k)]);
+  const c0=d[1], q=d[k-1];
+  const segs=[];
+  if(k>1){
+    if(dyn.showAll) for(let j=2;j<k-1;j++){ if(dasDiff(d[j],c)) dasLine(P,p,dynCurves(d[j]),'curve das faint'); if(dadDiff(d[j],c)) dadLine(P,p,dynCurves(d[j]),'curve dad faint'); }
+    if(dasDiff(c0,c)) segs.push(['das',dasLine(P,p,dynCurves(c0),'curve ghost'),labOf(1),'clabel muted']);
+    if(dadDiff(c0,c)) segs.push(['dad',dadLine(P,p,dynCurves(c0),'curve ghost'),labOf(1),'clabel muted']);
+    if(k-1>1){
+      if(dasDiff(q,c)&&dasDiff(q,c0)) dasLine(P,p,dynCurves(q),'curve das prev');
+      if(dadDiff(q,c)&&dadDiff(q,c0)) dadLine(P,p,dynCurves(q),'curve dad prev');
+    }
+  }
+  const sD=dadLine(P,p,dynCurves(c),'curve dad'), sS=dasLine(P,p,dynCurves(c),'curve das');
+  if(k>1) shiftArrows(P,p,dynCurves(q),p,dynCurves(c),[[c.Y,c.pi],[q.Y,q.pi],[d[1].Y,d[1].pi],[(c.Y+q.Y)/2,(c.pi+q.pi)/2]]);
+  // equilibrium path
+  const path=d.slice(1,k+1);
+  if(path.length>1){ polyline(P,path.map(e=>[e.Y,e.pi]),'trail'); path.slice(0,-1).forEach((e,j)=>dot(P,e.Y,e.pi,3.6,'pt',letter(j+1)+' · period '+labOf(j+1)+': Y = '+f(e.Y)+', π = '+f(e.pi)+'%')); }
+  proj(P,c.Y,c.pi);
+  dot(P,c.Y,c.pi,7,'pt ink',letter(k)+' · period '+labOf(k)+': Y = '+f(c.Y)+', π = '+f(c.pi)+'%');
+  // labels: current curves first (priority)
+  curveLabel(P,sD,'dad','DAD',labOf(k),'clabel',true);
+  curveLabel(P,sS,'das','DAS',labOf(k),'clabel',true);
+  addLabel(P,P.X(c.Y)+10,P.Y(c.pi)-9,letter(k),'','ptlabel','start',true);
+  if(k>1 && (Math.abs(c.Y-d[1].Y)>1e-3||Math.abs(c.pi-d[1].pi)>1e-3) && inside(P,[d[1].Y,d[1].pi])) addLabel(P,P.X(d[1].Y)-9,P.Y(d[1].pi)+17,'A','','ptlabel','end');
+  segs.forEach(s=>curveLabel(P,s[1],s[0],s[0].toUpperCase(),s[2],s[3]));
+  tags(P,c.Y,c.pi,'Y = '+f(c.Y),'π = '+f(c.pi));
+}
+function renderExo(){
+  const c=dyn.run.data[dyn.k];
+  const items=[['Ȳ_t = '+f(c.Ybar),Math.abs(c.Ybar-100)>1e-9],['ε_t = '+fs(c.eps),Math.abs(c.eps)>1e-9],['υ_t = '+fs(c.nu),Math.abs(c.nu)>1e-9],['π*_t = '+f(c.piStar),Math.abs(c.piStar-2)>1e-9],['π_{t−1} = '+f(c.piPrev),Math.abs(c.piPrev-2)>1e-6]];
+  $('#exoRow').innerHTML='<span style="border:0;padding-left:0">This period:</span>'+items.map(it=>'<span class="'+(it[1]?'on':'')+'">'+M(it[0])+'</span>').join('');
+}
+function renderVars(){
+  const d=dyn.run.data, k=dyn.k, c=d[k], q=d[Math.max(0,k-1)], rho=dyn.run.p.rho;
+  const rows=[['Y_t','output',c.Y,q.Y],['π_t','inflation',c.pi,q.pi],['E_tπ_{t+1}','expected inflation',c.pi,q.pi],['r_t','real interest rate',c.r,q.r],['i_t','nominal interest rate',c.i,q.i]];
+  let h='<thead><tr><th>Endogenous variable</th><th>'+(k>1?'Last period':'')+'</th><th>Now</th><th>Change</th></tr></thead><tbody>';
+  rows.forEach(r=>{const dd=r[2]-r[3]; const ar=k<=1||Math.abs(dd)<0.005?'<span class="muted">—</span>':(dd>0?'▲ '+f(dd):'▼ '+f(-dd));
+    h+='<tr><td>'+M(r[0])+'<span class="nm">'+r[1]+'</span></td><td class="muted">'+(k>1?f(r[3]):'')+'</td><td><b>'+f(r[2])+'</b></td><td class="chg">'+ar+'</td></tr>';});
+  $('#varTable').innerHTML=h+'</tbody>';
+}
+function dirOf(a,b){const x=b-a; return x>0.005?'up':(x<-0.005?'down':'same');}
+function moveWord(a,b,unit){unit=unit||''; const x=b-a; if(Math.abs(x)<0.005) return 'stays at '+f(b)+unit; return (x>0?'rises':'falls')+' from '+f(a)+unit+' to '+f(b)+unit;}
+function narrative(k){
+  const R=dyn.run, d=R.data, c=d[k], p=R.p, E=1e-6, key=dyn.sc;
+  if(k===1){
+    const what={growth:'natural output rises',demand:'the demand shock hits',supply:'the inflation shock hits',target:'the central bank changes its target'}[key];
+    return '<h5>Starting point</h5><p><b>Point A</b> is the long-run equilibrium: no shocks (ε = υ = 0) and stable inflation, so '+M('Y = Ȳ')+' = '+f(c.Ybar)+', '+M('π = E π = π*')+' = '+f(c.pi)+'%, '+M('r = ρ')+' = '+f(c.r)+'% and '+M('i = ρ + π*')+' = '+f(c.i)+'%.</p><p>Press <b>Next ▶</b> (or the → key) to move to period '+labHTML(2)+', when '+what+'.</p>';
+  }
+  const q=d[k-1]; let h='';
+  // 1. news
+  const news=[];
+  if(Math.abs(c.Ybar-q.Ybar)>E) news.push('Natural output '+(c.Ybar>q.Ybar?'rises':'falls')+' from '+f(q.Ybar)+' to '+f(c.Ybar)+'.');
+  if(Math.abs(c.piStar-q.piStar)>E) news.push('The central bank '+(c.piStar<q.piStar?'lowers':'raises')+' its inflation target from '+f(q.piStar)+'% to '+f(c.piStar)+'%.');
+  if(Math.abs(c.eps-q.eps)>E){ news.push(Math.abs(q.eps)<E?'A '+(c.eps>0?'positive':'negative')+' demand shock hits: '+M('ε_t')+' = '+fs(c.eps)+'.':(Math.abs(c.eps)<E?'The demand shock ends: '+M('ε_t')+' returns to 0.':'The demand shock changes to '+fs(c.eps)+'.')); }
+  else if(Math.abs(c.eps)>E) news.push('The demand shock is still present ('+M('ε_t')+' = '+fs(c.eps)+').');
+  if(Math.abs(c.nu-q.nu)>E){ news.push(Math.abs(q.nu)<E?'An inflation (supply) shock hits: '+M('υ_t')+' = '+fs(c.nu)+'.':(Math.abs(c.nu)<E?'The inflation shock is over: '+M('υ_t')+' = 0.':'The inflation shock changes to '+fs(c.nu)+'.')); }
+  else if(Math.abs(c.nu)>E) news.push('The inflation shock is still present ('+M('υ_t')+' = '+fs(c.nu)+').');
+  if(!news.length) news.push('No new shocks. The only thing that changes is last period’s inflation, which now sets expected inflation.');
+  h+='<h5>What happens this period</h5><p>'+news.join(' ')+'</p>';
+  // 2. curve shifts
+  const dYb=c.Ybar-q.Ybar, dAs=c.dasA-q.dasA, dPP=c.piPrev-q.piPrev, dNu=c.nu-q.nu;
+  let das;
+  if(Math.abs(dYb)<E&&Math.abs(dAs)<0.0005) das='<b>DAS</b> stays where it was.';
+  else{
+    const parts=[];
+    if(Math.abs(dAs)>=0.0005){
+      const why=[];
+      if(Math.abs(dPP)>=0.0005) why.push(fs(dPP)+' because last period’s inflation was '+f(c.piPrev)+'% instead of '+f(q.piPrev)+'%, so expected inflation '+M('E_{t−1}π_t')+' is '+(dPP>0?'higher':'lower'));
+      if(Math.abs(dNu)>E) why.push(fs(dNu)+' because '+(Math.abs(c.nu)<E?'the inflation shock has disappeared':(Math.abs(q.nu)<E?'of the inflation shock '+M('υ_t'):'the inflation shock changed')));
+      parts.push('shifts <b>'+(dAs>0?'up':'down')+' by '+f(Math.abs(dAs))+'</b>'+(why.length>1?': '+why.join('; ')+'.':(why.length?': '+why[0]+'.':'.')));
+    }
+    if(Math.abs(dYb)>E) parts.push('shifts <b>'+(dYb>0?'right':'left')+' by '+f(Math.abs(dYb))+'</b> because natural output changed.');
+    das='<b>DAS</b> '+parts.join(' It also ');
+  }
+  const dDA=c.dadA-q.dadA, dPS=c.piStar-q.piStar, dEps=c.eps-q.eps;
+  let dad;
+  if(Math.abs(dDA)<E&&Math.abs(dPS)<E) dad='<b>DAD</b> stays where it was'+(Math.abs(c.eps)>E?' (still shifted by the ongoing demand shock).':' — nothing in its equation (Ȳ, ε, π*) changed.');
+  else{
+    const parts=[];
+    if(Math.abs(dDA)>E){
+      const why=[];
+      if(Math.abs(dYb)>E) why.push(fs(dYb)+' from the change in natural output');
+      if(Math.abs(dEps)>E) why.push(fs(c.B*dEps)+' = '+M('B × Δε')+' = '+f(c.B)+' × '+fs(dEps)+' from the demand shock '+(Math.abs(c.eps)<E?'ending':(Math.abs(q.eps)<E?'starting':'changing')));
+      parts.push('shifts <b>'+(dDA>0?'right':'left')+' by '+f(Math.abs(dDA))+'</b>: '+why.join('; ')+'.');
+    }
+    if(Math.abs(dPS)>E) parts.push('shifts <b>'+(dPS>0?'up':'down')+' by '+f(Math.abs(dPS))+'</b> because the inflation target moved by the same amount.');
+    dad='<b>DAD</b> '+parts.join(' It also ');
+  }
+  h+='<h5>How the curves move</h5><ul><li>'+das+'</li><li>'+dad+'</li></ul>';
+  // 3. result
+  const dasM=!(Math.abs(dYb)<E&&Math.abs(dAs)<0.0005), dadM=!(Math.abs(dDA)<E&&Math.abs(dPS)<E);
+  const along=(dasM&&!dadM)?' — a movement <b>along the DAD curve</b>':((!dasM&&dadM)?' — a movement <b>along the DAS curve</b>':'');
+  const still=Math.abs(c.Y-q.Y)<0.005&&Math.abs(c.pi-q.pi)<0.005;
+  h+='<h5>Result</h5><p>'+(still?'The equilibrium stays put at <b>'+letter(k)+'</b> (same values as '+letter(k-1)+').':'The equilibrium moves from <b>'+letter(k-1)+'</b> to <b>'+letter(k)+'</b>'+along+'. Output '+moveWord(q.Y,c.Y)+' ('+gapText(c.Y-c.Ybar)+' natural output) and inflation '+moveWord(q.pi,c.pi,'%')+'.')+'</p>';
+  // 4. interest rates
+  const ig=p.thPi*(c.pi-c.piStar), yg=p.thY*(c.Y-c.Ybar);
+  let ir='Policy rule: '+M('r_t = ρ + θ_π(π_t − π*_t) + θ_Y(Y_t − Ȳ_t)')+' = '+f(p.rho)+fop(ig)+fop(yg)+' = <b>'+f(c.r)+'%</b>, and '+M('i_t = r_t + π_t')+' = <b>'+f(c.i)+'%</b>. ';
+  const rw=c.r-q.r, iw=c.i-q.i;
+  ir+='Compared with last period, r '+(Math.abs(rw)<0.005?'is unchanged':(rw>0?'rises':'falls'))+' and i '+(Math.abs(iw)<0.005?'is unchanged':(iw>0?'rises':'falls'))+'.';
+  if(ig>0.005&&yg<-0.005) ir+=' Inflation above target pushes r up while the output shortfall pulls it down; here the '+(ig+yg>0?'inflation':'output')+' effect is stronger.';
+  else if(ig<-0.005&&yg>0.005) ir+=' Inflation below target pulls r down while output above natural pushes it up; here the '+(ig+yg<0?'inflation':'output')+' effect is stronger.';
+  h+='<h5>Interest rates</h5><p>'+ir+'</p>';
+  const pn=phaseNote(k); if(pn) h+='<div class="note">'+pn.text+'</div>';
+  return h;
+}
+function progress(k){
+  const d=dyn.run.data; let peak=0; for(let j=2;j<d.length;j++) peak=Math.max(peak,Math.abs(d[j].pi-d[j].piStar));
+  const g=d[k].pi-d[k].piStar; if(peak<1e-6) return '';
+  return ' Inflation is now '+f(Math.abs(g))+' points '+(g>0?'above':'below')+' target — '+Math.round(100*Math.abs(g)/peak)+'% of its largest gap.';
+}
+function phaseNote(k){
+  const st=k-2, key=dyn.sc, D=dyn.sv.dur, pos=dyn.sv.size>0, w=(a,b)=>pos?a:b;
+  if(Math.abs(dyn.sv.size)<1e-9) return {text:'The shock size is zero, so nothing happens. Move the size slider above.'};
+  if(key==='growth'){
+    if(st===0) return {text:'<b>Long-run growth.</b> Natural output '+w('rises','falls')+' (Ch. 7–8: capital, labour, technology). Because '+M('Ȳ_t')+' appears in both curves, DAS and DAD shift '+w('right','left')+' by exactly the same amount. Output moves straight to the new natural level, while inflation, expected inflation, r and i do not change at all.'};
+    return {text:'Nothing else changes from here on: <b>B</b> is the new long-run equilibrium. Income '+w('has grown','has fallen')+' and inflation is still on target — a change in natural output is not inflationary in this model.'};
+  }
+  if(key==='demand'){
+    if(st===0) return {phase:'Phase 1',text:'<b>Phase 1 — the shock hits.</b> DAD shifts '+w('right','left')+'. Output and inflation both '+w('rise above','fall below')+' their long-run values and the central bank '+w('raises','cuts')+' both interest rates.'};
+    if(st<D) return {phase:'Phase 2',text:'<b>Phase 2 — the shock continues.</b> DAD stays shifted, but DAS keeps drifting '+w('up','down')+' because last period’s '+w('higher','lower')+' inflation feeds expectations. Output moves back toward Ȳ while inflation keeps '+w('rising','falling')+'. In theory the effect on interest rates is ambiguous: the inflation gap and the shrinking output gap pull r in opposite directions.'};
+    if(st===D) return {phase:'Phase 3',text:'<b>Phase 3 — the shock ends.</b> DAD jumps back to its original position, but DAS is still '+w('high','low')+' because expectations have not caught up. Output '+w('falls below','rises above')+' its natural level — '+w('the boom is followed by a recession','the slump is followed by a boom')+' — and inflation finally starts to '+w('fall','rise')+'. Interest rates '+w('fall','rise')+'.'};
+    return {phase:'Phase 4',text:'<b>Phase 4 — gradual return.</b> As inflation '+w('falls','rises')+', expected inflation follows and DAS drifts '+w('down','up')+' period by period. Output recovers toward Ȳ, inflation returns toward π* = 2% and the real rate returns to ρ.'+progress(k)};
+  }
+  if(key==='supply'){
+    if(st===0) return {text:'<b>'+w('Stagflation','A favourable supply shock')+'.</b> DAS shifts '+w('up','down')+' by exactly υ. DAD does not move, so the economy slides along DAD: inflation '+w('rises','falls')+', the central bank '+w('raises','cuts')+' the real interest rate (θ<sub>π</sub> > 0), and that '+w('reduces','raises')+' demand — output '+w('falls','rises')+'.'+(D===1?' The shock lasts only this one period.':'')};
+    if(st<D) return {text:'The shock is still present, so DAS stays shifted; it also drifts with last period’s inflation through expectations.'};
+    if(st===D) return {text:'The shock is over (υ = 0), yet DAS does <b>not</b> return to where it started: it is anchored at last period’s '+w('higher','lower')+' inflation through adaptive expectations. That is why a temporary shock has long-lasting effects.'};
+    return {text:'With inflation '+w('falling','rising')+', expectations follow and DAS moves '+w('down','up')+' a little each period; output recovers slowly.'+progress(k)+' The real rate stays '+w('above','below')+' ρ until inflation is back at target.'};
+  }
+  if(key==='target'){
+    const nt=2+dyn.sv.size;
+    if(st===0) return {text:'The target moves to π* = '+f(nt)+'%. π* appears only in the policy rule, so only DAD moves: '+w('up','down')+' by exactly '+f(Math.abs(dyn.sv.size))+'. At today’s inflation the rule now calls for a '+w('lower','higher')+' real interest rate, so output '+w('rises above','falls below')+' Ȳ and inflation starts to '+w('rise','fall')+'.'};
+    return {text:'Each period the '+w('higher','lower')+' inflation '+w('raises','lowers')+' expectations, DAS shifts '+w('up','down')+', output recovers toward Ȳ and inflation approaches the new target slowly (expectations adapt slowly). In the new long run r = ρ and i = ρ + π* = '+f(2+nt)+'%.'+progress(k)};
+  }
+  return null;
+}
+const TAKE={
+  growth:['Natural output appears in both curves, so DAS and DAD both shift right by exactly ΔȲ.','Output jumps at once to the new natural level. Inflation, expected inflation, r and i are unchanged.','Growth in productive capacity raises income without inflation; the new long-run equilibrium is reached in a single period.'],
+  demand:['Phase 1 (shock hits): DAD shifts right by Bε (less than ε, because the central bank leans against it). Y and π rise; r and i rise.','Phase 2 (shock continues): DAS drifts up as expectations catch up. Output falls back while inflation keeps rising; the interest-rate effect is ambiguous.','Phase 3 (shock ends): DAD shifts back while DAS is still high. Output falls below natural — the boom is followed by a recession — and inflation starts to fall.','Phase 4: DAS drifts down as inflation and expectations fall. Output recovers, inflation returns to π* and r returns to ρ.'],
+  supply:['On impact DAS shifts up by υ. With DAD fixed, inflation rises and output falls at the same time: stagflation.','The central bank raises the real rate because the inflation effect θπ(π − π*) outweighs the output effect θY(Y − Ȳ) — that is what pushes output down.','Even after the shock disappears, DAS does not jump back: adaptive expectations keep it high, so a one-period shock has long-lasting effects on both Y and π.','The trade-off depends on the central bank: try the hawk and dove presets under “Central bank and model parameters”.'],
+  target:['Only DAD moves, down by the cut in π*. The real rate rises above ρ; output and inflation fall.','Lower inflation lowers expectations, so DAS shifts down period by period; output recovers gradually.','Inflation reaches the new target only slowly. In the new long run r = ρ and the nominal rate is permanently lower: i = ρ + π*.']
+};
+function renderSide(){
+  const k=dyn.k, pn=k>1?phaseNote(k):null;
+  $('#sideTitle').innerHTML='Period '+labHTML(k)+' · point '+letter(k)+(pn&&pn.phase?'<span class="phase">'+pn.phase+'</span>':'');
+  renderVars();
+  let h='';
+  if(dyn.fb) h+=dyn.fb;
+  if(dyn.pending) h+=predictPanel();
+  else h+=narrative(k);
+  $('#narr').innerHTML=h;
+  if(dyn.pending) wirePredict();
+  const tk=TAKE[dyn.sc].slice(); if(Math.sign(dyn.sv.size)!==Math.sign(SCEN[dyn.sc].def)) tk.unshift('<i>These notes describe the default direction of this scenario. You have reversed the sign, so every direction below is reversed too.</i>');
+  $('#takeList').innerHTML=tk.map(t=>'<li>'+t+'</li>').join('');
+  if(k===dyn.run.N-1) $('#take').open=true;
+  $('#scoreLine').textContent=dyn.predict?('Predictions correct: '+dyn.ok+' of '+dyn.tot):'';
+}
+function predictPanel(){
+  const nk=dyn.k+1;
+  const opt=(v,l)=>['up','down','same'].map(o=>'<button class="opt'+(dyn.pending[v]===o?' sel':'')+'" data-v="'+v+'" data-o="'+o+'">'+({up:'↑ rises',down:'↓ falls',same:'= no change'})[o]+'</button>').join('');
+  return '<div class="pred"><b>Before moving to period '+labHTML(nk)+', predict</b> how each variable changes compared with this period:<div class="row"><span class="lab">Output '+M('Y')+'</span>'+opt('Y')+'</div><div class="row"><span class="lab">Inflation '+M('π')+'</span>'+opt('pi')+'</div><button class="btn primary" id="reveal"'+(dyn.pending.Y&&dyn.pending.pi?'':' disabled')+'>Step and check ▶</button></div>';
+}
+function wirePredict(){
+  $$('#narr .opt').forEach(b=>b.addEventListener('click',()=>{dyn.pending[b.dataset.v]=b.dataset.o; renderSide();}));
+  const r=$('#reveal'); if(r) r.addEventListener('click',()=>{
+    const d=dyn.run.data, a=d[dyn.k], b=d[dyn.k+1];
+    const tY=dirOf(a.Y,b.Y), tP=dirOf(a.pi,b.pi), okY=tY===dyn.pending.Y, okP=tP===dyn.pending.pi;
+    dyn.tot+=2; dyn.ok+=(okY?1:0)+(okP?1:0);
+    const word={up:'rose',down:'fell',same:'did not change'};
+    dyn.fb='<div class="fb '+(okY&&okP?'ok':'no')+'"><b>'+(okY&&okP?'Both right.':(okY||okP?'One of two right.':'Not this time.'))+'</b> Output '+word[tY]+' '+(okY?'✓':'✗')+' and inflation '+word[tP]+' '+(okP?'✓':'✗')+'. Read why below.</div>';
+    dyn.pending=null; dyn.k++; renderDyn(true);
+  });
+}
+const IRF_SPECS=()=>[
+  Object.assign({},dyn.run.sc.shock,{ref:null}),
+  {get:c=>c.Y,title:'Output, Y',ref:c=>c.Ybar,cls:'',minSpan:0.6},
+  {get:c=>c.pi,title:'Inflation, π (%)',ref:c=>c.piStar,cls:'',minSpan:0.6},
+  {get:c=>c.r,title:'Real interest rate, r (%)',ref:()=>dyn.run.p.rho,cls:'',minSpan:0.6},
+  {get:c=>c.i,title:'Nominal interest rate, i (%)',ref:c=>dyn.run.p.rho+c.piStar,cls:'',minSpan:0.6}
+];
+function renderIRFs(){
+  const row=$('#irfRow'), specs=IRF_SPECS();
+  if(row.children.length!==specs.length) row.innerHTML=specs.map(()=>'<div class="irf"><div class="irf-t"></div><div class="irf-v"></div><svg></svg><div class="tip"></div></div>').join('');
+  specs.forEach((sp,i)=>drawIRF(row.children[i],sp));
+}
+function drawIRF(box,sp){
+  const R=dyn.run, d=R.data, k=dyn.k, N=R.N;
+  const vals=d.map(sp.get), refs=sp.ref?d.map(sp.ref):null;
+  let lo=Math.min(...vals,...(refs||[])), hi=Math.max(...vals,...(refs||[]));
+  const span=Math.max(hi-lo,sp.minSpan), mid=(lo+hi)/2; lo=mid-span*0.62; hi=mid+span*0.62;
+  $('.irf-t',box).textContent=sp.title;
+  $('.irf-v',box).textContent=labOf(k)+': '+f(vals[k]);
+  const step=N>12?5:2, xt=[]; for(let j=0;j<N;j++){const dd=j-2; if(dd===0||(dd>0&&dd%step===0)) xt.push({v:j,l:labOf(j)});}
+  const svg=$('svg',box);
+  const P=makePlot(svg,{W:280,H:170,x:[0,N-1],y:[lo,hi],m:{l:40,r:10,t:8,b:24},xTicks:xt,ny:4});
+  if(refs) polyline(P,refs.map((v,j)=>[j,v]),'ref');
+  const cls=sp.cls||'';
+  if(dyn.showFuture) polyline(P,vals.map((v,j)=>[j,v]),'series future '+cls);
+  polyline(P,vals.slice(0,k+1).map((v,j)=>[j,v]),'series '+cls);
+  dot(P,k,vals[k],4.5,'end-dot '+cls);
+  const upto=dyn.showFuture?N-1:k, tip=$('.tip',box);
+  const hair=el('line',{class:'hair',y1:P.m.t,y2:P.m.t+P.ph,visibility:'hidden'},P.top);
+  const hd=el('circle',{r:4,class:'end-dot '+cls,visibility:'hidden'},P.top);
+  const ov=el('rect',{x:P.m.l,y:P.m.t,width:P.pw,height:P.ph,fill:'transparent'},P.top);
+  ov.addEventListener('pointermove',e=>{
+    const pt=svg.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY; const sp2=pt.matrixTransform(svg.getScreenCTM().inverse());
+    let j=Math.round((sp2.x-P.m.l)/P.pw*(N-1)); j=Math.max(0,Math.min(upto,j));
+    const x=P.X(j), y=P.Y(vals[j]);
+    hair.setAttribute('x1',x); hair.setAttribute('x2',x); hair.setAttribute('visibility','visible');
+    hd.setAttribute('cx',x); hd.setAttribute('cy',y); hd.setAttribute('visibility','visible');
+    const rect=svg.getBoundingClientRect(), br=box.getBoundingClientRect(), sc=rect.width/P.W;
+    tip.style.display='block'; tip.style.left=(rect.left-br.left+x*sc)+'px'; tip.style.top=(rect.top-br.top+y*sc)+'px';
+    tip.textContent=labOf(j)+': '+f(vals[j])+(refs?' (long run '+f(refs[j])+')':'');
+  });
+  ov.addEventListener('pointerleave',()=>{hair.setAttribute('visibility','hidden'); hd.setAttribute('visibility','hidden'); tip.style.display='none';});
+}
+function renderPlayer(){
+  const k=dyn.k, N=dyn.run.N;
+  $('#pLabel').innerHTML='Period '+labHTML(k);
+  $('#pScrub').value=k;
+  $('#pBack').disabled=k<=1; $('#pReset').disabled=k<=1;
+  $('#pNext').disabled=k>=N-1||!!dyn.pending; $('#pEnd').disabled=k>=N-1;
+  $('#pPlay').disabled=dyn.predict;
+  $('#pPlay').textContent=dyn.timer?'❚❚ Pause':'▶ Play';
+}
+function renderDyn(keepFb){
+  if(!dyn.run) return;
+  if(!keepFb) dyn.fb='';
+  drawDynMain(); renderExo(); renderSide(); renderIRFs(); renderPlayer();
+}
+function goTo(k){ dyn.pending=null; dyn.k=Math.min(Math.max(1,k),dyn.run.N-1); renderDyn(); }
+function next(){
+  if(dyn.k>=dyn.run.N-1) return;
+  if(dyn.predict){ dyn.pending={Y:null,pi:null}; dyn.fb=''; renderSide(); renderPlayer(); return; }
+  goTo(dyn.k+1);
+}
+function stopPlay(){ if(dyn.timer){clearInterval(dyn.timer); dyn.timer=null;} if(dyn.run) renderPlayer(); }
+$('#pNext').addEventListener('click',next);
+$('#pBack').addEventListener('click',()=>{stopPlay(); goTo(dyn.k-1);});
+$('#pReset').addEventListener('click',()=>{stopPlay(); goTo(1);});
+$('#pEnd').addEventListener('click',()=>{stopPlay(); goTo(dyn.run.N-1);});
+$('#pScrub').addEventListener('input',e=>{stopPlay(); goTo(+e.target.value);});
+$('#pPlay').addEventListener('click',()=>{
+  if(dyn.timer){stopPlay(); return;}
+  if(dyn.k>=dyn.run.N-1) goTo(1);
+  dyn.timer=setInterval(()=>{ if(dyn.k>=dyn.run.N-1){stopPlay(); return;} goTo(dyn.k+1); },1100);
+  renderPlayer();
+});
+$('#predictMode').addEventListener('change',e=>{dyn.predict=e.target.checked; dyn.pending=null; stopPlay(); renderDyn();});
+$('#showAll').addEventListener('change',e=>{dyn.showAll=e.target.checked; drawDynMain();});
+$('#showFuture').addEventListener('change',e=>{dyn.showFuture=e.target.checked; renderIRFs();});
+document.addEventListener('keydown',e=>{
+  if(!$('#tab-dyn').classList.contains('on')) return;
+  const t=e.target; if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT')) return;
+  if(e.key==='ArrowRight'){ e.preventDefault(); if(!dyn.pending) next(); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); stopPlay(); goTo(dyn.k-1); }
+});
+
+/* ================= init ================= */
+$$('[data-m]').forEach(e=>{e.innerHTML=M(e.dataset.m);});
+renderStep(0);
+buildShiftSliders(); renderQuiz();
+buildParamSliders(); selectScenario('growth');
+})();
+</script>
+</body>
+</html>
