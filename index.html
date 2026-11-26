@@ -109,6 +109,70 @@ footer{margin-top:40px;background:var(--ink);color:#C9D2DB}
 .links svg{width:18px;height:18px;flex:none}
 .copy{max-width:1180px;margin:0 auto;padding:16px 24px 26px;border-top:1px solid #2A3643;font-size:13px;color:#8E99A4}
  
+
+/* ---------- Photos (Wikimedia Commons) ---------- */
+.ph{position:relative;overflow:hidden;background:linear-gradient(135deg,#33475A,#6B7E8F)}
+.ph img{display:block;width:100%;height:100%;object-fit:cover}
+.ph.noimg img{display:none}
+.ph.noimg::after{content:attr(data-fallback);position:absolute;left:14px;right:14px;top:50%;transform:translateY(-50%);text-align:center;color:rgba(255,255,255,.9);font:700 14px var(--sans);letter-spacing:.01em}
+
+/* photo ribbon under the hero */
+.ribbon{background:var(--ink);color:#C9D2DB;border-bottom:1px solid #0D141B}
+.ribbon-head{max-width:1180px;margin:0 auto;padding:14px 24px 10px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.ribbon-head b{font-family:var(--serif);font-size:19px;color:#fff;font-weight:700}
+.ribbon-head a{color:#F7B267;font-weight:700;font-size:14px;text-decoration:none}
+.ribbon-head a:hover{text-decoration:underline}
+.ribbon-view{overflow:hidden;padding:0 0 16px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent);mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
+.ribbon-track{display:flex;gap:12px;width:max-content;animation:ribbon 80s linear infinite}
+.ribbon-view:hover .ribbon-track,.ribbon-view:focus-within .ribbon-track{animation-play-state:paused}
+.shot{width:250px;height:158px;border-radius:12px;flex:none;margin:0;border:1px solid #2A3643}
+.shot figcaption{position:absolute;left:0;right:0;bottom:0;padding:26px 12px 9px;background:linear-gradient(transparent,rgba(9,14,20,.88));color:#fff;font:600 13px var(--sans);line-height:1.25}
+.shot figcaption span{display:inline-block;background:#F08A2B;color:#16202B;border-radius:999px;padding:1px 8px;margin-right:6px;font-weight:800;font-size:11.5px}
+.shot.noimg figcaption{background:none}
+.shot.noimg::after{display:none}
+@keyframes ribbon{to{transform:translateX(-50%)}}
+
+/* photo banners on each section */
+.group-banner{position:relative;height:184px;border-radius:16px;overflow:hidden;margin-bottom:18px;border:1.5px solid var(--rule);background:linear-gradient(120deg,var(--g1,#2B3A49),var(--g2,#6B7E8F))}
+.group-banner img{position:absolute;inset:0}
+.group-banner::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(13,19,26,.88) 0%,rgba(13,19,26,.62) 42%,rgba(13,19,26,.08) 100%)}
+.group-banner.noimg::after{display:none}
+.gb-text{position:absolute;left:28px;right:28px;bottom:22px;z-index:2;color:#fff}
+.gb-text h2{font-family:var(--serif);font-size:32px;font-weight:700;letter-spacing:-.015em;line-height:1.1;margin-bottom:6px}
+.gb-text p{color:#D6DEE6;font-size:15px;max-width:34em}
+.gb-credit{position:absolute;top:10px;right:12px;z-index:2;font-size:11.5px;font-weight:600;color:rgba(255,255,255,.82);text-decoration:none;background:rgba(9,14,20,.45);padding:3px 9px;border-radius:999px;max-width:70%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gb-credit:hover{color:#fff;background:rgba(9,14,20,.7)}
+
+/* history timeline */
+.history{max-width:1180px;margin:0 auto;padding:44px 24px 8px}
+.history-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+.history-head .kicker{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#1F7A4D;margin-bottom:6px}
+.history-head h2{font-family:var(--serif);font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.08;margin-bottom:8px}
+.history-head p{color:var(--muted);font-size:16px;max-width:40em}
+.tl-nav{display:flex;gap:8px}
+.tl-nav button{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--rule);background:#fff;color:var(--ink);font:700 18px var(--sans);cursor:pointer}
+.tl-nav button:hover{border-color:var(--ink)}
+.eras{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px}
+.eras span{display:inline-flex;align-items:center;gap:7px}
+.eras i{width:10px;height:10px;border-radius:50%;background:var(--e)}
+.track{display:grid;grid-auto-flow:column;grid-auto-columns:300px;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 20px;scroll-behavior:smooth;scrollbar-width:thin}
+.era{scroll-snap-align:start;display:flex;flex-direction:column;background:var(--panel);border:1.5px solid var(--rule);border-radius:16px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.era:hover{border-color:var(--e);box-shadow:0 10px 30px -18px var(--e)}
+.era .ph{height:184px;border-bottom:3px solid var(--e)}
+.yr{position:absolute;left:12px;top:12px;z-index:2;background:var(--e);color:#fff;font:800 13px var(--sans);letter-spacing:.01em;border-radius:999px;padding:4px 11px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.era-body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1}
+.era-body h3{font-size:18px;font-weight:800;letter-spacing:-.01em;line-height:1.25;margin-bottom:6px}
+.era-body p{font-size:14.5px;color:#46525F;line-height:1.55;margin-bottom:14px}
+.era-link{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--rule);padding-top:12px;font-weight:700;font-size:14px;color:var(--e);text-decoration:none}
+.era-link small{display:block;font-size:12px;font-weight:600;color:var(--faint)}
+.era-link:hover span:last-child{transform:translateX(3px)}
+.era-link span:last-child{transition:transform .2s}
+.credits{margin:8px 0 0;border-top:1px solid var(--rule);padding-top:12px;font-size:13.5px;color:var(--muted)}
+.credits summary{cursor:pointer;font-weight:700;color:var(--ink)}
+.credits ol{margin:10px 0 6px 20px;columns:2;column-gap:32px}
+.credits li{margin:0 0 6px;break-inside:avoid}
+.credits a{color:#1E6FD9}
+ 
 @media (max-width:860px){
   .hero-inner{grid-template-columns:1fr;padding:40px 20px 36px;gap:18px}
   .hero-figure svg{max-width:420px;margin:0 auto}
@@ -121,12 +185,20 @@ footer{margin-top:40px;background:var(--ink);color:#C9D2DB}
   .filters{overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;-webkit-overflow-scrolling:touch}
   .filters button{white-space:nowrap}
   .grid{grid-template-columns:1fr}
+  .track{grid-auto-columns:82vw}
+  .credits ol{columns:1}
+  .gb-text h2{font-size:26px}
+  .group-banner{height:168px}
+  .shot{width:210px;height:136px}
   .hero .lede{font-size:16.5px}
 }
 @media (prefers-reduced-motion: reduce){
   html{scroll-behavior:auto}
   .draw{animation:none;stroke-dashoffset:0}
   .pop,.shift{animation:none;opacity:1}
+  .ribbon-view{overflow-x:auto}
+  .ribbon-track{animation:none}
+  .track{scroll-behavior:auto}
   .card,.open svg{transition:none}
 }
 </style>
@@ -145,6 +217,7 @@ footer{margin-top:40px;background:var(--ink);color:#C9D2DB}
       <div class="hero-actions">
         <a class="btn" href="#tools"><span>Browse the <span id="toolCount">15</span> tools</span></a>
         <a class="btn ghost" href="#group-measure">New: Pakistan's balance of payments game</a>
+        <a class="btn ghost" href="#history">Pakistan's economy in pictures</a>
       </div>
       <p class="byline">Built by <b>Khalil Ullah Mohammad</b> for economics students at Bahria University</p>
     </div>
@@ -188,6 +261,32 @@ footer{margin-top:40px;background:var(--ink);color:#C9D2DB}
     </div>
   </div>
 </header>
+
+<section class="ribbon" aria-label="Pakistan's economy in pictures">
+  <div class="ribbon-head"><b>Pakistan's economy in pictures</b><a href="#history">Walk through 4,500 years of economic history &rarr;</a></div>
+  <div class="ribbon-view"><div class="ribbon-track">
+    <figure class="shot ph" data-fallback="Karachi builds its harbour"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Kurrachee_Harbour_Works%3B_Titan_for_laying_blocks_of_Manora_breakwater.jpg?width=500" alt="1869 engraving of the Titan crane laying blocks for the Manora breakwater, Karachi" style="object-position:center 35%" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1869</span>Karachi builds its harbour</figcaption></figure>
+    <figure class="shot ph" data-fallback="A Karachi street"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Karachi_city_street_view_in_1890.jpg?width=500" alt="A busy street in Karachi in 1890" style="object-position:center 45%" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1890</span>A Karachi street</figcaption></figure>
+    <figure class="shot ph" data-fallback="Khyber Pass Railway"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/KhyberRailway_01.jpg?width=500" alt="A steam train climbing the Khyber Pass railway in 1993" style="object-position:center" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1920s</span>Khyber Pass Railway</figcaption></figure>
+    <figure class="shot ph" data-fallback="State Bank of Pakistan"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Old_building_of_State_Bank_of_Pakistan,_Now_its_known_as_State_Bank_Museum.jpg?width=500" alt="Red sandstone colonnade of the old State Bank of Pakistan building, Karachi" style="object-position:center 40%" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1948</span>State Bank of Pakistan</figcaption></figure>
+    <figure class="shot ph" data-fallback="Mangla Dam"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Mangla_Dam_AerialView.jpg?width=500" alt="Aerial view of Mangla Dam on the Jhelum river" style="object-position:center" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1967</span>Mangla Dam</figcaption></figure>
+    <figure class="shot ph" data-fallback="Green Revolution"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Wheat_Fields_in_Punjab.jpg?width=500" alt="Ripe wheat fields in Punjab at harvest time" style="object-position:center" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1960s</span>Green Revolution</figcaption></figure>
+    <figure class="shot ph" data-fallback="Tarbela Dam"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Tarbela_Dam.jpg?width=500" alt="Tarbela Dam and lake on the Indus river" style="object-position:center" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1976</span>Tarbela Dam</figcaption></figure>
+    <figure class="shot ph" data-fallback="Motorway M-2"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Pakistan%27s_M2_Motorway_passing_through_the_Salt_Range.jpg?width=500" alt="The M-2 motorway winding through the Salt Range" style="object-position:center" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1997</span>Motorway M-2</figcaption></figure>
+    <figure class="shot ph" data-fallback="Gwadar port"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Gwader_port,_Pakistan.jpg?width=500" alt="Cranes and berths at Gwadar port on the Arabian Sea" style="object-position:center" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>2007</span>Gwadar port</figcaption></figure>
+    <figure class="shot ph" data-fallback="Mohenjo-daro"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Archaeological_Ruins_at_Moenjodaro-108221.jpg?width=500" alt="Excavated brick walls and lanes of Mohenjo-daro, Sindh" style="object-position:center" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>2500 BCE</span>Mohenjo-daro</figcaption></figure>
+    <figure class="shot ph" data-fallback="Karachi builds its harbour" aria-hidden="true"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Kurrachee_Harbour_Works%3B_Titan_for_laying_blocks_of_Manora_breakwater.jpg?width=500" alt="1869 engraving of the Titan crane laying blocks for the Manora breakwater, Karachi" style="object-position:center 35%" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1869</span>Karachi builds its harbour</figcaption></figure>
+    <figure class="shot ph" data-fallback="A Karachi street" aria-hidden="true"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Karachi_city_street_view_in_1890.jpg?width=500" alt="A busy street in Karachi in 1890" style="object-position:center 45%" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1890</span>A Karachi street</figcaption></figure>
+    <figure class="shot ph" data-fallback="Khyber Pass Railway" aria-hidden="true"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/KhyberRailway_01.jpg?width=500" alt="A steam train climbing the Khyber Pass railway in 1993" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1920s</span>Khyber Pass Railway</figcaption></figure>
+    <figure class="shot ph" data-fallback="State Bank of Pakistan" aria-hidden="true"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Old_building_of_State_Bank_of_Pakistan,_Now_its_known_as_State_Bank_Museum.jpg?width=500" alt="Red sandstone colonnade of the old State Bank of Pakistan building, Karachi" style="object-position:center 40%" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1948</span>State Bank of Pakistan</figcaption></figure>
+    <figure class="shot ph" data-fallback="Mangla Dam" aria-hidden="true"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Mangla_Dam_AerialView.jpg?width=500" alt="Aerial view of Mangla Dam on the Jhelum river" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1967</span>Mangla Dam</figcaption></figure>
+    <figure class="shot ph" data-fallback="Green Revolution" aria-hidden="true"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Wheat_Fields_in_Punjab.jpg?width=500" alt="Ripe wheat fields in Punjab at harvest time" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1960s</span>Green Revolution</figcaption></figure>
+    <figure class="shot ph" data-fallback="Tarbela Dam" aria-hidden="true"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Tarbela_Dam.jpg?width=500" alt="Tarbela Dam and lake on the Indus river" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1976</span>Tarbela Dam</figcaption></figure>
+    <figure class="shot ph" data-fallback="Motorway M-2" aria-hidden="true"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Pakistan%27s_M2_Motorway_passing_through_the_Salt_Range.jpg?width=500" alt="The M-2 motorway winding through the Salt Range" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>1997</span>Motorway M-2</figcaption></figure>
+    <figure class="shot ph" data-fallback="Gwadar port" aria-hidden="true"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Gwader_port,_Pakistan.jpg?width=500" alt="Cranes and berths at Gwadar port on the Arabian Sea" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>2007</span>Gwadar port</figcaption></figure>
+    <figure class="shot ph" data-fallback="Mohenjo-daro" aria-hidden="true"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Archaeological_Ruins_at_Moenjodaro-108221.jpg?width=500" alt="Excavated brick walls and lanes of Mohenjo-daro, Sindh" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><figcaption><span>2500 BCE</span>Mohenjo-daro</figcaption></figure>
+  </div></div>
+</section>
  
 <nav class="toolbar" id="tools" aria-label="Filter tools">
   <div class="toolbar-inner">
@@ -208,7 +307,7 @@ footer{margin-top:40px;background:var(--ink);color:#C9D2DB}
  
   <!-- ================= MICRO ================= -->
   <section class="group" id="group-micro" data-group="micro">
-    <div class="group-head"><h2>Microeconomics</h2><p>Markets, prices and the decisions of firms and consumers</p></div>
+    <div class="group-banner ph" style="--g1:#5B2333;--g2:#C2185B"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Karachi_city_street_view_in_1890.jpg?width=1280" alt="A busy street in Karachi in 1890" style="object-position:center 45%" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><a class="gb-credit" href="https://commons.wikimedia.org/wiki/File:Karachi_city_street_view_in_1890.jpg" target="_blank" rel="noopener">Photo: Karachi street, 1890 · Unknown photographer, via Zainub Razvi (Flickr), CC BY-SA 2.0</a><div class="gb-text"><h2>Microeconomics</h2><p>Markets, prices and the decisions of firms and consumers</p></div></div>
     <div class="grid">
  
       <a class="card" href="demand_supply_simulator.html" style="--c:#C2185B;--t:#FBE7EF" data-text="demand supply ice cream normal inferior giffen price controls shortage surplus">
@@ -271,7 +370,7 @@ footer{margin-top:40px;background:var(--ink);color:#C9D2DB}
  
   <!-- ================= MACRO ================= -->
   <section class="group" id="group-macro" data-group="macro">
-    <div class="group-head"><h2>Macroeconomics</h2><p>Output, inflation, interest rates and policy</p></div>
+    <div class="group-banner ph" style="--g1:#16324F;--g2:#1E6FD9"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Old_building_of_State_Bank_of_Pakistan,_Now_its_known_as_State_Bank_Museum.jpg?width=1280" alt="Red sandstone colonnade of the old State Bank of Pakistan building, Karachi" style="object-position:center 40%" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><a class="gb-credit" href="https://commons.wikimedia.org/wiki/File:Old_building_of_State_Bank_of_Pakistan,_Now_its_known_as_State_Bank_Museum.jpg" target="_blank" rel="noopener">Photo: Old State Bank building · Asim Iftikhar Nagi, CC BY-SA 4.0</a><div class="gb-text"><h2>Macroeconomics</h2><p>Output, inflation, interest rates and policy</p></div></div>
     <div class="grid">
  
       <a class="card" href="phillips_curve_simulator.html" style="--c:#1E6FD9;--t:#E5EFFC" data-text="phillips curve inflation unemployment expectations supply shocks stagflation">
@@ -448,7 +547,7 @@ footer{margin-top:40px;background:var(--ink);color:#C9D2DB}
  
   <!-- ================= MEASUREMENT ================= -->
   <section class="group" id="group-measure" data-group="measure">
-    <div class="group-head"><h2>Measuring the economy</h2><p>Step-by-step games for the numbers behind the headlines</p></div>
+    <div class="group-banner ph" style="--g1:#1E2754;--g2:#303F9F"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Poids_cubiques_harapp%C3%A9ens_-_BM.jpg?width=1280" alt="Cubical chert weights from Mohenjo-daro, British Museum" style="object-position:center 55%" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><a class="gb-credit" href="https://commons.wikimedia.org/wiki/File:Poids_cubiques_harapp%C3%A9ens_-_BM.jpg" target="_blank" rel="noopener">Photo: Harappan weights · Zunkir, CC BY-SA 4.0</a><div class="gb-text"><h2>Measuring the economy</h2><p>Step-by-step games for the numbers behind the headlines</p></div></div>
     <div class="grid">
  
       <a class="card" href="BOPquest.html" style="--c:#8C1C1C;--t:#EAF1E6" data-text="balance of payments bop quest pakistan current account capital account financial account remittances exports imports trade deficit reserves imf sbp state bank eurobond fdi real data game">
@@ -515,6 +614,26 @@ footer{margin-top:40px;background:var(--ink);color:#C9D2DB}
  
   <p class="empty" id="empty" hidden>No tools match that search. Try a broader word, such as "inflation" or "curve".</p>
 </main>
+
+<section class="history" id="history" aria-labelledby="history-title">
+  <div class="history-head"><div><div class="kicker">Pakistan&rsquo;s economic story</div><h2 id="history-title">From Mohenjo-daro to Gwadar</h2><p>Twelve moments from 4,500 years of trade, money, water and roads in what is now Pakistan. Each one links to a simulator where you can see the economics at work.</p></div><div class="tl-nav"><button type="button" id="tlPrev" aria-label="Scroll the timeline back">&larr;</button><button type="button" id="tlNext" aria-label="Scroll the timeline forward">&rarr;</button></div></div>
+  <div class="eras"><span style="--e:#B5562F"><i></i>Indus civilisation</span><span style="--e:#8C6A3F"><i></i>Colonial port city</span><span style="--e:#1F7A4D"><i></i>Independent Pakistan</span><span style="--e:#1E6FD9"><i></i>Today</span></div>
+  <div class="track" id="track" tabindex="0" aria-label="Timeline of Pakistan's economic history">
+    <article class="era" style="--e:#B5562F"><div class="ph" data-fallback="Mohenjo-daro ruins"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Archaeological_Ruins_at_Moenjodaro-108221.jpg?width=960" alt="Excavated brick walls and lanes of Mohenjo-daro, Sindh" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">c. 2600&ndash;1900 BCE</span></div><div class="era-body"><h3>Mohenjo-daro, a planned city</h3><p>Grid streets, covered drains and brick houses on the Indus. Its craftsmen specialised and its merchants traded as far as Mesopotamia.</p><a class="era-link" href="market-structures-game.html"><span><small>Connect it: Specialisation and market power</small>Market Structures Game</span><span aria-hidden="true">&rarr;</span></a></div></article>
+    <article class="era" style="--e:#B5562F"><div class="ph" data-fallback="Harappan weights"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Poids_cubiques_harapp%C3%A9ens_-_BM.jpg?width=960" alt="Cubical chert weights from Mohenjo-daro, British Museum" style="object-position:center 55%" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">c. 2600&ndash;1900 BCE</span></div><div class="era-body"><h3>A shared standard of weight</h3><p>Cube-shaped stone weights were standardised across the whole Indus region. You cannot measure prices or output without a common unit.</p><a class="era-link" href="cpi-five-steps-game.html"><span><small>Connect it: Measuring the price level</small>CPI in Five Steps</span><span aria-hidden="true">&rarr;</span></a></div></article>
+    <article class="era" style="--e:#8C6A3F"><div class="ph" data-fallback="Titan crane, Karachi harbour"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Kurrachee_Harbour_Works%3B_Titan_for_laying_blocks_of_Manora_breakwater.jpg?width=960" alt="1869 engraving of the Titan crane laying blocks for the Manora breakwater, Karachi" style="object-position:center 35%" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">1869&ndash;1874</span></div><div class="era-body"><h3>Karachi builds its harbour</h3><p>A giant &ldquo;Titan&rdquo; crane set the blocks of the Manora breakwater. By 1899 Karachi was South Asia&rsquo;s largest exporter of wheat and cotton.</p><a class="era-link" href="BOPquest.html"><span><small>Connect it: Exports in the current account</small>BoP Quest: Pakistan</span><span aria-hidden="true">&rarr;</span></a></div></article>
+    <article class="era" style="--e:#8C6A3F"><div class="ph" data-fallback="Karachi street, 1890"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Karachi_city_street_view_in_1890.jpg?width=960" alt="A busy street in Karachi in 1890" style="object-position:center 45%" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">1890</span></div><div class="era-body"><h3>A trading city</h3><p>A crowded street in colonial Karachi. Every stall and cart is a small market where supply meets demand and a price is struck.</p><a class="era-link" href="demand_supply_simulator.html"><span><small>Connect it: How prices clear a market</small>Demand &amp; Supply</span><span aria-hidden="true">&rarr;</span></a></div></article>
+    <article class="era" style="--e:#8C6A3F"><div class="ph" data-fallback="Khyber Pass Railway"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/KhyberRailway_01.jpg?width=960" alt="A steam train climbing the Khyber Pass railway in 1993" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">1920s</span></div><div class="era-body"><h3>The Khyber Pass Railway</h3><p>Built through the pass to the Afghan border, the line climbs by zig-zags and tunnels. The photo shows a steam special in 1993.</p><a class="era-link" href="mundell-fleming-game.html"><span><small>Connect it: Trade and the open economy</small>Mundell-Fleming Game</span><span aria-hidden="true">&rarr;</span></a></div></article>
+    <article class="era" style="--e:#1F7A4D"><div class="ph" data-fallback="Old State Bank building"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Old_building_of_State_Bank_of_Pakistan,_Now_its_known_as_State_Bank_Museum.jpg?width=960" alt="Red sandstone colonnade of the old State Bank of Pakistan building, Karachi" style="object-position:center 40%" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">1948</span></div><div class="era-body"><h3>Pakistan gets a central bank</h3><p>The State Bank of Pakistan began work in 1948 in Karachi&rsquo;s former Imperial Bank of India building, which is now the SBP Museum.</p><a class="era-link" href="islm_simulator.html"><span><small>Connect it: Monetary policy and interest rates</small>IS-LM Model</span><span aria-hidden="true">&rarr;</span></a></div></article>
+    <article class="era" style="--e:#1F7A4D"><div class="ph" data-fallback="Mangla Dam"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Mangla_Dam_AerialView.jpg?width=960" alt="Aerial view of Mangla Dam on the Jhelum river" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">1967</span></div><div class="era-body"><h3>Mangla Dam</h3><p>Built on the Jhelum after the 1960 Indus Waters Treaty to store water for irrigation and to generate hydroelectric power.</p><a class="era-link" href="asad_simulator.html"><span><small>Connect it: More capacity moves LRAS right</small>AS-AD Model</span><span aria-hidden="true">&rarr;</span></a></div></article>
+    <article class="era" style="--e:#1F7A4D"><div class="ph" data-fallback="Wheat fields, Punjab"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Wheat_Fields_in_Punjab.jpg?width=960" alt="Ripe wheat fields in Punjab at harvest time" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">Late 1960s</span></div><div class="era-body"><h3>The Green Revolution</h3><p>High-yielding wheat varieties, fertiliser and tubewells lifted Punjab&rsquo;s harvests. Bigger crops raise a question: what happens to farm prices?</p><a class="era-link" href="elasticity_simulator.html"><span><small>Connect it: Bumper harvests and inelastic demand</small>Elasticity Simulator</span><span aria-hidden="true">&rarr;</span></a></div></article>
+    <article class="era" style="--e:#1F7A4D"><div class="ph" data-fallback="Tarbela Dam"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Tarbela_Dam.jpg?width=960" alt="Tarbela Dam and lake on the Indus river" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">1976</span></div><div class="era-body"><h3>Tarbela Dam</h3><p>One of the world&rsquo;s largest earth-filled dams, on the Indus. More water and power raise what the economy can produce in the long run.</p><a class="era-link" href="dad_das_simulator.html"><span><small>Connect it: Natural output rises: both curves shift</small>DAD-DAS Model</span><span aria-hidden="true">&rarr;</span></a></div></article>
+    <article class="era" style="--e:#1E6FD9"><div class="ph" data-fallback="M-2 Motorway"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Pakistan%27s_M2_Motorway_passing_through_the_Salt_Range.jpg?width=960" alt="The M-2 motorway winding through the Salt Range" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">1997</span></div><div class="era-body"><h3>Motorway M-2</h3><p>The 375 km Lahore&ndash;Islamabad motorway cuts through the Salt Range. Big public projects like this draw on the nation&rsquo;s saving.</p><a class="era-link" href="loanable-funds-simulator.html"><span><small>Connect it: Public investment and crowding out</small>Loanable Funds Lab</span><span aria-hidden="true">&rarr;</span></a></div></article>
+    <article class="era" style="--e:#1E6FD9"><div class="ph" data-fallback="Gwadar port"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Gwader_port,_Pakistan.jpg?width=960" alt="Cranes and berths at Gwadar port on the Arabian Sea" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">2007</span></div><div class="era-body"><h3>Gwadar deep-sea port</h3><p>A new port on the Arabian Sea, later a centrepiece of the China&ndash;Pakistan Economic Corridor. Foreign investment flows show up in the balance of payments.</p><a class="era-link" href="BOPquest.html"><span><small>Connect it: FDI in the financial account</small>BoP Quest: Pakistan</span><span aria-hidden="true">&rarr;</span></a></div></article>
+    <article class="era" style="--e:#1E6FD9"><div class="ph" data-fallback="Port of Karachi today"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/PK_Karachi_asv2020-02_img47_container_port.jpg?width=960" alt="Ships and cranes at the port of Karachi, 2020" style="object-position:center" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('noimg')"><span class="yr">Today</span></div><div class="era-body"><h3>Pakistan trades with the world</h3><p>Karachi is still the country&rsquo;s busiest port. Output, prices, interest rates and trade all meet here: put them together in one model.</p><a class="era-link" href="macro_simulator_v2.html"><span><small>Connect it: Run the whole economy</small>Macroeconomics Simulator</span><span aria-hidden="true">&rarr;</span></a></div></article>
+  </div>
+  <details class="credits"><summary>Photo credits and licences</summary><ol><li><a href="https://commons.wikimedia.org/wiki/File:Archaeological_Ruins_at_Moenjodaro-108221.jpg" target="_blank" rel="noopener">Mohenjo-daro ruins</a>: Junhi Han / UNESCO, <a href="https://creativecommons.org/licenses/by-sa/3.0/igo/" target="_blank" rel="noopener">CC BY-SA 3.0 IGO</a></li><li><a href="https://commons.wikimedia.org/wiki/File:Poids_cubiques_harapp%C3%A9ens_-_BM.jpg" target="_blank" rel="noopener">Harappan weights</a>: Zunkir, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></li><li><a href="https://commons.wikimedia.org/wiki/File:Kurrachee_Harbour_Works%3B_Titan_for_laying_blocks_of_Manora_breakwater.jpg" target="_blank" rel="noopener">Titan crane, Karachi harbour</a>: The Engineer, 17 September 1869, Public domain</li><li><a href="https://commons.wikimedia.org/wiki/File:Karachi_city_street_view_in_1890.jpg" target="_blank" rel="noopener">Karachi street, 1890</a>: Unknown photographer, via Zainub Razvi (Flickr), <a href="https://creativecommons.org/licenses/by-sa/2.0/" target="_blank" rel="noopener">CC BY-SA 2.0</a></li><li><a href="https://commons.wikimedia.org/wiki/File:KhyberRailway_01.jpg" target="_blank" rel="noopener">Khyber Pass Railway</a>: MaltaGC, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a></li><li><a href="https://commons.wikimedia.org/wiki/File:Old_building_of_State_Bank_of_Pakistan,_Now_its_known_as_State_Bank_Museum.jpg" target="_blank" rel="noopener">Old State Bank building</a>: Asim Iftikhar Nagi, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></li><li><a href="https://commons.wikimedia.org/wiki/File:Mangla_Dam_AerialView.jpg" target="_blank" rel="noopener">Mangla Dam</a>: S zillayali, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a></li><li><a href="https://commons.wikimedia.org/wiki/File:Wheat_Fields_in_Punjab.jpg" target="_blank" rel="noopener">Wheat fields, Punjab</a>: Smohsin, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></li><li><a href="https://commons.wikimedia.org/wiki/File:Tarbela_Dam.jpg" target="_blank" rel="noopener">Tarbela Dam</a>: Tanveer1995, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a></li><li><a href="https://commons.wikimedia.org/wiki/File:Pakistan%27s_M2_Motorway_passing_through_the_Salt_Range.jpg" target="_blank" rel="noopener">M-2 Motorway</a>: Shameel, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a></li><li><a href="https://commons.wikimedia.org/wiki/File:Gwader_port,_Pakistan.jpg" target="_blank" rel="noopener">Gwadar port</a>: شہاب, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></li><li><a href="https://commons.wikimedia.org/wiki/File:PK_Karachi_asv2020-02_img47_container_port.jpg" target="_blank" rel="noopener">Port of Karachi today</a>: A.Savin, <a href="https://artlibre.org/licence/lal/en/" target="_blank" rel="noopener">Free Art License</a></li></ol><p>All photos come from Wikimedia Commons and load from there, so the page needs an internet connection to show them. Images are cropped to fit; none are otherwise altered.</p></details>
+</section>
  
 <footer>
   <div class="foot-inner">
@@ -582,6 +701,12 @@ footer{margin-top:40px;background:var(--ink);color:#C9D2DB}
     });
   });
   q.addEventListener('input', apply);
+
+  // timeline arrows
+  var track = document.getElementById('track');
+  function step(dir){ var card = track.querySelector('.era'); var w = card ? card.getBoundingClientRect().width + 18 : 300; track.scrollBy({left: dir * w * 2, behavior: 'smooth'}); }
+  var tp = document.getElementById('tlPrev'), tn = document.getElementById('tlNext');
+  if (track && tp && tn){ tp.addEventListener('click', function(){ step(-1); }); tn.addEventListener('click', function(){ step(1); }); }
  
   // "New: GDP and CPI games" link should also reset filters so the section is visible
   document.querySelectorAll('a[href^="#group-"]').forEach(function(a){
